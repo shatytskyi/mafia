@@ -151,13 +151,25 @@
     color: var(--bg);
   }
 
-  .screen {
-    animation: fadeIn 0.5s ease;
+  /* Анимация появления — только opacity, без translate, чтобы не создавать эффект «прыжка».
+     Класс навешивается только при СМЕНЕ ЭКРАНА, а не на каждый рендер. */
+  .screen-enter {
+    animation: fadeIn 0.35s ease-out;
   }
 
   @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* Плавное появление элементов внутри экрана (step-card, timer-card и т.п.) */
+  .step-card, .timer-card {
+    transition: border-color 0.2s ease;
+  }
+
+  /* Плавное изменение чипов игроков при смене жив/мёртв */
+  .player-chip {
+    transition: background 0.2s ease, color 0.2s ease, opacity 0.2s ease, border-color 0.2s ease;
   }
 
   /* === TYPOGRAPHY === */
@@ -863,6 +875,11 @@
     margin-top: 32px;
   }
 
+  /* Когда кнопки идут прямо под карточкой шага — уменьшаем отступ */
+  .nav-row-sticky {
+    margin-top: 14px;
+  }
+
   .nav-btn {
     flex: 1;
     padding: 16px;
@@ -932,6 +949,156 @@
     right: 6px;
     color: var(--blood-bright);
     font-size: 10px;
+  }
+
+  /* === ACTION (выбор цели) === */
+  .action-card {
+    border-left-color: var(--gold) !important;
+  }
+
+  .target-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 14px;
+  }
+
+  .target-chip {
+    padding: 14px 10px;
+    background: var(--bg-3);
+    border: 1px solid var(--border-softer);
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    color: var(--text);
+  }
+
+  .target-chip:active { transform: scale(0.97); }
+
+  .target-chip.selected {
+    background: var(--blood);
+    color: var(--button-text);
+    border-color: var(--blood);
+    box-shadow: 0 2px 8px rgba(139, 26, 26, 0.3);
+  }
+
+  .target-skip {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    padding: 12px;
+    background: transparent;
+    border: 1px dashed var(--border-soft);
+    color: var(--text-dim);
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .target-skip:active { transform: scale(0.98); }
+
+  .target-skip.selected {
+    background: var(--bg-3);
+    color: var(--gold);
+    border-color: var(--gold);
+    border-style: solid;
+  }
+
+  .action-result {
+    margin-top: 14px;
+    padding: 14px;
+    background: var(--quote-bg);
+    border-left: 3px solid var(--gold);
+    font-family: 'Oswald', sans-serif;
+    font-size: 18px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-align: center;
+    color: var(--paper);
+  }
+
+  .action-warn {
+    margin-top: 10px;
+    padding: 10px;
+    border-left: 3px solid var(--blood-bright);
+    background: var(--quote-bg);
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    color: var(--blood-bright);
+  }
+
+  /* === RESOLVE CARD (итог ночи) === */
+  .resolve-card .resolve-line {
+    padding: 10px 0;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    line-height: 1.4;
+    color: var(--text);
+    border-bottom: 1px solid var(--border-softest);
+  }
+
+  .resolve-card .resolve-line:last-of-type { border-bottom: none; }
+
+  .resolve-peaceful {
+    color: var(--text-dim) !important;
+    font-style: italic;
+  }
+
+  .resolve-death {
+    color: var(--blood-bright) !important;
+    font-family: 'Oswald', sans-serif !important;
+    font-size: 16px !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase !important;
+  }
+
+  .resolve-saved {
+    color: #5a9b8e !important;
+  }
+
+  .resolve-note {
+    color: var(--text-dim) !important;
+    font-style: italic;
+  }
+
+  .resolve-info {
+    color: var(--gold) !important;
+  }
+
+  .resolve-hint {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--border-soft);
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    color: var(--text-dim);
+    font-size: 14px;
+  }
+
+  /* === SUMMARY & ALIVE COUNTER === */
+  .summary-text {
+    margin-top: 8px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    line-height: 1.4;
+    color: var(--text);
+  }
+
+  .alive-counter {
+    text-align: center;
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    padding: 12px;
   }
 
   /* === NAME INPUT === */
@@ -1227,8 +1394,45 @@ const state = {
   phase: 'night',      // 'night' | 'day' | 'vote'
   stepIndex: 0,
   timer: { seconds: 60, running: false, interval: null },
-  theme: 'light'       // 'light' | 'dark'
+  theme: 'light',      // 'light' | 'dark'
+
+  // ==== Выборы на ТЕКУЩЕЙ ночи ====
+  // null — ещё не выбрано, -1 — «пропустить/никого», число — индекс игрока в state.players
+  night: {
+    mafiaTarget: null,
+    donCheck: null,
+    whoreTarget: null,
+    doctorTarget: null,
+    sheriffCheck: null,
+    maniacTarget: null,
+    // Результат резолва (заполняется на шаге «Итог ночи»)
+    resolved: null
+  },
+
+  // ==== История для проверки ограничений ====
+  doctorHistory: [],   // массив индексов целей доктора по ночам (для «не два раза подряд»)
+  doctorSelfUsed: false, // уже лечил ли себя
+  whoreHistory: [],    // история Путаны (для «не два раза подряд»)
+
+  // ==== Результаты дня ====
+  // Казнённый этим днём (для голосования). null — никто, число — индекс.
+  dayVoteKilled: null
 };
+
+// Создаёт чистый объект ночи (вызывается при переходе на новую ночь).
+function resetNightSelections() {
+  state.night = {
+    mafiaTarget: null,
+    donCheck: null,
+    whoreTarget: null,
+    doctorTarget: null,
+    sheriffCheck: null,
+    maniacTarget: null,
+    resolved: null,
+    applied: false
+  };
+  state.dayVoteKilled = null;
+}
 
 // Применяет тему (CSS-атрибут на <html>). Storage намеренно не используется,
 // т.к. артефакты в Claude.ai не поддерживают localStorage.
@@ -1346,8 +1550,15 @@ function getMafiaNames() {
     .map(p => p.name);
 }
 
+let _lastScreen = null;
+let _lastDealKey = null;
 function render() {
   const app = document.getElementById('app');
+  const screenChanged = _lastScreen !== state.screen;
+  // Для экрана раздачи ролей также анимируем смену игрока и фазы (await↔shown)
+  const dealKey = state.screen === 'deal' ? `${state.dealIndex}:${state.dealPhase}` : null;
+  const dealChanged = dealKey !== null && _lastDealKey !== dealKey;
+
   app.innerHTML = '';
   if (state.screen === 'home') renderHome();
   else if (state.screen === 'names') renderNames();
@@ -1356,7 +1567,18 @@ function render() {
   else if (state.screen === 'gameover') renderGameOver();
   else if (state.screen === 'rules') renderRules();
   updateThemeIcon();
-  window.scrollTo(0, 0);
+
+  // Анимация появления — при смене экрана, либо при смене игрока/фазы на экране раздачи.
+  // Без этого весь host-экран мерцает на каждый шаг/тап.
+  if (screenChanged || dealChanged) {
+    _lastScreen = state.screen;
+    _lastDealKey = dealKey;
+    const firstChild = app.firstElementChild;
+    if (firstChild) {
+      firstChild.classList.add('screen-enter');
+    }
+    if (screenChanged) window.scrollTo(0, 0);
+  }
 }
 
 // Обновляет иконку переключателя темы.
@@ -1660,9 +1882,203 @@ function renderDeal() {
         state.day = 1;
         state.phase = 'night';
         state.stepIndex = 0;
+        // Сбрасываем историю и ночные выборы
+        state.doctorHistory = [];
+        state.doctorSelfUsed = false;
+        state.whoreHistory = [];
+        resetNightSelections();
         render();
       }
     };
+  }
+}
+
+// ============================================================
+// NIGHT RESOLVER
+// ============================================================
+
+// Возвращает роль игрока по индексу, или null если индекс невалиден.
+function getRole(idx) {
+  if (idx == null || idx < 0) return null;
+  const p = state.players[idx];
+  return p ? p.role : null;
+}
+
+// "Mafia team" — обычные мафиози и Дон.
+function isMafiaRole(role) {
+  return role === 'mafia' || role === 'don';
+}
+
+// Проверка: можно ли Доктору лечить этого игрока этой ночью?
+// Возвращает { ok: bool, reason: string }.
+function canDoctorHeal(targetIdx) {
+  if (targetIdx == null || targetIdx < 0) return { ok: true, reason: '' };
+  const target = state.players[targetIdx];
+  if (!target) return { ok: false, reason: 'Игрока нет' };
+
+  // Две ночи подряд одного игрока нельзя
+  const lastTarget = state.doctorHistory[state.doctorHistory.length - 1];
+  if (lastTarget === targetIdx) {
+    return { ok: false, reason: 'Этого игрока Доктор лечил прошлой ночью' };
+  }
+  // Себя — только один раз за игру
+  const doctorIdx = state.players.findIndex(p => p.role === 'doctor');
+  if (targetIdx === doctorIdx && state.doctorSelfUsed) {
+    return { ok: false, reason: 'Себя можно лечить только один раз за игру' };
+  }
+  return { ok: true, reason: '' };
+}
+
+// Можно ли Путане ходить к этому игроку этой ночью?
+function canWhoreGo(targetIdx) {
+  if (targetIdx == null || targetIdx < 0) return { ok: true, reason: '' };
+  const whoreIdx = state.players.findIndex(p => p.role === 'whore');
+  if (targetIdx === whoreIdx) {
+    return { ok: false, reason: 'К себе Путана не ходит' };
+  }
+  const lastTarget = state.whoreHistory[state.whoreHistory.length - 1];
+  if (lastTarget === targetIdx) {
+    return { ok: false, reason: 'К этому игроку Путана ходила прошлой ночью' };
+  }
+  return { ok: true, reason: '' };
+}
+
+// Главный резолвер. Возвращает объект с:
+//   killed: [idx, ...]              — кто реально умер этой ночью
+//   savedByDoctor: idx | null       — кого спас Доктор (если он спас от мафии/маньяка)
+//   blocked: { role: string, ... }  — чьи действия были заблокированы Путаной
+//   sheriffResult: 'mafia'|'notMafia'|null  — результат проверки Шерифа
+//   donResult: 'sheriff'|'notSheriff'|null  — результат проверки Дона
+function resolveNight() {
+  const n = state.night;
+  const isFirstNight = state.day === 1;
+
+  const result = {
+    killed: [],
+    savedByDoctor: null,
+    blocked: {},
+    sheriffResult: null,
+    donResult: null,
+    whoreDied: false
+  };
+
+  // 1) Применяем блокировки Путаны
+  // Путана блокирует цель: её ночное действие не срабатывает.
+  // Если цель Путаны — мафиози, Путана сама погибает (вместе с мафией, если мафия сегодня убивает).
+  let mafiaBlocked = false;
+  let maniacBlocked = false;
+  let doctorBlocked = false;
+  let sheriffBlocked = false;
+  let donBlocked = false;
+
+  if (n.whoreTarget != null && n.whoreTarget >= 0) {
+    const blockedRole = getRole(n.whoreTarget);
+    if (isMafiaRole(blockedRole)) {
+      // Блокирует мафиози (любого)
+      mafiaBlocked = true;
+      if (blockedRole === 'don') donBlocked = true;
+      result.blocked.mafia = true;
+      // Путана умирает, потому что "застала мафиози"
+      result.whoreDied = true;
+    } else if (blockedRole === 'maniac') {
+      maniacBlocked = true;
+      result.blocked.maniac = true;
+    } else if (blockedRole === 'doctor') {
+      doctorBlocked = true;
+      result.blocked.doctor = true;
+    } else if (blockedRole === 'sheriff') {
+      sheriffBlocked = true;
+      result.blocked.sheriff = true;
+    }
+    // Мирные, путана — блокировка не имеет эффекта (у них нет ночной способности)
+  }
+
+  // 2) Проверка Шерифа (информационное действие — не меняет живых)
+  if (n.sheriffCheck != null && n.sheriffCheck >= 0 && !sheriffBlocked) {
+    const checkedRole = getRole(n.sheriffCheck);
+    // Дон показывается как мафия, маньяк — как НЕ мафия, остальные мафиози — как мафия.
+    result.sheriffResult = isMafiaRole(checkedRole) ? 'mafia' : 'notMafia';
+  }
+
+  // 3) Проверка Дона
+  if (n.donCheck != null && n.donCheck >= 0 && !donBlocked) {
+    const checkedRole = getRole(n.donCheck);
+    result.donResult = checkedRole === 'sheriff' ? 'sheriff' : 'notSheriff';
+  }
+
+  // 4) Определяем цель мафии (с учётом блокировки)
+  // На первой ночи мафия не убивает — игнорируем даже если цель выбрана.
+  let mafiaVictim = null;
+  if (!isFirstNight && !mafiaBlocked && n.mafiaTarget != null && n.mafiaTarget >= 0) {
+    mafiaVictim = n.mafiaTarget;
+  }
+
+  // 5) Определяем цель маньяка
+  let maniacVictim = null;
+  if (!maniacBlocked && n.maniacTarget != null && n.maniacTarget >= 0) {
+    maniacVictim = n.maniacTarget;
+  }
+
+  // 6) Доктор — кого он лечит (с учётом блокировки)
+  let healed = null;
+  if (!doctorBlocked && n.doctorTarget != null && n.doctorTarget >= 0) {
+    healed = n.doctorTarget;
+  }
+
+  // 7) Применяем смерти
+  const killedSet = new Set();
+  if (mafiaVictim != null) {
+    if (healed === mafiaVictim) {
+      result.savedByDoctor = mafiaVictim;
+    } else {
+      killedSet.add(mafiaVictim);
+    }
+  }
+  if (maniacVictim != null) {
+    if (healed === maniacVictim) {
+      // Доктор лечит и от маньяка (классика)
+      if (result.savedByDoctor == null) result.savedByDoctor = maniacVictim;
+    } else {
+      killedSet.add(maniacVictim);
+    }
+  }
+  // Путана умирает если заблокировала мафию (независимо от того, убивала ли мафия)
+  if (result.whoreDied && !isFirstNight) {
+    const whoreIdx = state.players.findIndex(p => p.role === 'whore' && p.alive);
+    if (whoreIdx !== -1) killedSet.add(whoreIdx);
+  } else {
+    // На первой ночи мафия не убивает — значит, путана "застала мафиози",
+    // но они не убивают её, т.к. ещё не действуют.
+    result.whoreDied = false;
+  }
+
+  result.killed = Array.from(killedSet);
+  return result;
+}
+
+// Применяет результаты ночи: убивает игроков, обновляет историю доктора/путаны.
+// Идемпотентна: повторный вызов ничего не испортит.
+function applyNightResolution() {
+  const r = state.night.resolved;
+  if (!r) return;
+  if (state.night.applied) return; // уже применили
+  state.night.applied = true;
+  for (const idx of r.killed) {
+    state.players[idx].alive = false;
+  }
+  // Обновляем историю Доктора
+  if (state.night.doctorTarget != null && state.night.doctorTarget >= 0) {
+    state.doctorHistory.push(state.night.doctorTarget);
+    const doctorIdx = state.players.findIndex(p => p.role === 'doctor');
+    if (state.night.doctorTarget === doctorIdx) state.doctorSelfUsed = true;
+  } else {
+    state.doctorHistory.push(null);
+  }
+  // Обновляем историю Путаны
+  if (state.night.whoreTarget != null && state.night.whoreTarget >= 0) {
+    state.whoreHistory.push(state.night.whoreTarget);
+  } else {
+    state.whoreHistory.push(null);
   }
 }
 
@@ -1675,22 +2091,19 @@ function getNightSteps() {
   const hasMafia = hasAlive('mafia') || hasAlive('don');
   const isFirstNight = state.day === 1;
 
-  // На первой ночи мафия только знакомится (без убийства) — это классика.
-  // Ведущий сам решит в конце, но подсказка поможет.
-
   steps.push({
     title: 'Город засыпает',
     say: 'Город засыпает. Все закрывают глаза. Прошу тишины.',
     hint: 'Дождись полной тишины. Попроси игроков закрыть глаза и положить руки на стол — ритмичное постукивание скроет шорохи от активных ролей.'
   });
 
-  // Первая ночь: мафия знакомится
+  // Первая ночь: мафия знакомится (без убийства)
   if (isFirstNight && hasMafia) {
     steps.push({
       title: 'Мафия знакомится',
       cls: 'mafia-action',
       say: 'Мафия, просыпайся. Познакомьтесь друг с другом молча — взглядом и кивком.',
-      hint: 'Дай мафиози 10–15 секунд узнать друг друга. Это нужно только в первую ночь. В эту ночь мафия НЕ убивает — первого жителя убивают со второй ночи (по классике). Некоторые играют иначе — как договоритесь.'
+      hint: 'Дай мафиози 10–15 секунд узнать друг друга. В эту ночь мафия НЕ убивает — первого жителя убивают со второй ночи.'
     });
     steps.push({ title: 'Мафия засыпает', say: 'Мафия, закрой глаза.', hint: '' });
   }
@@ -1700,22 +2113,36 @@ function getNightSteps() {
     steps.push({
       title: 'Путана просыпается',
       cls: 'whore-action',
-      say: 'Путана, открой глаза. Укажи, к кому идёшь этой ночью.',
-      hint: 'Запомни цель. Правила блокировки: этот игрок не сможет применить свою ночную способность. Если Путана пришла к мафиози — считается, что она застала их и погибает вместе с жертвой мафии (если мафия сегодня убивает). Нельзя ходить к одному и тому же игроку две ночи подряд.'
+      say: 'Путана, открой глаза. К кому идёшь этой ночью?',
+      hint: 'Выбери цель ниже. Её ночная способность не сработает. Если к мафиози — Путана погибает вместе с ними. Нельзя ходить к одному игроку две ночи подряд.',
+      action: {
+        type: 'pickTarget',
+        field: 'whoreTarget',
+        role: 'whore',
+        label: 'К кому идёт Путана',
+        allowSkip: false,
+        validate: (idx) => canWhoreGo(idx)
+      }
     });
     steps.push({ title: 'Путана засыпает', say: 'Путана, закрой глаза.', hint: '' });
   }
 
-  // Мафия убивает (не на первой ночи, если играем по классике)
+  // Мафия убивает (не на первой ночи)
   if (!isFirstNight && hasMafia) {
     steps.push({
       title: 'Мафия просыпается',
       cls: 'mafia-action',
-      say: 'Мафия, просыпайся. Тихо, жестами выберите жертву.',
-      hint: 'Дождись единогласного решения. Если мафия не договорилась за ~30 секунд — ночь без убийства. Запомни имя жертвы. Если Путана заблокировала мафию — жертвы мафии тоже нет (и Путана умирает).'
+      say: 'Мафия, просыпайся. Жестами выберите жертву.',
+      hint: 'Дождись единогласного решения. Если мафия не договорилась — нажми «Пропустить», и ночь пройдёт без убийства от мафии.',
+      action: {
+        type: 'pickTarget',
+        field: 'mafiaTarget',
+        role: 'mafia',
+        label: 'Жертва мафии',
+        allowSkip: true,
+        skipLabel: 'Мафия не договорилась'
+      }
     });
-  } else if (isFirstNight && !hasMafia) {
-    // нет мафии в игре — не нужен шаг
   }
 
   // Дон ищет Шерифа (каждую ночь, включая первую)
@@ -1723,15 +2150,26 @@ function getNightSteps() {
     steps.push({
       title: 'Дон ищет Шерифа',
       cls: 'mafia-action',
-      say: 'Дон, открой глаза. Укажи, кого проверяешь.',
-      hint: 'Покажи Дону ответ жестом: кивок (да) — это Шериф, покачивание (нет) — не Шериф. Если Дон был заблокирован Путаной — ничего не показывай (но чтобы он не догадался, сделай паузу и покажи «нет»).'
+      say: 'Дон, укажи, кого проверяешь.',
+      hint: 'Выбери цель. Приложение покажет результат — Шериф или нет. Покажи Дону ответ жестом: кивок (да) / покачивание (нет).',
+      action: {
+        type: 'pickTarget',
+        field: 'donCheck',
+        role: 'don',
+        label: 'Проверка Дона',
+        allowSkip: true,
+        skipLabel: 'Не проверять',
+        showResult: (idx) => {
+          const role = getRole(idx);
+          return role === 'sheriff' ? '✓ Это Шериф' : '✗ Не Шериф';
+        }
+      }
     });
   }
 
   if (!isFirstNight && hasMafia) {
     steps.push({ title: 'Мафия засыпает', say: 'Мафия, закрой глаза.', hint: '' });
-  } else if (state.optionalRoles.don && hasAlive('don')) {
-    // Если была только проверка Дона — усыпляем
+  } else if (isFirstNight && state.optionalRoles.don && hasAlive('don')) {
     steps.push({ title: 'Дон засыпает', say: 'Дон, закрой глаза.', hint: '' });
   }
 
@@ -1741,7 +2179,16 @@ function getNightSteps() {
       title: 'Доктор просыпается',
       cls: 'doctor-action',
       say: 'Доктор, просыпайся. Кого лечишь этой ночью?',
-      hint: 'Запомни выбор. Ограничения: (1) нельзя лечить одного игрока две ночи подряд; (2) себя можно лечить только ОДИН раз за всю игру. Доктор лечит от мафии И от маньяка (классика) — договоритесь об этом заранее. Если Доктор заблокирован Путаной — ничьё лечение не сработает.'
+      hint: 'Ограничения: нельзя лечить одного игрока две ночи подряд; себя — только один раз за игру. Доктор лечит и от мафии, и от маньяка.',
+      action: {
+        type: 'pickTarget',
+        field: 'doctorTarget',
+        role: 'doctor',
+        label: 'Кого лечит Доктор',
+        allowSkip: true,
+        skipLabel: 'Не лечить никого',
+        validate: (idx) => canDoctorHeal(idx)
+      }
     });
     steps.push({ title: 'Доктор засыпает', say: 'Доктор, закрой глаза.', hint: '' });
   }
@@ -1751,8 +2198,21 @@ function getNightSteps() {
     steps.push({
       title: 'Шериф просыпается',
       cls: 'sheriff-action',
-      say: 'Шериф, просыпайся. Кого проверяешь этой ночью?',
-      hint: 'Ответ жестом: большой палец вверх — НЕ мафия, вниз — мафия. Важно: Дон для шерифа показывается как мафия. Маньяк — как НЕ мафия (он не красный). Если Шериф заблокирован Путаной — покажи ложный результат «не мафия» или вообще ничего (на ваше усмотрение, но одинаково всю игру).'
+      say: 'Шериф, просыпайся. Кого проверяешь?',
+      hint: 'Выбери цель. Приложение покажет результат. Покажи Шерифу жестом: палец вверх — НЕ мафия, вниз — мафия.',
+      action: {
+        type: 'pickTarget',
+        field: 'sheriffCheck',
+        role: 'sheriff',
+        label: 'Проверка Шерифа',
+        allowSkip: true,
+        skipLabel: 'Не проверять',
+        showResult: (idx) => {
+          const role = getRole(idx);
+          // Дон = мафия, маньяк = не мафия, остальные по факту
+          return isMafiaRole(role) ? '🔴 МАФИЯ' : '🟢 НЕ МАФИЯ';
+        }
+      }
     });
     steps.push({ title: 'Шериф засыпает', say: 'Шериф, закрой глаза.', hint: '' });
   }
@@ -1762,37 +2222,32 @@ function getNightSteps() {
     steps.push({
       title: 'Маньяк просыпается',
       cls: 'maniac-action',
-      say: 'Маньяк, открой глаза. Кого ты убиваешь этой ночью?',
-      hint: 'Запомни цель маньяка. Важно: Доктор по умолчанию лечит и от маньяка. Если маньяк и мафия выбрали одну цель — умирает один раз (Доктор может спасти). Если маньяк заблокирован Путаной — он не убивает.'
+      say: 'Маньяк, открой глаза. Кого убиваешь?',
+      hint: 'Если Маньяк заблокирован Путаной — он не убивает. Доктор лечит и от маньяка.',
+      action: {
+        type: 'pickTarget',
+        field: 'maniacTarget',
+        role: 'maniac',
+        label: 'Жертва Маньяка',
+        allowSkip: true,
+        skipLabel: 'Маньяк не убивает'
+      }
     });
     steps.push({ title: 'Маньяк засыпает', say: 'Маньяк, закрой глаза.', hint: '' });
   }
 
-  // КРИТИЧЕСКИЙ ШАГ: подведение итогов ночи
+  // КРИТИЧЕСКИЙ ШАГ: авторезолв
   steps.push({
     title: 'Итог ночи',
-    say: '(про себя) Подведи итог ночи.',
-    hint: `📋 АЛГОРИТМ ПОДСЧЁТА ЖЕРТВ:
-
-1️⃣ Составь список целей: кого выбрала мафия, кого — маньяк.
-
-2️⃣ Применяй блокировки Путаны (если есть):
-   • Путана у мафиози → цель мафии снимается + Путана умирает
-   • Путана у маньяка → цель маньяка снимается
-   • Путана у Доктора → лечение не сработает
-   • Путана у Шерифа/Дона → их проверки недействительны (но жертвы это не отменяет)
-
-3️⃣ Применяй лечение Доктора:
-   • Если цель Доктора совпадает с целью мафии/маньяка — жертва выживает
-   • Помни про ограничения: та же цель два раза подряд — НЕЛЬЗЯ, себя — только раз за игру
-
-4️⃣ Итог: список реально умерших. Если пусто — «ночь прошла спокойно».`
+    say: '(про себя) Проверь результат.',
+    hint: 'Приложение автоматически подсчитало результат с учётом всех блокировок, лечения и маньяка. Нажми «Далее», чтобы применить смерти и перейти к объявлению.',
+    action: { type: 'resolveNight' }
   });
 
   steps.push({
     title: 'Город просыпается',
     say: 'Город просыпается. Открывайте глаза.',
-    hint: 'Сейчас ты объявишь результаты. Драматизируй: «Этой ночью на углу улиц...». Порядок объявления умерших — случайный, но запомни сам, чтобы потом задавать порядок обсуждения.'
+    hint: 'Объявляй результаты драматично: «Этой ночью на углу улиц...». Если никто не умер — «эта ночь прошла спокойно».'
   });
 
   return steps;
@@ -1801,35 +2256,63 @@ function getNightSteps() {
 function getDaySteps() {
   const isFirstDay = state.day === 1;
   const steps = [];
+  const resolved = state.night.resolved;
+
+  // Первый шаг — динамическая сводка о смертях
+  let victimsText = '';
+  let victimsSay = '';
+  if (isFirstDay) {
+    victimsSay = 'Доброе утро, город. Первый день — все живы. Пора знакомиться.';
+    victimsText = 'Первый день — смертей нет. Все живы.';
+  } else if (resolved && resolved.killed.length === 0) {
+    victimsSay = `День ${state.day}. Этой ночью никто не погиб.`;
+    victimsText = 'Эта ночь прошла спокойно. Все живы.';
+  } else if (resolved && resolved.killed.length > 0) {
+    const names = resolved.killed.map(idx => state.players[idx].name).join(', ');
+    victimsSay = `День ${state.day}. Этой ночью погиб${resolved.killed.length > 1 ? 'ли' : ''}: ${names}.`;
+    victimsText = `Погибшие: ${names}`;
+    if (resolved.savedByDoctor != null) {
+      const savedName = state.players[resolved.savedByDoctor].name;
+      victimsText += `\n(Доктор спас ${savedName})`;
+    }
+  } else {
+    victimsSay = `Наступает день ${state.day}.`;
+    victimsText = 'Результаты ночи ещё не подведены.';
+  }
 
   steps.push({
     title: isFirstDay ? 'Утро первого дня' : 'Объявление жертв',
-    say: isFirstDay
-      ? 'Доброе утро, город. Это первый день — все живы. Пора знакомиться и осматриваться.'
-      : `Наступает день ${state.day}. Этой ночью...`,
+    say: victimsSay,
     hint: isFirstDay
-      ? 'На первом дне обычно никого не убивают ночью (мафия знакомится). Пропусти объявление жертв и переходи к обсуждению.'
-      : 'Назови имена погибших драматично. Дай каждому погибшему последнее слово (30 секунд). По классике — погибший может открыть свою роль, но НЕ намекать на убийцу. Решите заранее, как играете.'
+      ? 'Переходи к обсуждению.'
+      : 'По классике — погибший может открыть свою роль, но НЕ намекать на убийцу. Дай 30 секунд на последнее слово.',
+    timerSeconds: isFirstDay ? null : 30,
+    timerLabel: 'Последнее слово погибшего',
+    summary: victimsText
   });
 
   steps.push({
     title: 'Обсуждение',
     say: 'Время обсудить. У каждого минута, чтобы высказаться по кругу.',
     hint: isFirstDay
-      ? 'Первый день обычно короткий — игроки почти ничего не знают. Можно ограничиться 30 секундами на человека. Начинайте с любого.'
-      : 'Начни с игрока слева от первого умершего (стандарт). Строго следи за таймингом. Никто не перебивает говорящего.'
+      ? 'Первый день обычно короткий — игроки почти ничего не знают. Начинайте с любого.'
+      : 'Начни с игрока слева от первого умершего. Строго следи за таймингом. Никто не перебивает.',
+    timerSeconds: 60,
+    timerLabel: 'Минута на игрока'
   });
 
   steps.push({
     title: 'Выдвижение кандидатов',
-    say: 'Кого вы подозреваете? Выдвигайте кандидатов на голосование.',
-    hint: 'Правила: один игрок выдвигает одного. Сам себя — нельзя. Выдвинутого нельзя «отозвать». Запиши список. Если никто не выдвинут — переходим сразу к ночи (голосования не будет).'
+    say: 'Кого вы подозреваете? Выдвигайте кандидатов.',
+    hint: 'Один игрок выдвигает одного. Сам себя — нельзя. Если никто не выдвинут — голосования не будет, сразу к ночи.'
   });
 
   steps.push({
     title: 'Последнее слово кандидатов',
     say: 'Каждому кандидату — 30 секунд на оправдание.',
-    hint: 'Выступают в порядке выдвижения. Если выдвинут только один — можно сразу голосовать «за/против» него, либо считать, что город решил казнить его без голоса (по договорённости).'
+    hint: 'Выступают в порядке выдвижения.',
+    timerSeconds: 30,
+    timerLabel: '30 секунд на оправдание'
   });
 
   return steps;
@@ -1840,25 +2323,27 @@ function getVoteSteps() {
     {
       title: 'Голосование',
       say: 'Голосуем. Поднимите руку за того, кого считаете мафией.',
-      hint: 'Называй кандидатов по очереди. Правила: (1) каждый голосует ровно ОДИН раз; (2) игрок не может голосовать за себя; (3) голосуют только ЖИВЫЕ; (4) если остался один неопределившийся и его голос ни на что не влияет — может не голосовать. Считай голоса вслух.'
+      hint: 'Называй кандидатов по очереди. Каждый голосует ровно один раз, не за себя. Считай голоса вслух.'
     },
     {
       title: 'Разрешение ничьи',
       say: '(если голоса равны) Объявляю переголосование.',
-      hint: `⚖️ ЕСЛИ РАВНОЕ ЧИСЛО ГОЛОСОВ:
-
-Вариант 1 (классика): переголосование ТОЛЬКО между лидерами. Их последнее слово — 20 сек. Затем все снова голосуют.
-
-Вариант 2: если снова равенство — либо НИКТО не уходит («город не договорился»), либо УХОДЯТ ВСЕ лидеры сразу. Реши ДО игры, как играете.
-
-Если выдвинут только один кандидат — в большинстве клубов он уходит автоматически без голосования.
-
-Если лидеров нет (кандидатов не выдвигали) — пропусти этот шаг и следующий, переходи сразу к ночи.`
+      hint: `Если голоса равны: переголосование между лидерами с последним словом 20 сек. Если снова равенство — никто не уходит ИЛИ все лидеры уходят (решите до игры).`,
+      timerSeconds: 20,
+      timerLabel: '20 секунд на повторное оправдание'
     },
     {
       title: 'Казнь',
       say: 'Город сделал свой выбор.',
-      hint: 'Тапни по имени казнённого в списке ниже — он станет мёртвым. Дай ему последнее слово (30 сек). По классике — открывает свою роль. Если никого не казнят — просто переходи к следующему шагу.'
+      hint: 'Выбери казнённого ниже или нажми «Никто не уходит». Ему — 30 секунд последнего слова. По классике открывает роль.',
+      timerSeconds: 30,
+      timerLabel: 'Последнее слово казнённого',
+      action: {
+        type: 'pickKilled',
+        label: 'Кого казнил город',
+        allowSkip: true,
+        skipLabel: 'Никто не уходит'
+      }
     }
   ];
 }
@@ -1931,7 +2416,7 @@ function checkWinCondition() {
 function renderHost() {
   const app = document.getElementById('app');
 
-  // Проверяем победу перед рендером — на случай если ведущий пропустил момент.
+  // Проверяем победу перед рендером.
   const winner = checkWinCondition();
   if (winner) {
     state.winner = winner;
@@ -1942,21 +2427,34 @@ function renderHost() {
   }
 
   const steps = getCurrentSteps();
-  // Защита: если stepIndex вышел за границу (например, после смены ролей между ночами)
   if (state.stepIndex >= steps.length) state.stepIndex = steps.length - 1;
   if (state.stepIndex < 0) state.stepIndex = 0;
   const step = steps[state.stepIndex];
   const isLast = state.stepIndex === steps.length - 1;
 
-  const phaseLabel = {
-    night: 'Ночь',
-    day: 'День',
-    vote: 'Голосование'
-  }[state.phase];
-
+  const phaseLabel = { night: 'Ночь', day: 'День', vote: 'Голосование' }[state.phase];
   const phaseCls = state.phase;
-
   const aliveCount = state.players.filter(p => p.alive).length;
+
+  // --- Собираем разметку action/summary ---
+  let actionHtml = '';
+  let summaryHtml = '';
+
+  if (step.summary) {
+    summaryHtml = `
+      <div class="step-card" style="border-left-color: var(--blood);">
+        <div class="step-title">Результат</div>
+        <div class="summary-text">${step.summary.replace(/\n/g, '<br>')}</div>
+      </div>
+    `;
+  }
+
+  if (step.action) {
+    actionHtml = renderAction(step.action);
+  }
+
+  // Первый шаг игры — первая ночь, день 1
+  const isVeryFirstStep = state.stepIndex === 0 && state.phase === 'night' && state.day === 1;
 
   app.innerHTML = `
     <div class="screen">
@@ -1975,29 +2473,19 @@ function renderHost() {
         ${step.hint ? `<div class="step-hint">💡 ${step.hint}</div>` : ''}
       </div>
 
-      ${((state.phase === 'day' && (state.stepIndex === 1 || state.stepIndex === 3)) || state.phase === 'vote') ? renderTimer() : ''}
-
-      <div class="section mt-24">
-        <div class="section-head">
-          <span class="num">✦</span>
-          <span class="label">Игроки · живых ${aliveCount}/${state.playerCount}</span>
-          <span class="line"></span>
-        </div>
-        <p class="step-hint mb-16" style="font-size: 13px;">Тапни по имени, чтобы отметить игрока мёртвым или воскресить (если ошибся)</p>
-        <div class="players-list">
-          ${state.players.map((p, i) => `
-            <div class="player-chip ${!p.alive ? 'dead' : ''}" data-player="${i}">
-              ${p.name}
-            </div>
-          `).join('')}
-        </div>
-      </div>
-
-      <div class="nav-row">
-        <button class="nav-btn" id="prevStep" ${state.stepIndex === 0 && state.phase === 'night' && state.day === 1 ? 'disabled' : ''}>← Назад</button>
-        <button class="nav-btn primary" id="nextStep">
+      <div class="nav-row nav-row-sticky">
+        <button class="nav-btn" id="prevStep" ${isVeryFirstStep ? 'disabled' : ''}>← Назад</button>
+        <button class="nav-btn primary" id="nextStep" ${isNextDisabled(step) ? 'disabled' : ''}>
           ${isLast ? nextPhaseLabel() : 'Далее →'}
         </button>
+      </div>
+
+      ${summaryHtml}
+      ${actionHtml}
+      ${step.timerSeconds ? renderTimer(step.timerSeconds, step.timerLabel) : ''}
+
+      <div class="alive-counter mt-24">
+        <span>Живых ${aliveCount} из ${state.playerCount}</span>
       </div>
 
       <div style="height: 16px;"></div>
@@ -2005,26 +2493,14 @@ function renderHost() {
     </div>
   `;
 
-  // Player toggle
-  document.querySelectorAll('[data-player]').forEach(el => {
-    el.onclick = () => {
-      const idx = parseInt(el.dataset.player);
-      state.players[idx].alive = !state.players[idx].alive;
-      const winner = checkWinCondition();
-      if (winner) {
-        state.winner = winner;
-        state.screen = 'gameover';
-      }
-      render();
-    };
-  });
+  // Обработчики action (выбор цели / пропуск)
+  bindActionHandlers(step);
 
-  // Nav
+  // Nav: Назад
   document.getElementById('prevStep').onclick = () => {
     if (state.stepIndex > 0) {
       state.stepIndex--;
     } else {
-      // Go back to previous phase
       if (state.phase === 'vote') { state.phase = 'day'; state.stepIndex = getDaySteps().length - 1; }
       else if (state.phase === 'day') { state.phase = 'night'; state.stepIndex = getNightSteps().length - 1; }
     }
@@ -2032,22 +2508,62 @@ function renderHost() {
     render();
   };
 
+  // Nav: Далее
   document.getElementById('nextStep').onclick = () => {
+    if (isNextDisabled(step)) return;
+
+    // Если на этом шаге авторезолв ночи — применяем его.
+    // Важно: state.night.resolved уже вычислен в renderResolveNight при рендере этого шага.
+    if (step.action && step.action.type === 'resolveNight') {
+      // На всякий случай пересчитываем, если resolved не проставлен
+      if (!state.night.resolved) {
+        state.night.resolved = resolveNight();
+      }
+      applyNightResolution();
+      const w = checkWinCondition();
+      if (w) {
+        state.winner = w;
+        state.screen = 'gameover';
+        stopTimer();
+        render();
+        return;
+      }
+    }
+
+    // Применяем казнь при переходе с шага казни
+    if (step.action && step.action.type === 'pickKilled' && state.dayVoteKilled != null && state.dayVoteKilled >= 0) {
+      state.players[state.dayVoteKilled].alive = false;
+      const w = checkWinCondition();
+      if (w) {
+        state.winner = w;
+        state.screen = 'gameover';
+        stopTimer();
+        render();
+        return;
+      }
+    }
+
+    // Переход на следующий шаг или следующую фазу
     if (state.stepIndex < steps.length - 1) {
       state.stepIndex++;
     } else {
-      // Transition
-      if (state.phase === 'night') { state.phase = 'day'; state.stepIndex = 0; }
-      else if (state.phase === 'day') { state.phase = 'vote'; state.stepIndex = 0; }
-      else if (state.phase === 'vote') {
-        const winner = checkWinCondition();
-        if (winner) {
-          state.winner = winner;
+      if (state.phase === 'night') {
+        state.phase = 'day';
+        state.stepIndex = 0;
+      } else if (state.phase === 'day') {
+        state.phase = 'vote';
+        state.stepIndex = 0;
+      } else if (state.phase === 'vote') {
+        const w = checkWinCondition();
+        if (w) {
+          state.winner = w;
           state.screen = 'gameover';
         } else {
+          // vote → новая ночь: очищаем ночные выборы (включая resolved).
           state.day++;
           state.phase = 'night';
           state.stepIndex = 0;
+          resetNightSelections();
         }
       }
     }
@@ -2064,6 +2580,186 @@ function renderHost() {
   };
 }
 
+// Проверяет, нужно ли заблокировать кнопку "Далее"
+// (чтобы не пойти дальше пока не выбрана цель на шаге).
+function isNextDisabled(step) {
+  if (!step.action) return false;
+  const a = step.action;
+  if (a.type === 'pickTarget') {
+    const val = state.night[a.field];
+    return val === null; // -1 означает "пропустить" — это валидный выбор
+  }
+  // pickKilled и resolveNight — не блокируем, можно идти дальше всегда
+  return false;
+}
+
+// ============================================================
+// ACTION RENDERING (выбор целей, резолв и т.п.)
+// ============================================================
+function renderAction(action) {
+  if (action.type === 'pickTarget') return renderPickTarget(action);
+  if (action.type === 'pickKilled') return renderPickKilled(action);
+  if (action.type === 'resolveNight') return renderResolveNight();
+  return '';
+}
+
+// Рендер сетки выбора цели + кнопка "пропустить"
+function renderPickTarget(action) {
+  const selected = state.night[action.field];
+  const alive = state.players.filter(p => p.alive);
+  const validation = action.validate ? action.validate(selected) : { ok: true };
+
+  // Результат проверки (для Шерифа и Дона) — показываем только после выбора
+  let resultHtml = '';
+  if (action.showResult && selected != null && selected >= 0) {
+    resultHtml = `<div class="action-result">${action.showResult(selected)}</div>`;
+  }
+
+  // Предупреждение о невалидном выборе
+  let warnHtml = '';
+  if (!validation.ok && selected != null && selected >= 0) {
+    warnHtml = `<div class="action-warn">⚠ ${validation.reason}</div>`;
+  }
+
+  return `
+    <div class="step-card action-card">
+      <div class="step-title">${action.label}</div>
+      <div class="target-grid">
+        ${state.players.map((p, i) => {
+          if (!p.alive) return '';
+          const isSelected = selected === i;
+          return `
+            <div class="target-chip ${isSelected ? 'selected' : ''}" data-target-idx="${i}" data-field="${action.field}">
+              ${p.name}
+            </div>
+          `;
+        }).join('')}
+      </div>
+      ${action.allowSkip ? `
+        <button class="target-skip ${selected === -1 ? 'selected' : ''}" data-skip data-field="${action.field}">
+          ${action.skipLabel || 'Пропустить'}
+        </button>
+      ` : ''}
+      ${resultHtml}
+      ${warnHtml}
+    </div>
+  `;
+}
+
+// Рендер выбора казнённого (переиспользует pickTarget, но пишет в state.dayVoteKilled)
+function renderPickKilled(action) {
+  const selected = state.dayVoteKilled;
+  return `
+    <div class="step-card action-card">
+      <div class="step-title">${action.label}</div>
+      <div class="target-grid">
+        ${state.players.map((p, i) => {
+          if (!p.alive) return '';
+          const isSelected = selected === i;
+          return `
+            <div class="target-chip ${isSelected ? 'selected' : ''}" data-killed-idx="${i}">
+              ${p.name}
+            </div>
+          `;
+        }).join('')}
+      </div>
+      <button class="target-skip ${selected === -1 ? 'selected' : ''}" data-killed-skip>
+        ${action.skipLabel || 'Никто не уходит'}
+      </button>
+    </div>
+  `;
+}
+
+// Рендер итога ночи — вычисляет результат (или берёт уже посчитанный).
+function renderResolveNight() {
+  // Если ночь уже применена (например, пользователь вернулся назад) —
+  // используем сохранённый результат, а не пересчитываем на мёртвых игроках.
+  if (!state.night.applied || !state.night.resolved) {
+    state.night.resolved = resolveNight();
+  }
+  const r = state.night.resolved;
+
+  let html = '<div class="step-card action-card resolve-card"><div class="step-title">Автоматический итог</div>';
+
+  if (r.killed.length === 0) {
+    html += '<div class="resolve-line resolve-peaceful">☾ Ночь прошла спокойно</div>';
+  } else {
+    const names = r.killed.map(i => state.players[i].name).join(', ');
+    html += `<div class="resolve-line resolve-death">✖ Погибли: <strong>${names}</strong></div>`;
+  }
+
+  if (r.savedByDoctor != null) {
+    const name = state.players[r.savedByDoctor].name;
+    html += `<div class="resolve-line resolve-saved">✚ Доктор спас: <strong>${name}</strong></div>`;
+  }
+
+  if (r.whoreDied) {
+    html += `<div class="resolve-line resolve-note">❀ Путана попала к мафии и погибла</div>`;
+  }
+
+  // Показываем только ведущему: кто что проверял (уже объявлено игроку, но для контроля)
+  if (r.sheriffResult) {
+    const idx = state.night.sheriffCheck;
+    const name = state.players[idx].name;
+    html += `<div class="resolve-line resolve-info">✦ Шериф проверил ${name}: ${r.sheriffResult === 'mafia' ? '🔴 мафия' : '🟢 не мафия'}</div>`;
+  }
+  if (r.donResult) {
+    const idx = state.night.donCheck;
+    const name = state.players[idx].name;
+    html += `<div class="resolve-line resolve-info">♛ Дон проверил ${name}: ${r.donResult === 'sheriff' ? '✓ Шериф' : '✗ не Шериф'}</div>`;
+  }
+
+  const blocked = [];
+  if (r.blocked.mafia) blocked.push('Мафия');
+  if (r.blocked.maniac) blocked.push('Маньяк');
+  if (r.blocked.doctor) blocked.push('Доктор');
+  if (r.blocked.sheriff) blocked.push('Шериф');
+  if (blocked.length > 0) {
+    html += `<div class="resolve-line resolve-note">❀ Путана заблокировала: ${blocked.join(', ')}</div>`;
+  }
+
+  html += '<div class="resolve-hint">Нажми «Далее», чтобы применить результат и перейти к объявлению.</div>';
+  html += '</div>';
+  return html;
+}
+
+// Подключает обработчики к элементам action после рендера
+function bindActionHandlers(step) {
+  if (!step.action) return;
+
+  // Выбор цели (pickTarget)
+  document.querySelectorAll('[data-target-idx]').forEach(el => {
+    el.onclick = () => {
+      const idx = parseInt(el.dataset.targetIdx);
+      const field = el.dataset.field;
+      state.night[field] = idx;
+      render();
+    };
+  });
+  document.querySelectorAll('[data-skip]').forEach(el => {
+    el.onclick = () => {
+      const field = el.dataset.field;
+      state.night[field] = -1; // -1 = пропустить
+      render();
+    };
+  });
+
+  // Выбор казнённого (pickKilled)
+  document.querySelectorAll('[data-killed-idx]').forEach(el => {
+    el.onclick = () => {
+      state.dayVoteKilled = parseInt(el.dataset.killedIdx);
+      render();
+    };
+  });
+  const skipKilled = document.querySelector('[data-killed-skip]');
+  if (skipKilled) {
+    skipKilled.onclick = () => {
+      state.dayVoteKilled = -1;
+      render();
+    };
+  }
+}
+
 function nextPhaseLabel() {
   if (state.phase === 'night') return 'К дню →';
   if (state.phase === 'day') return 'К голосованию →';
@@ -2074,61 +2770,147 @@ function nextPhaseLabel() {
 // ============================================================
 // TIMER
 // ============================================================
-function renderTimer() {
-  const s = state.timer.seconds;
-  const mm = String(Math.floor(s/60)).padStart(2,'0');
-  const ss = String(s%60).padStart(2,'0');
-  const cls = s <= 10 ? 'warning' : '';
 
+// Отслеживаем, на каком шаге был последний ресет, чтобы не ресетить повторно
+// при обновлениях внутри того же шага.
+let lastTimerStepKey = null;
+
+// Web Audio API — тихий "тик" и финальный "гонг".
+let audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) {
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch(e) { return null; }
+  }
+  return audioCtx;
+}
+
+function playTick(isFinal) {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  // На iOS контекст может быть suspended — разбудим при первом тапе пользователя.
+  if (ctx.state === 'suspended') ctx.resume();
+
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  if (isFinal) {
+    // Финальный сигнал — две ноты, колокольный
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.6);
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.8);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.8);
+  } else {
+    // Короткий тик
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(1200, ctx.currentTime);
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.15, ctx.currentTime + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.12);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.12);
+  }
+}
+
+// Обновляет только цифры в DOM (без полного render).
+function updateTimerDisplay() {
+  const el = document.querySelector('.timer-display');
+  if (!el) return;
+  const s = state.timer.seconds;
+  el.textContent = `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+  el.classList.toggle('warning', s > 0 && s <= 5);
+  el.classList.toggle('caution', s > 5 && s <= 10);
+}
+
+// Обновляет только надпись на кнопке старт/пауза.
+function updateTimerToggleBtn() {
+  const btn = document.getElementById('timerToggle');
+  if (btn) btn.textContent = state.timer.running ? '⏸ Пауза' : '▶ Старт';
+}
+
+function formatTime(s) {
+  return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+}
+
+// renderTimer теперь принимает preset (нужные секунды для текущего шага)
+// и автоматически сбрасывает таймер на preset при смене шага.
+function renderTimer(presetSeconds, presetLabel) {
+  const stepKey = `${state.phase}:${state.day}:${state.stepIndex}`;
+  // При смене шага — сбрасываем таймер на preset и останавливаем.
+  if (lastTimerStepKey !== stepKey) {
+    lastTimerStepKey = stepKey;
+    stopTimer();
+    state.timer.seconds = presetSeconds;
+    state.timer.preset = presetSeconds;
+  }
+
+  const s = state.timer.seconds;
+  const preset = state.timer.preset || presetSeconds;
+  const cls = s > 0 && s <= 5 ? 'warning' : (s > 5 && s <= 10 ? 'caution' : '');
+
+  // Подключаем обработчики после вставки в DOM.
   setTimeout(() => {
     const minus = document.getElementById('timerMinus');
     const plus = document.getElementById('timerPlus');
     const reset = document.getElementById('timerReset');
     const toggle = document.getElementById('timerToggle');
-    if (minus) minus.onclick = () => { adjustTimer(-15); };
-    if (plus) plus.onclick = () => { adjustTimer(15); };
-    if (reset) reset.onclick = () => { stopTimer(); state.timer.seconds = 60; render(); };
+    if (minus) minus.onclick = () => adjustTimer(-10);
+    if (plus) plus.onclick = () => adjustTimer(+10);
+    if (reset) reset.onclick = () => {
+      stopTimer();
+      state.timer.seconds = preset;
+      updateTimerDisplay();
+      updateTimerToggleBtn();
+    };
     if (toggle) toggle.onclick = () => {
+      // Важно: первый тап разбудит аудиоконтекст на iOS
+      getAudioCtx();
       if (state.timer.running) stopTimer(); else startTimer();
-      render();
+      updateTimerToggleBtn();
     };
   }, 0);
 
   return `
-    <div class="step-card" style="border-left-color: var(--gold);">
-      <div class="step-title">Таймер обсуждения</div>
-      <div class="timer-display ${cls}">${mm}:${ss}</div>
+    <div class="step-card timer-card" style="border-left-color: var(--gold);">
+      <div class="step-title">${presetLabel || 'Таймер'}</div>
+      <div class="timer-display ${cls}">${formatTime(s)}</div>
       <div class="timer-controls">
-        <button class="nav-btn" id="timerMinus">−15с</button>
+        <button class="nav-btn" id="timerMinus">−10с</button>
         <button class="nav-btn primary" id="timerToggle">${state.timer.running ? '⏸ Пауза' : '▶ Старт'}</button>
-        <button class="nav-btn" id="timerPlus">+15с</button>
+        <button class="nav-btn" id="timerPlus">+10с</button>
       </div>
       <div style="height: 8px;"></div>
-      <button class="btn-ghost" id="timerReset" style="width: 100%;">Сброс на 1:00</button>
+      <button class="btn-ghost" id="timerReset" style="width: 100%;">Сброс на ${formatTime(preset)}</button>
     </div>
   `;
 }
 
 function startTimer() {
   if (state.timer.running) return;
-  // Если таймер на нуле — автоматически ресет на 60 секунд.
-  if (state.timer.seconds === 0) state.timer.seconds = 60;
+  // Если таймер на нуле — сбросим на preset
+  if (state.timer.seconds === 0) state.timer.seconds = state.timer.preset || 60;
   state.timer.running = true;
   state.timer.interval = setInterval(() => {
     if (state.timer.seconds > 0) {
       state.timer.seconds--;
-      const el = document.querySelector('.timer-display');
-      if (el) {
-        const s = state.timer.seconds;
-        el.textContent = `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
-        if (s <= 10) el.classList.add('warning');
-        else el.classList.remove('warning');
+      updateTimerDisplay();
+      // Тикаем на последних 5 секундах
+      if (state.timer.seconds > 0 && state.timer.seconds <= 5) {
+        playTick(false);
       }
       if (state.timer.seconds === 0) {
         stopTimer();
-        // Vibrate if supported
+        playTick(true);
         if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-        render();
+        updateTimerDisplay();
+        updateTimerToggleBtn();
       }
     }
   }, 1000);
@@ -2144,7 +2926,7 @@ function stopTimer() {
 
 function adjustTimer(delta) {
   state.timer.seconds = Math.max(0, Math.min(600, state.timer.seconds + delta));
-  render();
+  updateTimerDisplay();
 }
 
 // ============================================================
@@ -2193,6 +2975,10 @@ function renderGameOver() {
     state.phase = 'night';
     state.stepIndex = 0;
     state.winner = null;
+    state.doctorHistory = [];
+    state.doctorSelfUsed = false;
+    state.whoreHistory = [];
+    resetNightSelections();
     render();
   };
 }
