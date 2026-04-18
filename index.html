@@ -417,18 +417,15 @@
   /* === OPTIONAL ROLES === */
   .role-toggle {
     display: flex;
-    align-items: flex-start;
-    gap: 14px;
-    padding: 18px 16px;
+    flex-direction: column;
+    padding: 0;
     background: var(--bg-2);
     border: 1px solid transparent;
-    cursor: pointer;
     transition: all 0.2s ease;
     margin-bottom: 8px;
     position: relative;
+    overflow: hidden;
   }
-
-  .role-toggle:active { transform: scale(0.99); }
 
   .role-toggle.active {
     border-color: var(--gold);
@@ -437,6 +434,20 @@
 
   .role-toggle.disabled {
     opacity: 0.4;
+  }
+
+  .role-toggle-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 18px 16px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .role-toggle-head:active { background: var(--border-softest); }
+
+  .role-toggle.disabled .role-toggle-head {
     cursor: not-allowed;
   }
 
@@ -495,6 +506,53 @@
     text-transform: uppercase;
     color: var(--blood-bright);
     font-style: normal;
+  }
+
+  /* === ПОДОПЦИИ РОЛИ (сегментированный селектор внутри карточки) === */
+  .role-suboptions {
+    padding: 14px 16px 16px;
+    border-top: 1px dashed var(--border-soft);
+    background: var(--border-softest);
+  }
+
+  .suboption-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    margin-bottom: 10px;
+  }
+
+  .suboption-segmented {
+    display: flex;
+    gap: 4px;
+    background: var(--bg);
+    padding: 3px;
+    border: 1px solid var(--border-softer);
+  }
+
+  .seg-btn {
+    flex: 1;
+    padding: 10px 8px;
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-family: 'Oswald', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    line-height: 1.2;
+  }
+
+  .seg-btn:active { transform: scale(0.97); }
+
+  .seg-btn.active {
+    background: var(--gold);
+    color: var(--bg);
+    font-weight: 600;
   }
 
   /* === PRIMARY BUTTON === */
@@ -1011,6 +1069,36 @@
     border-style: solid;
   }
 
+  /* Заблокированный Путаной шаг — пустышечный, с крупной кнопкой подтверждения */
+  .blocked-card {
+    border-left-color: #c77d9e !important;
+  }
+
+  .blocked-note {
+    margin: 14px 0;
+    padding: 14px;
+    background: var(--quote-bg);
+    border-left: 3px solid #c77d9e;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 16px;
+    color: var(--text);
+    line-height: 1.4;
+  }
+
+  .blocked-confirm {
+    margin-top: 4px;
+    padding: 16px;
+    font-size: 12px;
+  }
+
+  .blocked-confirm.selected {
+    background: #c77d9e;
+    color: var(--button-text);
+    border-color: #c77d9e;
+    border-style: solid;
+  }
+
   .action-result {
     margin-top: 14px;
     padding: 14px;
@@ -1100,6 +1188,143 @@
     color: var(--gold-dim);
     padding: 12px;
   }
+
+  /* === RESUME CARD (плашка "Продолжить партию") === */
+  .resume-card {
+    background: var(--bg-2);
+    border: 1px solid var(--gold);
+    padding: 18px 18px 16px;
+    margin-bottom: 24px;
+    position: relative;
+  }
+
+  .resume-card::before, .resume-card::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border: 1px solid var(--gold);
+  }
+  .resume-card::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+  .resume-card::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+  .resume-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+
+  .resume-kicker {
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .resume-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+
+  .resume-desc {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 17px;
+    color: var(--text);
+    margin-bottom: 14px;
+  }
+
+  .resume-btns {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .resume-btns .btn-primary {
+    flex: 1;
+    padding: 14px;
+    font-size: 12px;
+    letter-spacing: 0.3em;
+  }
+
+  .resume-btns .btn-ghost {
+    padding: 12px 14px;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+
+  /* === ROSTER (список игроков с ролями, некликабельный) === */
+  .roster {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background: var(--border-softest);
+    border: 1px solid var(--border-softest);
+    margin-top: 12px;
+  }
+
+  .roster-row {
+    display: grid;
+    grid-template-columns: 28px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--bg-2);
+    transition: opacity 0.2s ease;
+  }
+
+  .roster-row.dead {
+    opacity: 0.4;
+  }
+
+  .roster-row.dead .roster-name {
+    text-decoration: line-through;
+    color: var(--ash);
+  }
+
+  .roster-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+  }
+
+  .roster-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--paper);
+    line-height: 1;
+  }
+
+  .roster-role {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .roster-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .roster-dot.mafia { background: var(--blood-bright); }
+  .roster-dot.don { background: #6b0000; box-shadow: 0 0 4px rgba(139, 26, 26, 0.8); }
+  .roster-dot.sheriff { background: var(--gold); }
+  .roster-dot.doctor { background: #5a9b8e; }
+  .roster-dot.maniac { background: #8e5a9b; }
+  .roster-dot.whore { background: #c77d9e; }
+  .roster-dot.civilian { background: var(--paper); opacity: 0.5; }
 
   /* === NAME INPUT === */
   .name-inputs {
@@ -1386,6 +1611,20 @@ const state = {
   screen: 'home',
   playerCount: 8,
   optionalRoles: { don: true, doctor: true, maniac: false, whore: false },
+  // Варианты правил, которые можно переключить (не сами роли, а их поведение).
+  // Эти опции привязаны к конкретным ролям и показываются в их карточке
+  // на главном экране, когда роль включена.
+  gameOptions: {
+    // Маньяк: когда Шериф видит его как «мафию»:
+    //   'never'       — никогда; Шериф всегда видит Маньяка как «не мафию»
+    //   'afterMafia'  — только после гибели всей мафии (классическая городская мафия)
+    //   'always'      — Шериф всегда видит Маньяка как мафию (упрощённая версия)
+    sheriffSeesManiac: 'afterMafia',
+    // Путана: умирает ли, придя к мафии:
+    //   true  — умирает (жёсткая классика)
+    //   false — остаётся жива, но блокирует голос этого мафиози (мягкая версия)
+    whoreDiesAtMafia: false
+  },
   players: [],         // [{name, role, alive}]
   dealIndex: 0,        // current player getting role
   dealPhase: 'await',  // 'await' | 'shown'
@@ -1434,8 +1673,7 @@ function resetNightSelections() {
   state.dayVoteKilled = null;
 }
 
-// Применяет тему (CSS-атрибут на <html>). Storage намеренно не используется,
-// т.к. артефакты в Claude.ai не поддерживают localStorage.
+// Применяет тему (CSS-атрибут на <html>).
 function applyTheme() {
   document.documentElement.setAttribute('data-theme', state.theme === 'dark' ? 'dark' : 'light');
 }
@@ -1443,7 +1681,131 @@ function applyTheme() {
 function toggleTheme() {
   state.theme = state.theme === 'light' ? 'dark' : 'light';
   applyTheme();
+  saveTheme();
   render();
+}
+
+// ============================================================
+// PERSISTENCE (localStorage)
+// ============================================================
+const STORAGE_KEY_GAME = 'mafia.game.v1';
+const STORAGE_KEY_THEME = 'mafia.theme';
+// Сколько времени хранить сохранённую игру (дольше — не будит предлагать восстановление)
+const SAVE_TTL_MS = 6 * 60 * 60 * 1000; // 6 часов
+
+// Безопасный доступ к localStorage — в некоторых режимах (incognito Safari)
+// localStorage может быть недоступен или кидать ошибку.
+function storageGet(key) {
+  try { return localStorage.getItem(key); } catch (e) { return null; }
+}
+function storageSet(key, val) {
+  try { localStorage.setItem(key, val); } catch (e) { /* quota/private mode */ }
+}
+function storageRemove(key) {
+  try { localStorage.removeItem(key); } catch (e) {}
+}
+
+// Сохраняем тему отдельно — её надо применить до загрузки игры.
+function saveTheme() {
+  storageSet(STORAGE_KEY_THEME, state.theme);
+}
+function loadTheme() {
+  const t = storageGet(STORAGE_KEY_THEME);
+  if (t === 'dark' || t === 'light') state.theme = t;
+}
+
+// Сохраняем игру (только host-фазу — раздачу восстанавливать не будем).
+let _saveTimer = null;
+function saveGame() {
+  // Не сохраняем если игра не началась (на home/rules/names/deal/gameover)
+  if (state.screen !== 'host') return;
+  // Debounce — чтобы не писать на каждый чих
+  if (_saveTimer) clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(doSaveGame, 300);
+}
+
+function doSaveGame() {
+  const snapshot = {
+    ts: Date.now(),
+    playerCount: state.playerCount,
+    optionalRoles: state.optionalRoles,
+    gameOptions: state.gameOptions,
+    players: state.players,
+    day: state.day,
+    phase: state.phase,
+    stepIndex: state.stepIndex,
+    night: state.night,
+    doctorHistory: state.doctorHistory,
+    doctorSelfUsed: state.doctorSelfUsed,
+    whoreHistory: state.whoreHistory,
+    dayVoteKilled: state.dayVoteKilled,
+    winner: state.winner || null
+  };
+  try {
+    storageSet(STORAGE_KEY_GAME, JSON.stringify(snapshot));
+  } catch (e) { /* ignore */ }
+}
+
+// Возвращает сохранённую игру, если она есть и свежая. Иначе null.
+function loadGame() {
+  const raw = storageGet(STORAGE_KEY_GAME);
+  if (!raw) return null;
+  try {
+    const data = JSON.parse(raw);
+    if (!data || !data.ts) return null;
+    if (Date.now() - data.ts > SAVE_TTL_MS) {
+      storageRemove(STORAGE_KEY_GAME);
+      return null;
+    }
+    return data;
+  } catch (e) {
+    storageRemove(STORAGE_KEY_GAME);
+    return null;
+  }
+}
+
+// Применяет сохранённую игру в state и открывает host-экран.
+function restoreGame(data) {
+  state.playerCount = data.playerCount;
+  state.optionalRoles = data.optionalRoles;
+  // gameOptions могут отсутствовать в старых сохранениях — используем дефолт
+  if (data.gameOptions) {
+    state.gameOptions = Object.assign({}, state.gameOptions, data.gameOptions);
+  }
+  state.players = data.players;
+  state.day = data.day;
+  state.phase = data.phase;
+  state.stepIndex = data.stepIndex;
+  state.night = data.night || { mafiaTarget: null, donCheck: null, whoreTarget: null, doctorTarget: null, sheriffCheck: null, maniacTarget: null, resolved: null, applied: false };
+  state.doctorHistory = data.doctorHistory || [];
+  state.doctorSelfUsed = !!data.doctorSelfUsed;
+  state.whoreHistory = data.whoreHistory || [];
+  state.dayVoteKilled = data.dayVoteKilled != null ? data.dayVoteKilled : null;
+  state.winner = data.winner || null;
+  state.screen = state.winner ? 'gameover' : 'host';
+}
+
+// Удаляет сохранённую игру.
+function clearSavedGame() {
+  storageRemove(STORAGE_KEY_GAME);
+}
+
+// Человеко-читаемое «когда сохранено»
+function formatSavedAgo(ts) {
+  const diff = Math.max(0, Date.now() - ts);
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'только что';
+  if (mins < 60) return `${mins} мин назад`;
+  const hours = Math.floor(mins / 60);
+  const rest = mins % 60;
+  return `${hours} ч ${rest} мин назад`;
+}
+
+// Краткое описание сохранённой игры для плашки "Продолжить"
+function savedGameDescription(data) {
+  const alive = data.players.filter(p => p.alive).length;
+  const phase = { night: 'Ночь', day: 'День', vote: 'Голосование' }[data.phase] || '';
+  return `${phase} · День ${data.day} · Живых ${alive}/${data.players.length}`;
 }
 
 // ============================================================
@@ -1579,6 +1941,11 @@ function render() {
     }
     if (screenChanged) window.scrollTo(0, 0);
   }
+
+  // Сохраняем состояние игры (debounced, только если на host-экране).
+  saveGame();
+  // Сохранённую игру чистим когда вышли на главную
+  if (state.screen === 'home') clearSavedGame();
 }
 
 // Обновляет иконку переключателя темы.
@@ -1593,6 +1960,21 @@ function updateThemeIcon() {
 function renderHome() {
   const dist = calcRoleDistribution();
   const app = document.getElementById('app');
+  const saved = loadGame();
+
+  const resumeBlock = saved ? `
+    <div class="resume-card">
+      <div class="resume-head">
+        <span class="resume-kicker">⟳ Сохранённая партия</span>
+        <span class="resume-time">${formatSavedAgo(saved.ts)}</span>
+      </div>
+      <div class="resume-desc">${savedGameDescription(saved)}</div>
+      <div class="resume-btns">
+        <button class="btn-primary" id="resumeBtn">Продолжить →</button>
+        <button class="btn-ghost" id="discardSavedBtn">Удалить</button>
+      </div>
+    </div>
+  ` : '';
 
   app.innerHTML = `
     <div class="screen">
@@ -1606,6 +1988,8 @@ function renderHome() {
           <p class="subtitle">Город засыпает —<br>просыпается мафия</p>
         </div>
       </div>
+
+      ${resumeBlock}
 
       <div class="section">
         <div class="section-head">
@@ -1705,11 +2089,59 @@ function renderHome() {
     render();
   };
 
+  // Resume / Discard saved game
+  const resumeBtn = document.getElementById('resumeBtn');
+  if (resumeBtn) {
+    resumeBtn.onclick = () => {
+      const data = loadGame();
+      if (!data) return;
+      restoreGame(data);
+      render();
+    };
+  }
+  const discardBtn = document.getElementById('discardSavedBtn');
+  if (discardBtn) {
+    discardBtn.onclick = () => {
+      if (confirm('Удалить сохранённую партию?')) {
+        clearSavedGame();
+        render();
+      }
+    };
+  }
+
   ['don', 'doctor', 'maniac', 'whore'].forEach(id => {
     const el = document.getElementById(`toggle-${id}`);
-    if (el) el.onclick = () => {
-      if (!canEnableRole(id)) return;
-      state.optionalRoles[id] = !state.optionalRoles[id];
+    if (!el) return;
+    // Клик по верхней части (чекбокс + описание) переключает роль.
+    // Клики по подопциям (seg-btn) обрабатываются отдельно и не триггерят toggle.
+    const head = el.querySelector('.role-toggle-head');
+    if (head) {
+      head.onclick = () => {
+        if (!canEnableRole(id)) return;
+        state.optionalRoles[id] = !state.optionalRoles[id];
+        render();
+      };
+    }
+  });
+
+  // Подопции Маньяка: сегментированный выбор «Шериф видит маньяка»
+  document.querySelectorAll('[data-opt-sheriff]').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const mode = btn.dataset.optSheriff;
+      if (!state.gameOptions) state.gameOptions = {};
+      state.gameOptions.sheriffSeesManiac = mode;
+      render();
+    };
+  });
+
+  // Подопции Путаны: умирает / остаётся жива
+  document.querySelectorAll('[data-opt-whore]').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const val = btn.dataset.optWhore;
+      if (!state.gameOptions) state.gameOptions = {};
+      state.gameOptions.whoreDiesAtMafia = val === 'dies';
       render();
     };
   });
@@ -1721,15 +2153,47 @@ function renderRoleToggle(id, name, desc) {
   // Роль включена пользователем, но балансировщик её срезал (мало места для мирных)
   const squeezed = active && allowed && !isRoleEffective(id);
 
+  // Подопции для роли (показываются когда роль активна)
+  let subOptions = '';
+  if (active && allowed) {
+    if (id === 'maniac') {
+      const mode = (state.gameOptions && state.gameOptions.sheriffSeesManiac) || 'afterMafia';
+      subOptions = `
+        <div class="role-suboptions" data-role-opt="maniac">
+          <div class="suboption-label">Шериф видит Маньяка как мафию</div>
+          <div class="suboption-segmented">
+            <button class="seg-btn ${mode === 'never' ? 'active' : ''}" data-opt-sheriff="never">Никогда</button>
+            <button class="seg-btn ${mode === 'afterMafia' ? 'active' : ''}" data-opt-sheriff="afterMafia">После смерти мафии</button>
+            <button class="seg-btn ${mode === 'always' ? 'active' : ''}" data-opt-sheriff="always">Всегда</button>
+          </div>
+        </div>
+      `;
+    } else if (id === 'whore') {
+      const dies = !!(state.gameOptions && state.gameOptions.whoreDiesAtMafia);
+      subOptions = `
+        <div class="role-suboptions" data-role-opt="whore">
+          <div class="suboption-label">Путана у мафии</div>
+          <div class="suboption-segmented">
+            <button class="seg-btn ${!dies ? 'active' : ''}" data-opt-whore="alive">Остаётся жива</button>
+            <button class="seg-btn ${dies ? 'active' : ''}" data-opt-whore="dies">Погибает</button>
+          </div>
+        </div>
+      `;
+    }
+  }
+
   return `
     <div class="role-toggle ${active ? 'active' : ''} ${!allowed ? 'disabled' : ''}" id="toggle-${id}">
-      <div class="check"></div>
-      <div class="info">
-        <div class="name">${name}</div>
-        <div class="desc">${desc}</div>
-        ${!allowed ? `<div class="warn">Нужно минимум ${id === 'don' ? 6 : 8} игроков</div>` : ''}
-        ${squeezed ? `<div class="warn">⚠ Не поместится при текущем раскладе — другая роль важнее</div>` : ''}
+      <div class="role-toggle-head">
+        <div class="check"></div>
+        <div class="info">
+          <div class="name">${name}</div>
+          <div class="desc">${desc}</div>
+          ${!allowed ? `<div class="warn">Нужно минимум ${id === 'don' ? 6 : 8} игроков</div>` : ''}
+          ${squeezed ? `<div class="warn">⚠ Не поместится при текущем раскладе — другая роль важнее</div>` : ''}
+        </div>
       </div>
+      ${subOptions}
     </div>
   `;
 }
@@ -1943,6 +2407,47 @@ function canWhoreGo(targetIdx) {
   return { ok: true, reason: '' };
 }
 
+// Возвращает объект { mafia, donCheck, maniac, doctor, sheriff } —
+// у каких ролей ЭТОЙ ночью ночная способность блокирована Путаной.
+//
+// Тонкости:
+// - Путана блокирует одного игрока, а не роль-команду.
+// - «Мафия как команда» блокирована ТОЛЬКО если Путана пошла к единственному
+//   живому мафиози; иначе оставшиеся мафиози всё равно убивают.
+// - В жёсткой версии (whoreDiesAtMafia=true) визит к любому мафиози
+//   блокирует всю мафию (потому что «Путана попалась» — мафия разбирается с ней).
+// - Дон: его личная проверка «найти Шерифа» блокируется, если Путана пошла
+//   именно к Дону. Командное решение мафии — см. выше отдельно.
+// - Маньяк/Доктор/Шериф — одиночные роли, блокировка одного = блокировка способности.
+function getWhoreBlocks() {
+  const res = { mafia: false, donCheck: false, maniac: false, doctor: false, sheriff: false };
+  const target = state.night.whoreTarget;
+  if (target == null || target < 0) return res;
+  const role = getRole(target);
+
+  if (isMafiaRole(role)) {
+    const whoreDies = !!(state.gameOptions && state.gameOptions.whoreDiesAtMafia);
+    if (whoreDies) {
+      // Жёсткая версия: блокируем всю мафию.
+      res.mafia = true;
+      if (role === 'don') res.donCheck = true;
+    } else {
+      // Мягкая версия: команда мафии блокирована только если это последний живой мафиози.
+      const mafiaAliveCount = state.players.filter(p => p.alive && isMafiaRole(p.role)).length;
+      if (mafiaAliveCount <= 1) res.mafia = true;
+      // Дон: если путана именно у Дона — его личная проверка не сработает.
+      if (role === 'don') res.donCheck = true;
+    }
+  } else if (role === 'maniac') {
+    res.maniac = true;
+  } else if (role === 'doctor') {
+    res.doctor = true;
+  } else if (role === 'sheriff') {
+    res.sheriff = true;
+  }
+  return res;
+}
+
 // Главный резолвер. Возвращает объект с:
 //   killed: [idx, ...]              — кто реально умер этой ночью
 //   savedByDoctor: idx | null       — кого спас Доктор (если он спас от мафии/маньяка)
@@ -1962,42 +2467,54 @@ function resolveNight() {
     whoreDied: false
   };
 
-  // 1) Применяем блокировки Путаны
-  // Путана блокирует цель: её ночное действие не срабатывает.
-  // Если цель Путаны — мафиози, Путана сама погибает (вместе с мафией, если мафия сегодня убивает).
-  let mafiaBlocked = false;
-  let maniacBlocked = false;
-  let doctorBlocked = false;
-  let sheriffBlocked = false;
-  let donBlocked = false;
+  // 1) Применяем блокировки Путаны (единый источник истины — getWhoreBlocks)
+  const wb = getWhoreBlocks();
+  const mafiaBlocked = wb.mafia;
+  const maniacBlocked = wb.maniac;
+  const doctorBlocked = wb.doctor;
+  const sheriffBlocked = wb.sheriff;
+  const donBlocked = wb.donCheck;
 
+  // Отмечаем блокировки в результате для UI
+  if (wb.mafia) result.blocked.mafia = true;
+  if (wb.maniac) result.blocked.maniac = true;
+  if (wb.doctor) result.blocked.doctor = true;
+  if (wb.sheriff) result.blocked.sheriff = true;
+
+  // Особая ветка: смерть Путаны (жёсткая классика) и информационный флаг (мягкая)
   if (n.whoreTarget != null && n.whoreTarget >= 0) {
     const blockedRole = getRole(n.whoreTarget);
     if (isMafiaRole(blockedRole)) {
-      // Блокирует мафиози (любого)
-      mafiaBlocked = true;
-      if (blockedRole === 'don') donBlocked = true;
-      result.blocked.mafia = true;
-      // Путана умирает, потому что "застала мафиози"
-      result.whoreDied = true;
-    } else if (blockedRole === 'maniac') {
-      maniacBlocked = true;
-      result.blocked.maniac = true;
-    } else if (blockedRole === 'doctor') {
-      doctorBlocked = true;
-      result.blocked.doctor = true;
-    } else if (blockedRole === 'sheriff') {
-      sheriffBlocked = true;
-      result.blocked.sheriff = true;
+      const whoreDies = !!(state.gameOptions && state.gameOptions.whoreDiesAtMafia);
+      if (whoreDies) {
+        result.whoreDied = true;
+      } else {
+        // Мягкая: просто метка «путана у мафии, её голос не в счёт»
+        result.whoreAtMafia = true;
+      }
     }
-    // Мирные, путана — блокировка не имеет эффекта (у них нет ночной способности)
   }
 
   // 2) Проверка Шерифа (информационное действие — не меняет живых)
   if (n.sheriffCheck != null && n.sheriffCheck >= 0 && !sheriffBlocked) {
     const checkedRole = getRole(n.sheriffCheck);
-    // Дон показывается как мафия, маньяк — как НЕ мафия, остальные мафиози — как мафия.
-    result.sheriffResult = isMafiaRole(checkedRole) ? 'mafia' : 'notMafia';
+    // Дон и обычные мафиози — всегда «мафия».
+    // Маньяк — зависит от gameOptions.sheriffSeesManiac:
+    //   'never'      — никогда (всегда «не мафия»)
+    //   'afterMafia' — только когда вся мафия мертва
+    //   'always'     — всегда «мафия»
+    let looksLikeMafia = isMafiaRole(checkedRole);
+    if (!looksLikeMafia && checkedRole === 'maniac') {
+      const mode = (state.gameOptions && state.gameOptions.sheriffSeesManiac) || 'afterMafia';
+      if (mode === 'always') {
+        looksLikeMafia = true;
+      } else if (mode === 'afterMafia') {
+        const mafiaAlive = state.players.some(p => p.alive && isMafiaRole(p.role));
+        if (!mafiaAlive) looksLikeMafia = true;
+      }
+      // 'never' — оставляем 'notMafia'
+    }
+    result.sheriffResult = looksLikeMafia ? 'mafia' : 'notMafia';
   }
 
   // 3) Проверка Дона
@@ -2042,13 +2559,23 @@ function resolveNight() {
       killedSet.add(maniacVictim);
     }
   }
-  // Путана умирает если заблокировала мафию (независимо от того, убивала ли мафия)
+  // Путана «попалась» у мафии и мафия её убивает (кроме первой ночи).
+  // Если Доктор лечит путану — она выживает, но мафия всё равно заблокирована.
   if (result.whoreDied && !isFirstNight) {
     const whoreIdx = state.players.findIndex(p => p.role === 'whore' && p.alive);
-    if (whoreIdx !== -1) killedSet.add(whoreIdx);
+    if (whoreIdx !== -1) {
+      if (healed === whoreIdx) {
+        // Доктор спас путану
+        if (result.savedByDoctor == null) result.savedByDoctor = whoreIdx;
+        // Флаг whoreDied оставляем true для отображения «Путана попалась, но Доктор спас»
+        result.whoreSavedByDoctor = true;
+      } else {
+        killedSet.add(whoreIdx);
+      }
+    }
   } else {
-    // На первой ночи мафия не убивает — значит, путана "застала мафиози",
-    // но они не убивают её, т.к. ещё не действуют.
+    // На первой ночи мафия не действует — значит путана просто «проспала с мафиози»
+    // без последствий смерти.
     result.whoreDied = false;
   }
 
@@ -2129,42 +2656,76 @@ function getNightSteps() {
 
   // Мафия убивает (не на первой ночи)
   if (!isFirstNight && hasMafia) {
-    steps.push({
-      title: 'Мафия просыпается',
-      cls: 'mafia-action',
-      say: 'Мафия, просыпайся. Жестами выберите жертву.',
-      hint: 'Дождись единогласного решения. Если мафия не договорилась — нажми «Пропустить», и ночь пройдёт без убийства от мафии.',
-      action: {
-        type: 'pickTarget',
-        field: 'mafiaTarget',
-        role: 'mafia',
-        label: 'Жертва мафии',
-        allowSkip: true,
-        skipLabel: 'Мафия не договорилась'
-      }
-    });
+    const blocks = getWhoreBlocks();
+    if (blocks.mafia) {
+      // Всю мафию блокирует Путана — делаем шаг-пустышку, но не пропускаем,
+      // чтобы Путана не вычислила по тишине, что она блокировала именно мафию.
+      steps.push({
+        title: 'Мафия просыпается',
+        cls: 'mafia-action',
+        say: 'Мафия, просыпайся. Ночью мафия никого не убивает.',
+        hint: 'Путана заблокировала мафию — убийства не будет. Просто выдержи паузу, как будто мафия совещается, и нажми «Далее», чтобы никто ничего не заподозрил.',
+        action: {
+          type: 'blockedAction',
+          field: 'mafiaTarget',
+          label: 'Мафия не убивает этой ночью',
+          confirmLabel: 'Мафия никого не убивает'
+        }
+      });
+    } else {
+      steps.push({
+        title: 'Мафия просыпается',
+        cls: 'mafia-action',
+        say: 'Мафия, просыпайся. Жестами выберите жертву.',
+        hint: 'Дождись единогласного решения. Если мафия не договорилась — нажми «Мафия не договорилась».',
+        action: {
+          type: 'pickTarget',
+          field: 'mafiaTarget',
+          role: 'mafia',
+          label: 'Жертва мафии',
+          allowSkip: true,
+          skipLabel: 'Мафия не договорилась'
+        }
+      });
+    }
   }
 
   // Дон ищет Шерифа (каждую ночь, включая первую)
   if (state.optionalRoles.don && hasAlive('don')) {
-    steps.push({
-      title: 'Дон ищет Шерифа',
-      cls: 'mafia-action',
-      say: 'Дон, укажи, кого проверяешь.',
-      hint: 'Выбери цель. Приложение покажет результат — Шериф или нет. Покажи Дону ответ жестом: кивок (да) / покачивание (нет).',
-      action: {
-        type: 'pickTarget',
-        field: 'donCheck',
-        role: 'don',
-        label: 'Проверка Дона',
-        allowSkip: true,
-        skipLabel: 'Не проверять',
-        showResult: (idx) => {
-          const role = getRole(idx);
-          return role === 'sheriff' ? '✓ Это Шериф' : '✗ Не Шериф';
+    const blocks = getWhoreBlocks();
+    if (blocks.donCheck) {
+      steps.push({
+        title: 'Дон ищет Шерифа',
+        cls: 'mafia-action',
+        say: 'Дон, открой глаза. Этой ночью ты никого не проверяешь.',
+        hint: 'Путана заблокировала Дона — его проверка не сработает. Выдержи паузу (как будто Дон думает), покажи любой жест и усыпи, чтобы Путана не догадалась.',
+        action: {
+          type: 'blockedAction',
+          field: 'donCheck',
+          label: 'Дон не проверяет этой ночью',
+          confirmLabel: 'Дон никого не проверяет'
         }
-      }
-    });
+      });
+    } else {
+      steps.push({
+        title: 'Дон ищет Шерифа',
+        cls: 'mafia-action',
+        say: 'Дон, укажи, кого проверяешь.',
+        hint: 'Выбери цель. Приложение покажет результат — Шериф или нет. Покажи Дону ответ жестом: кивок (да) / покачивание (нет).',
+        action: {
+          type: 'pickTarget',
+          field: 'donCheck',
+          role: 'don',
+          label: 'Проверка Дона',
+          allowSkip: true,
+          skipLabel: 'Не проверять',
+          showResult: (idx) => {
+            const role = getRole(idx);
+            return role === 'sheriff' ? '✓ Это Шериф' : '✗ Не Шериф';
+          }
+        }
+      });
+    }
   }
 
   if (!isFirstNight && hasMafia) {
@@ -2175,64 +2736,121 @@ function getNightSteps() {
 
   // Доктор
   if (state.optionalRoles.doctor && hasAlive('doctor')) {
-    steps.push({
-      title: 'Доктор просыпается',
-      cls: 'doctor-action',
-      say: 'Доктор, просыпайся. Кого лечишь этой ночью?',
-      hint: 'Ограничения: нельзя лечить одного игрока две ночи подряд; себя — только один раз за игру. Доктор лечит и от мафии, и от маньяка.',
-      action: {
-        type: 'pickTarget',
-        field: 'doctorTarget',
-        role: 'doctor',
-        label: 'Кого лечит Доктор',
-        allowSkip: true,
-        skipLabel: 'Не лечить никого',
-        validate: (idx) => canDoctorHeal(idx)
-      }
-    });
+    const blocks = getWhoreBlocks();
+    if (blocks.doctor) {
+      steps.push({
+        title: 'Доктор просыпается',
+        cls: 'doctor-action',
+        say: 'Доктор, просыпайся. Этой ночью ты никого не лечишь.',
+        hint: 'Путана заблокировала Доктора — лечение не сработает. Выдержи паузу как обычно и усыпи, чтобы Путана не догадалась.',
+        action: {
+          type: 'blockedAction',
+          field: 'doctorTarget',
+          label: 'Доктор не лечит этой ночью',
+          confirmLabel: 'Доктор никого не лечит'
+        }
+      });
+    } else {
+      steps.push({
+        title: 'Доктор просыпается',
+        cls: 'doctor-action',
+        say: 'Доктор, просыпайся. Кого лечишь этой ночью?',
+        hint: 'Ограничения: нельзя лечить одного игрока две ночи подряд; себя — только один раз за игру. Доктор лечит и от мафии, и от маньяка.',
+        action: {
+          type: 'pickTarget',
+          field: 'doctorTarget',
+          role: 'doctor',
+          label: 'Кого лечит Доктор',
+          allowSkip: true,
+          skipLabel: 'Не лечить никого',
+          validate: (idx) => canDoctorHeal(idx)
+        }
+      });
+    }
     steps.push({ title: 'Доктор засыпает', say: 'Доктор, закрой глаза.', hint: '' });
   }
 
   // Шериф
   if (hasAlive('sheriff')) {
-    steps.push({
-      title: 'Шериф просыпается',
-      cls: 'sheriff-action',
-      say: 'Шериф, просыпайся. Кого проверяешь?',
-      hint: 'Выбери цель. Приложение покажет результат. Покажи Шерифу жестом: палец вверх — НЕ мафия, вниз — мафия.',
-      action: {
-        type: 'pickTarget',
-        field: 'sheriffCheck',
-        role: 'sheriff',
-        label: 'Проверка Шерифа',
-        allowSkip: true,
-        skipLabel: 'Не проверять',
-        showResult: (idx) => {
-          const role = getRole(idx);
-          // Дон = мафия, маньяк = не мафия, остальные по факту
-          return isMafiaRole(role) ? '🔴 МАФИЯ' : '🟢 НЕ МАФИЯ';
+    const blocks = getWhoreBlocks();
+    if (blocks.sheriff) {
+      steps.push({
+        title: 'Шериф просыпается',
+        cls: 'sheriff-action',
+        say: 'Шериф, просыпайся. Этой ночью ты никого не проверяешь.',
+        hint: 'Путана заблокировала Шерифа — его проверка не сработает. Выдержи паузу, покажи любой жест (или ничего) и усыпи. Играй ровно, чтобы Путана не догадалась.',
+        action: {
+          type: 'blockedAction',
+          field: 'sheriffCheck',
+          label: 'Шериф не проверяет этой ночью',
+          confirmLabel: 'Шериф никого не проверяет'
         }
-      }
-    });
+      });
+    } else {
+      steps.push({
+        title: 'Шериф просыпается',
+        cls: 'sheriff-action',
+        say: 'Шериф, просыпайся. Кого проверяешь?',
+        hint: 'Выбери цель. Приложение покажет результат. Покажи Шерифу жестом: палец вверх — НЕ мафия, вниз — мафия.',
+        action: {
+          type: 'pickTarget',
+          field: 'sheriffCheck',
+          role: 'sheriff',
+          label: 'Проверка Шерифа',
+          allowSkip: true,
+          skipLabel: 'Не проверять',
+          showResult: (idx) => {
+            const role = getRole(idx);
+            let looksLikeMafia = isMafiaRole(role);
+            if (!looksLikeMafia && role === 'maniac') {
+              const mode = (state.gameOptions && state.gameOptions.sheriffSeesManiac) || 'afterMafia';
+              if (mode === 'always') {
+                looksLikeMafia = true;
+              } else if (mode === 'afterMafia') {
+                const mafiaAlive = state.players.some(p => p.alive && isMafiaRole(p.role));
+                if (!mafiaAlive) looksLikeMafia = true;
+              }
+            }
+            return looksLikeMafia ? '🔴 МАФИЯ' : '🟢 НЕ МАФИЯ';
+          }
+        }
+      });
+    }
     steps.push({ title: 'Шериф засыпает', say: 'Шериф, закрой глаза.', hint: '' });
   }
 
   // Маньяк
   if (state.optionalRoles.maniac && hasAlive('maniac')) {
-    steps.push({
-      title: 'Маньяк просыпается',
-      cls: 'maniac-action',
-      say: 'Маньяк, открой глаза. Кого убиваешь?',
-      hint: 'Если Маньяк заблокирован Путаной — он не убивает. Доктор лечит и от маньяка.',
-      action: {
-        type: 'pickTarget',
-        field: 'maniacTarget',
-        role: 'maniac',
-        label: 'Жертва Маньяка',
-        allowSkip: true,
-        skipLabel: 'Маньяк не убивает'
-      }
-    });
+    const blocks = getWhoreBlocks();
+    if (blocks.maniac) {
+      steps.push({
+        title: 'Маньяк просыпается',
+        cls: 'maniac-action',
+        say: 'Маньяк, открой глаза. Этой ночью ты никого не убиваешь.',
+        hint: 'Путана заблокировала Маньяка — он не может убивать. Выдержи паузу и усыпи, чтобы Путана не догадалась.',
+        action: {
+          type: 'blockedAction',
+          field: 'maniacTarget',
+          label: 'Маньяк не убивает этой ночью',
+          confirmLabel: 'Маньяк никого не убивает'
+        }
+      });
+    } else {
+      steps.push({
+        title: 'Маньяк просыпается',
+        cls: 'maniac-action',
+        say: 'Маньяк, открой глаза. Кого убиваешь?',
+        hint: 'Доктор лечит и от маньяка.',
+        action: {
+          type: 'pickTarget',
+          field: 'maniacTarget',
+          role: 'maniac',
+          label: 'Жертва Маньяка',
+          allowSkip: true,
+          skipLabel: 'Маньяк не убивает'
+        }
+      });
+    }
     steps.push({ title: 'Маньяк засыпает', say: 'Маньяк, закрой глаза.', hint: '' });
   }
 
@@ -2484,8 +3102,27 @@ function renderHost() {
       ${actionHtml}
       ${step.timerSeconds ? renderTimer(step.timerSeconds, step.timerLabel) : ''}
 
-      <div class="alive-counter mt-24">
-        <span>Живых ${aliveCount} из ${state.playerCount}</span>
+      <div class="section mt-24">
+        <div class="section-head">
+          <span class="num">✦</span>
+          <span class="label">Игроки · живых ${aliveCount}/${state.playerCount}</span>
+          <span class="line"></span>
+        </div>
+        <div class="roster">
+          ${state.players.map((p, i) => {
+            const role = ROLES[p.role];
+            return `
+              <div class="roster-row ${!p.alive ? 'dead' : ''}">
+                <div class="roster-num">${String(i+1).padStart(2,'0')}</div>
+                <div class="roster-name">${p.name}</div>
+                <div class="roster-role">
+                  <span class="roster-dot ${p.role}"></span>
+                  ${role.name}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
       </div>
 
       <div style="height: 16px;"></div>
@@ -2589,7 +3226,11 @@ function isNextDisabled(step) {
     const val = state.night[a.field];
     return val === null; // -1 означает "пропустить" — это валидный выбор
   }
-  // pickKilled и resolveNight — не блокируем, можно идти дальше всегда
+  if (a.type === 'blockedAction') {
+    // Пока ведущий не нажал «Подтвердить» — поле null, идти нельзя.
+    return state.night[a.field] !== -1;
+  }
+  // pickKilled и resolveNight — не блокируем
   return false;
 }
 
@@ -2600,7 +3241,25 @@ function renderAction(action) {
   if (action.type === 'pickTarget') return renderPickTarget(action);
   if (action.type === 'pickKilled') return renderPickKilled(action);
   if (action.type === 'resolveNight') return renderResolveNight();
+  if (action.type === 'blockedAction') return renderBlockedAction(action);
   return '';
+}
+
+// Рендер «пустышечного» шага: роль заблокирована Путаной, у ведущего только
+// кнопка подтверждения. После клика поле проставляется как -1 («пропустить»)
+// и кнопка «Далее» разблокируется.
+function renderBlockedAction(action) {
+  const selected = state.night[action.field];
+  const confirmed = selected === -1;
+  return `
+    <div class="step-card action-card blocked-card">
+      <div class="step-title">${action.label}</div>
+      <div class="blocked-note">❀ Действие этой ночью заблокировано Путаной</div>
+      <button class="target-skip blocked-confirm ${confirmed ? 'selected' : ''}" data-blocked-confirm data-field="${action.field}">
+        ${confirmed ? '✓ Подтверждено' : (action.confirmLabel || 'Подтвердить')}
+      </button>
+    </div>
+  `;
 }
 
 // Рендер сетки выбора цели + кнопка "пропустить"
@@ -2694,7 +3353,13 @@ function renderResolveNight() {
   }
 
   if (r.whoreDied) {
-    html += `<div class="resolve-line resolve-note">❀ Путана попала к мафии и погибла</div>`;
+    if (r.whoreSavedByDoctor) {
+      html += `<div class="resolve-line resolve-saved">❀ Путана попала к мафии — но Доктор спас её</div>`;
+    } else {
+      html += `<div class="resolve-line resolve-note">❀ Путана попала к мафии и погибла</div>`;
+    }
+  } else if (r.whoreAtMafia) {
+    html += `<div class="resolve-line resolve-note">❀ Путана у мафии — её голос сегодня не в счёт</div>`;
   }
 
   // Показываем только ведущему: кто что проверял (уже объявлено игроку, но для контроля)
@@ -2758,6 +3423,15 @@ function bindActionHandlers(step) {
       render();
     };
   }
+
+  // Подтверждение заблокированного действия (blockedAction)
+  document.querySelectorAll('[data-blocked-confirm]').forEach(el => {
+    el.onclick = () => {
+      const field = el.dataset.field;
+      state.night[field] = -1;
+      render();
+    };
+  });
 }
 
 function nextPhaseLabel() {
@@ -3068,7 +3742,8 @@ function renderRules() {
 // INIT
 // ============================================================
 
-// Применяем тему до первого рендера, чтобы не было вспышки.
+// Загружаем тему до первого рендера, чтобы не было вспышки.
+loadTheme();
 applyTheme();
 
 // Подключаем переключатель темы (он вне app, рендерится один раз в HTML).
