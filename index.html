@@ -1,0 +1,2297 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Мафия — Игровой Мастер</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Oswald:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* === СВЕТЛАЯ ТЕМА (по умолчанию) === */
+  :root {
+    --bg: #f2ead5;            /* кремовая бумага */
+    --bg-2: #e8dec5;          /* чуть темнее для карточек */
+    --bg-3: #dccfb0;          /* рамки, разделители */
+    --paper: #1a1410;         /* тёмный текст (инвертировано) */
+    --paper-dark: #0f0a07;    /* самый тёмный */
+    --blood: #8b1a1a;         /* бордо */
+    --blood-bright: #a82020;
+    --gold: #8a6a1f;          /* тёмное золото — хорошо на кремовом */
+    --gold-dim: #a88d4a;
+    --ash: #6b6460;
+    --text: #1a1410;
+    --text-dim: #5a4e42;
+
+    /* Специальные цвета для карточки роли (инвертируется на свете) */
+    --card-bg-start: #1a1410;
+    --card-bg-end: #0f0a07;
+    --card-text: #f4ecd8;
+    --card-accent: #d4b565;
+
+    --vignette: radial-gradient(ellipse at center, transparent 40%, rgba(101, 75, 40, 0.2) 100%);
+    --grain-opacity: 0.08;
+    --button-text: #f4ecd8;
+
+    /* Общие альфа-цвета */
+    --border-soft: rgba(138, 106, 31, 0.25);
+    --border-softer: rgba(138, 106, 31, 0.15);
+    --border-softest: rgba(138, 106, 31, 0.08);
+    --quote-bg: rgba(26, 20, 16, 0.06);
+    --reveal-grad-start: #f4ecd8;
+    --reveal-grad-end: #e0d3b0;
+    --reveal-shadow: 0 0 30px rgba(138, 106, 31, 0.2), inset 0 0 20px rgba(138, 106, 31, 0.15);
+  }
+
+  /* === ТЁМНАЯ ТЕМА === */
+  :root[data-theme="dark"] {
+    --bg: #0a0807;
+    --bg-2: #141110;
+    --bg-3: #1e1a17;
+    --paper: #f4ecd8;
+    --paper-dark: #1a1614;
+    --blood: #8b1a1a;
+    --blood-bright: #c62828;
+    --gold: #c9a961;
+    --gold-dim: #8a7444;
+    --ash: #6b6460;
+    --text: #e8e3d8;
+    --text-dim: #a8a196;
+
+    --card-bg-start: #f4ecd8;
+    --card-bg-end: #ebe0c7;
+    --card-text: #1a1614;
+    --card-accent: #8b1a1a;
+
+    --vignette: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.6) 100%);
+    --grain-opacity: 0.06;
+    --button-text: #f4ecd8;
+
+    --border-soft: var(--border-soft);
+    --border-softer: var(--border-softer);
+    --border-softest: var(--border-softest);
+    --quote-bg: rgba(0, 0, 0, 0.3);
+    --reveal-grad-start: #2a1e1a;
+    --reveal-grad-end: #0a0807;
+    --reveal-shadow: 0 0 40px rgba(0,0,0,0.8), inset 0 0 30px rgba(0,0,0,0.6);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    font-family: 'Cormorant Garamond', serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    position: relative;
+  }
+
+  /* Grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: var(--grain-opacity);
+    z-index: 100;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* Vignette */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 99;
+    background: var(--vignette);
+  }
+
+  .app {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 24px 20px 40px;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Floating theme toggle */
+  .theme-toggle {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 50;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--bg-2);
+    border: 1px solid var(--border-soft);
+    color: var(--gold);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .theme-toggle:active {
+    transform: scale(0.92);
+    background: var(--gold);
+    color: var(--bg);
+  }
+
+  .screen {
+    animation: fadeIn 0.5s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* === TYPOGRAPHY === */
+  .title {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    font-size: 14px;
+    color: var(--gold-dim);
+  }
+
+  .hero {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 300;
+    font-size: 72px;
+    line-height: 0.9;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    color: var(--paper);
+  }
+
+  .hero em {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--blood-bright);
+    display: block;
+    font-size: 0.7em;
+    letter-spacing: 0.02em;
+  }
+
+  .subtitle {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--text-dim);
+    font-weight: 400;
+  }
+
+  .label {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 400;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-size: 11px;
+    color: var(--gold-dim);
+  }
+
+  /* === HOME SCREEN === */
+  .home-header {
+    padding-top: 40px;
+    margin-bottom: 32px;
+  }
+
+  .home-header .ornament {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .home-header .ornament::before,
+  .home-header .ornament::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--gold-dim);
+  }
+
+  .home-header .ornament span {
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.4em;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+
+  .hero-wrap {
+    text-align: center;
+    margin-bottom: 20px;
+    position: relative;
+  }
+
+  .hero-wrap .year {
+    position: absolute;
+    top: -12px;
+    right: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ash);
+    letter-spacing: 0.1em;
+  }
+
+  .home-header .tag {
+    text-align: center;
+    margin-top: 20px;
+  }
+
+  /* === SECTIONS === */
+  .section {
+    margin-bottom: 36px;
+  }
+
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .section-head .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--gold);
+  }
+
+  .section-head .line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, var(--gold-dim), transparent);
+  }
+
+  /* === PLAYER COUNTER === */
+  .counter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    padding: 32px 24px;
+    background: var(--bg-2);
+    border: 1px solid var(--border-soft);
+    position: relative;
+  }
+
+  .counter::before, .counter::after {
+    content: '';
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border: 1px solid var(--gold);
+  }
+  .counter::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+  .counter::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+  .counter-btn {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 1px solid var(--gold-dim);
+    background: transparent;
+    color: var(--gold);
+    font-size: 24px;
+    font-family: 'Oswald', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 300;
+  }
+
+  .counter-btn:active {
+    background: var(--gold);
+    color: var(--bg);
+    transform: scale(0.95);
+  }
+
+  .counter-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .counter-num {
+    font-family: 'Oswald', sans-serif;
+    font-size: 84px;
+    font-weight: 300;
+    line-height: 1;
+    color: var(--paper);
+    min-width: 120px;
+    text-align: center;
+  }
+
+  .counter-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    text-align: center;
+    margin-top: 8px;
+  }
+
+  /* === ROLE DISTRIBUTION === */
+  .role-dist {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border-softer);
+    border: 1px solid var(--border-softer);
+  }
+
+  .role-dist .cell {
+    background: var(--bg-2);
+    padding: 16px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .role-dist .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .role-dist .dot.mafia { background: var(--blood-bright); box-shadow: 0 0 8px rgba(198, 40, 40, 0.5); }
+  .role-dist .dot.civilian { background: var(--paper); }
+  .role-dist .dot.sheriff { background: var(--gold); box-shadow: 0 0 8px var(--border-soft); }
+  .role-dist .dot.doctor { background: #5a9b8e; }
+  .role-dist .dot.don { background: #6b0000; box-shadow: 0 0 10px rgba(139, 26, 26, 0.8); }
+  .role-dist .dot.maniac { background: #8e5a9b; }
+  .role-dist .dot.whore { background: #c77d9e; }
+
+  .role-dist .txt {
+    flex: 1;
+  }
+
+  .role-dist .role-name {
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .role-dist .role-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    color: var(--gold);
+    font-weight: 500;
+  }
+
+  /* === OPTIONAL ROLES === */
+  .role-toggle {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 18px 16px;
+    background: var(--bg-2);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 8px;
+    position: relative;
+  }
+
+  .role-toggle:active { transform: scale(0.99); }
+
+  .role-toggle.active {
+    border-color: var(--gold);
+    background: linear-gradient(to right, var(--border-softest), transparent);
+  }
+
+  .role-toggle.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .role-toggle .check {
+    width: 22px;
+    height: 22px;
+    border: 1px solid var(--gold-dim);
+    flex-shrink: 0;
+    margin-top: 2px;
+    position: relative;
+    transition: all 0.2s;
+  }
+
+  .role-toggle.active .check {
+    background: var(--gold);
+    border-color: var(--gold);
+  }
+
+  .role-toggle.active .check::after {
+    content: '✓';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--bg);
+    font-size: 14px;
+    font-weight: bold;
+  }
+
+  .role-toggle .info {
+    flex: 1;
+  }
+
+  .role-toggle .name {
+    font-family: 'Oswald', sans-serif;
+    font-size: 15px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--paper);
+    margin-bottom: 4px;
+  }
+
+  .role-toggle .desc {
+    font-size: 15px;
+    line-height: 1.4;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+
+  .role-toggle .warn {
+    margin-top: 8px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--blood-bright);
+    font-style: normal;
+  }
+
+  /* === PRIMARY BUTTON === */
+  .btn-primary {
+    width: 100%;
+    padding: 22px;
+    background: var(--blood);
+    color: var(--button-text);
+    border: none;
+    font-family: 'Oswald', sans-serif;
+    font-size: 14px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    font-weight: 500;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+    overflow: hidden;
+  }
+
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border: 1px solid rgba(244, 236, 216, 0.2);
+    pointer-events: none;
+  }
+
+  .btn-primary:active {
+    background: var(--blood-bright);
+    transform: scale(0.99);
+  }
+
+  .btn-primary:disabled {
+    background: var(--bg-2);
+    color: var(--ash);
+    cursor: not-allowed;
+  }
+
+  .btn-secondary {
+    width: 100%;
+    padding: 18px;
+    background: transparent;
+    color: var(--gold);
+    border: 1px solid var(--gold-dim);
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-secondary:active {
+    background: var(--gold);
+    color: var(--bg);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-dim);
+    border: none;
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 12px 0;
+  }
+
+  /* === DEAL SCREEN === */
+  .deal-screen {
+    min-height: calc(100vh - 40px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+    position: relative;
+  }
+
+  .player-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ash);
+    letter-spacing: 0.3em;
+    margin-bottom: 8px;
+  }
+
+  .deal-screen .instruction {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 20px;
+    color: var(--text-dim);
+    margin-bottom: 40px;
+    line-height: 1.4;
+    max-width: 360px;
+  }
+
+  .player-name-big {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 300;
+    font-size: 48px;
+    color: var(--paper);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    margin-bottom: 8px;
+    line-height: 1;
+  }
+
+  .passing-hint {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    color: var(--gold-dim);
+    font-size: 16px;
+    margin-bottom: 48px;
+  }
+
+  .reveal-btn {
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, var(--reveal-grad-start), var(--reveal-grad-end));
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: 'Oswald', sans-serif;
+    font-size: 14px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+    box-shadow: var(--reveal-shadow);
+    margin-bottom: 48px;
+  }
+
+  .reveal-btn::before {
+    content: '';
+    position: absolute;
+    inset: 12px;
+    border-radius: 50%;
+    border: 1px solid var(--gold-dim);
+  }
+
+  .reveal-btn::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    border: 1px solid var(--border-softer);
+    animation: pulse 2.5s infinite ease-in-out;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.08); opacity: 0.2; }
+  }
+
+  .reveal-btn:active {
+    transform: scale(0.96);
+  }
+
+  /* === ROLE REVEAL === */
+  .role-card {
+    animation: cardReveal 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+    width: 100%;
+    max-width: 380px;
+    background: linear-gradient(to bottom, var(--card-bg-start), var(--card-bg-end));
+    color: var(--card-text);
+    padding: 40px 32px;
+    position: relative;
+    margin-bottom: 32px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 120px rgba(139, 26, 26, 0.2);
+  }
+
+  @keyframes cardReveal {
+    from {
+      opacity: 0;
+      transform: rotateY(90deg) scale(0.8);
+    }
+    to {
+      opacity: 1;
+      transform: rotateY(0) scale(1);
+    }
+  }
+
+  .role-card::before, .role-card::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--card-accent);
+  }
+  .role-card::before { top: 12px; left: 12px; border-right: none; border-bottom: none; }
+  .role-card::after { bottom: 12px; right: 12px; border-left: none; border-top: none; }
+
+  .role-card .kicker {
+    font-family: 'Oswald', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    text-align: center;
+    color: var(--card-accent);
+    margin-bottom: 20px;
+  }
+
+  .role-card .role-emblem {
+    text-align: center;
+    font-size: 56px;
+    margin-bottom: 8px;
+    filter: sepia(0.3);
+  }
+
+  .role-card .role-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 38px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-align: center;
+    color: var(--card-text);
+    margin-bottom: 4px;
+    line-height: 1;
+  }
+
+  .role-card .role-side {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 16px;
+    text-align: center;
+    color: var(--card-accent);
+    margin-bottom: 20px;
+  }
+
+  .role-card .divider {
+    height: 1px;
+    background: var(--card-text);
+    opacity: 0.3;
+    margin: 20px 0;
+  }
+
+  .role-card .role-desc {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+    line-height: 1.5;
+    color: var(--card-text);
+    text-align: center;
+  }
+
+  .role-card .team-list {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--card-text);
+  }
+
+  .role-card .team-list .t-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--card-accent);
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  .role-card .team-names {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    text-align: center;
+    font-size: 17px;
+    color: var(--card-text);
+  }
+
+  /* === HOST SCREEN === */
+  .host-header {
+    padding: 20px 0;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+
+  .phase-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: var(--bg-2);
+    border: 1px solid var(--gold-dim);
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+
+  .phase-badge.night { border-color: #4a5a8e; color: #8ea5d1; }
+  .phase-badge.day { border-color: var(--gold); color: var(--gold); }
+  .phase-badge.vote { border-color: var(--blood-bright); color: var(--blood-bright); }
+
+  .phase-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 32px;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--paper);
+    line-height: 1;
+  }
+
+  .step-card {
+    background: var(--bg-2);
+    border-left: 2px solid var(--gold-dim);
+    padding: 20px 18px;
+    margin-bottom: 12px;
+    position: relative;
+  }
+
+  .step-card.mafia-action { border-left-color: var(--blood-bright); }
+  .step-card.sheriff-action { border-left-color: var(--gold); }
+  .step-card.doctor-action { border-left-color: #5a9b8e; }
+  .step-card.maniac-action { border-left-color: #8e5a9b; }
+  .step-card.whore-action { border-left-color: #c77d9e; }
+
+  .step-card .step-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--gold);
+    letter-spacing: 0.2em;
+    margin-bottom: 8px;
+  }
+
+  .step-card .step-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--paper);
+    margin-bottom: 10px;
+  }
+
+  .step-card .step-say {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 17px;
+    line-height: 1.5;
+    color: var(--text);
+    padding: 12px 14px;
+    background: var(--quote-bg);
+    border-left: 2px solid var(--gold-dim);
+    margin-bottom: 10px;
+  }
+
+  .step-card .step-say::before {
+    content: '«';
+    color: var(--gold);
+    margin-right: 2px;
+  }
+  .step-card .step-say::after {
+    content: '»';
+    color: var(--gold);
+    margin-left: 2px;
+  }
+
+  .step-card .step-hint {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+
+  /* === NAV === */
+  .nav-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 32px;
+  }
+
+  .nav-btn {
+    flex: 1;
+    padding: 16px;
+    background: var(--bg-2);
+    color: var(--text);
+    border: 1px solid var(--border-soft);
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .nav-btn:active {
+    background: var(--gold);
+    color: var(--bg);
+  }
+
+  .nav-btn.primary {
+    background: var(--blood);
+    color: var(--button-text);
+    border-color: var(--blood);
+  }
+
+  .nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  /* === PLAYERS LIST (HOST) === */
+  .players-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .player-chip {
+    padding: 12px 10px;
+    background: var(--bg-2);
+    border: 1px solid var(--border-softer);
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text);
+    position: relative;
+  }
+
+  .player-chip:active { transform: scale(0.98); }
+
+  .player-chip.dead {
+    color: var(--ash);
+    text-decoration: line-through;
+    background: transparent;
+    border-style: dashed;
+  }
+
+  .player-chip.dead::after {
+    content: '✕';
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    color: var(--blood-bright);
+    font-size: 10px;
+  }
+
+  /* === NAME INPUT === */
+  .name-inputs {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .name-input-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg-2);
+    padding: 4px 16px 4px 4px;
+    border: 1px solid var(--border-softer);
+  }
+
+  .name-input-row .idx {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--gold);
+    background: var(--border-softest);
+    width: 32px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 0.1em;
+  }
+
+  .name-input-row input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--paper);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    padding: 8px 0;
+    outline: none;
+    font-weight: 600;
+  }
+
+  .name-input-row input::placeholder {
+    color: var(--ash);
+    font-style: italic;
+    font-weight: 400;
+  }
+
+  /* === MODAL === */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .modal {
+    background: var(--bg-2);
+    border: 1px solid var(--gold-dim);
+    padding: 32px 24px;
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+    position: relative;
+  }
+
+  .modal::before, .modal::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--gold);
+  }
+  .modal::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+  .modal::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+  .modal h3 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 22px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--paper);
+    margin-bottom: 16px;
+  }
+
+  .modal p {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+    line-height: 1.5;
+    color: var(--text-dim);
+    margin-bottom: 24px;
+  }
+
+  .modal-btns {
+    display: flex;
+    gap: 12px;
+  }
+  .modal-btns > * { flex: 1; }
+
+  /* === HELPER CLASSES === */
+  .hidden { display: none !important; }
+  .t-center { text-align: center; }
+  .mt-8 { margin-top: 8px; }
+  .mt-16 { margin-top: 16px; }
+  .mt-24 { margin-top: 24px; }
+  .mb-16 { margin-bottom: 16px; }
+  .mb-24 { margin-bottom: 24px; }
+
+  /* === GAME OVER === */
+  .game-over {
+    text-align: center;
+    padding: 60px 20px;
+  }
+
+  .game-over .verdict {
+    font-family: 'Oswald', sans-serif;
+    font-size: 56px;
+    font-weight: 300;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+
+  .game-over .verdict.mafia-wins { color: var(--blood-bright); }
+  .game-over .verdict.city-wins { color: var(--gold); }
+
+  .game-over .verdict-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 20px;
+    color: var(--text-dim);
+    margin-bottom: 40px;
+  }
+
+  .final-list {
+    text-align: left;
+    margin-bottom: 32px;
+  }
+
+  .final-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-softest);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+  }
+
+  .final-item .name-col {
+    color: var(--paper);
+    font-weight: 600;
+  }
+
+  .final-item .role-col {
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .final-item.dead .name-col {
+    text-decoration: line-through;
+    color: var(--ash);
+  }
+
+  /* === RULES PAGE === */
+  .rules-content h3 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 14px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-top: 24px;
+    margin-bottom: 12px;
+  }
+
+  .rules-content p {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+
+  .rules-content ul {
+    margin-left: 20px;
+    margin-bottom: 16px;
+  }
+
+  .rules-content li {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+
+  /* === TIMER === */
+  .timer-display {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 64px;
+    font-weight: 500;
+    color: var(--gold);
+    text-align: center;
+    letter-spacing: 0.05em;
+    padding: 20px 0;
+  }
+
+  .timer-display.warning { color: var(--blood-bright); animation: blink 1s infinite; }
+  @keyframes blink { 50% { opacity: 0.3; } }
+
+  .timer-controls {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  @media (max-width: 380px) {
+    .hero { font-size: 56px; }
+    .counter-num { font-size: 68px; min-width: 100px; }
+    .reveal-btn { width: 200px; height: 200px; }
+  }
+</style>
+</head>
+<body>
+<button class="theme-toggle" id="themeToggle" aria-label="Сменить тему" title="Сменить тему">
+  <span id="themeIcon">☾</span>
+</button>
+<div class="app" id="app"></div>
+
+<script>
+// ============================================================
+// ROLE DEFINITIONS
+// ============================================================
+const ROLES = {
+  mafia: {
+    id: 'mafia', name: 'Мафия', side: 'Тёмная сторона', emblem: '🔪',
+    desc: 'Каждую ночь вы вместе с подельниками выбираете жертву. Днём притворяйтесь мирным жителем и сбивайте с толку.',
+    color: 'mafia'
+  },
+  civilian: {
+    id: 'civilian', name: 'Мирный', side: 'Светлая сторона', emblem: '☗',
+    desc: 'У вас нет особых способностей. Ваше оружие — логика, интуиция и красноречие. Найдите мафию, пока не поздно.',
+    color: 'civilian'
+  },
+  sheriff: {
+    id: 'sheriff', name: 'Шериф', side: 'Светлая сторона', emblem: '✦',
+    desc: 'Каждую ночь вы проверяете одного игрока — ведущий покажет, мафия он или нет. Но если мафия узнает вас — вы труп.',
+    color: 'sheriff'
+  },
+  doctor: {
+    id: 'doctor', name: 'Доктор', side: 'Светлая сторона', emblem: '✚',
+    desc: 'Каждую ночь вы лечите одного игрока. Если мафия выберет его — он выживет. Себя можно лечить только один раз за игру.',
+    color: 'doctor'
+  },
+  don: {
+    id: 'don', name: 'Дон Мафии', side: 'Тёмная сторона', emblem: '♛',
+    desc: 'Вы — глава мафии. Кроме участия в убийствах, каждую ночь можете проверить, является ли игрок Шерифом.',
+    color: 'don'
+  },
+  maniac: {
+    id: 'maniac', name: 'Маньяк', side: 'Одиночка', emblem: '☠',
+    desc: 'Вы играете сами за себя. Каждую ночь убиваете одного игрока. Побеждаете, если останетесь с одним мирным один на один.',
+    color: 'maniac'
+  },
+  whore: {
+    id: 'whore', name: 'Путана', side: 'Светлая сторона', emblem: '❀',
+    desc: 'Каждую ночь вы выбираете игрока — он «спит» у вас и не может применить свою ночную способность. Осторожно: если заблокируете мафию, можете сами погибнуть.',
+    color: 'whore'
+  }
+};
+
+// ============================================================
+// STATE
+// ============================================================
+const state = {
+  screen: 'home',
+  playerCount: 8,
+  optionalRoles: { don: true, doctor: true, maniac: false, whore: false },
+  players: [],         // [{name, role, alive}]
+  dealIndex: 0,        // current player getting role
+  dealPhase: 'await',  // 'await' | 'shown'
+  // host state
+  day: 1,
+  phase: 'night',      // 'night' | 'day' | 'vote'
+  stepIndex: 0,
+  timer: { seconds: 60, running: false, interval: null },
+  theme: 'light'       // 'light' | 'dark'
+};
+
+// Применяет тему (CSS-атрибут на <html>). Storage намеренно не используется,
+// т.к. артефакты в Claude.ai не поддерживают localStorage.
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', state.theme === 'dark' ? 'dark' : 'light');
+}
+
+function toggleTheme() {
+  state.theme = state.theme === 'light' ? 'dark' : 'light';
+  applyTheme();
+  render();
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// Минимум мирных, который мы гарантируем.
+// Игра должна быть интересной — нужно минимум 2 мирных, чтобы было за кого говорить.
+const MIN_CIVILIANS = 2;
+
+function calcRoleDistribution() {
+  const n = state.playerCount;
+
+  // Классика: мафия ≈ 1/3 от стола, округлено вниз, минимум 1.
+  // При 4 — 1, при 5–7 — 2 (но минимум 1 из формулы даст 1-2, так что корректируем).
+  let totalMafiaSide = Math.max(1, Math.floor(n / 3));
+  // При 4-5 игроках — только 1 мафия, иначе слишком жёстко.
+  if (n <= 5) totalMafiaSide = 1;
+
+  // Don — один из рядов мафии (не добавочный). Только если в мафии ≥ 2 человек.
+  let donCount = (state.optionalRoles.don && totalMafiaSide >= 2) ? 1 : 0;
+  let mafiaCount = totalMafiaSide - donCount;
+
+  const sheriffCount = 1;
+  let doctorCount = state.optionalRoles.doctor ? 1 : 0;
+  let maniacCount = (state.optionalRoles.maniac && n >= 8) ? 1 : 0;
+  let whoreCount = (state.optionalRoles.whore && n >= 8) ? 1 : 0;
+
+  // Проверяем, что мирных останется хотя бы MIN_CIVILIANS.
+  // Если не хватает — последовательно срезаем опциональные роли.
+  // Приоритет сохранения: Дон > Доктор > Маньяк > Путана.
+  const checkCivilians = () => n - (mafiaCount + donCount + sheriffCount + doctorCount + maniacCount + whoreCount);
+  while (checkCivilians() < MIN_CIVILIANS) {
+    if (whoreCount > 0) { whoreCount = 0; continue; }
+    if (maniacCount > 0) { maniacCount = 0; continue; }
+    if (doctorCount > 0) { doctorCount = 0; continue; }
+    if (donCount > 0) { donCount = 0; mafiaCount = totalMafiaSide; continue; }
+    // Если даже без опциональных ролей мирных не хватает — уменьшаем мафию до 1.
+    if (mafiaCount > 1) { mafiaCount--; continue; }
+    break; // крайний случай — что есть, то есть
+  }
+
+  const civilianCount = Math.max(0, checkCivilians());
+
+  return {
+    mafia: mafiaCount,
+    don: donCount,
+    sheriff: sheriffCount,
+    doctor: doctorCount,
+    maniac: maniacCount,
+    whore: whoreCount,
+    civilian: civilianCount,
+    totalMafiaSide: mafiaCount + donCount
+  };
+}
+
+// Проверяет, можно ли включить опциональную роль при текущих настройках
+// (учитывая не только число игроков, но и другие выбранные роли).
+function canEnableRole(roleId) {
+  const n = state.playerCount;
+  if (roleId === 'don') return n >= 6;
+  if (roleId === 'maniac') return n >= 8;
+  if (roleId === 'whore') return n >= 8;
+  return true;
+}
+
+// Проверяет, будет ли роль реально выдана при текущих настройках —
+// т.е. её не вытеснит балансировщик.
+function isRoleEffective(roleId) {
+  const dist = calcRoleDistribution();
+  return dist[roleId] > 0;
+}
+
+function dealRoles() {
+  const dist = calcRoleDistribution();
+  const pool = [];
+  for (let i = 0; i < dist.mafia; i++) pool.push('mafia');
+  for (let i = 0; i < dist.don; i++) pool.push('don');
+  for (let i = 0; i < dist.sheriff; i++) pool.push('sheriff');
+  for (let i = 0; i < dist.doctor; i++) pool.push('doctor');
+  for (let i = 0; i < dist.maniac; i++) pool.push('maniac');
+  for (let i = 0; i < dist.whore; i++) pool.push('whore');
+  for (let i = 0; i < dist.civilian; i++) pool.push('civilian');
+
+  const shuffled = shuffle(pool);
+  state.players = state.players.map((p, i) => ({
+    ...p,
+    role: shuffled[i],
+    alive: true
+  }));
+}
+
+function getMafiaNames() {
+  return state.players
+    .filter(p => p.role === 'mafia' || p.role === 'don')
+    .map(p => p.name);
+}
+
+function render() {
+  const app = document.getElementById('app');
+  app.innerHTML = '';
+  if (state.screen === 'home') renderHome();
+  else if (state.screen === 'names') renderNames();
+  else if (state.screen === 'deal') renderDeal();
+  else if (state.screen === 'host') renderHost();
+  else if (state.screen === 'gameover') renderGameOver();
+  else if (state.screen === 'rules') renderRules();
+  updateThemeIcon();
+  window.scrollTo(0, 0);
+}
+
+// Обновляет иконку переключателя темы.
+function updateThemeIcon() {
+  const icon = document.getElementById('themeIcon');
+  if (icon) icon.textContent = state.theme === 'light' ? '☾' : '☀';
+}
+
+// ============================================================
+// HOME SCREEN
+// ============================================================
+function renderHome() {
+  const dist = calcRoleDistribution();
+  const app = document.getElementById('app');
+
+  app.innerHTML = `
+    <div class="screen">
+      <div class="home-header">
+        <div class="ornament"><span>C O S A · N O S T R A</span></div>
+        <div class="hero-wrap">
+          <div class="year">Est. 1986</div>
+          <h1 class="hero">Мафия<em>in famiglia</em></h1>
+        </div>
+        <div class="tag">
+          <p class="subtitle">Город засыпает —<br>просыпается мафия</p>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">
+          <span class="num">01 /</span>
+          <span class="label">Игроков за столом</span>
+          <span class="line"></span>
+        </div>
+        <div class="counter">
+          <button class="counter-btn" id="minusBtn" ${state.playerCount <= 4 ? 'disabled' : ''}>−</button>
+          <div>
+            <div class="counter-num">${state.playerCount}</div>
+            <div class="counter-label">человек</div>
+          </div>
+          <button class="counter-btn" id="plusBtn" ${state.playerCount >= 20 ? 'disabled' : ''}>+</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">
+          <span class="num">02 /</span>
+          <span class="label">Расклад ролей</span>
+          <span class="line"></span>
+        </div>
+        <div class="role-dist">
+          <div class="cell">
+            <div class="dot mafia"></div>
+            <div class="txt"><div class="role-name">Мафия</div></div>
+            <div class="role-count">×${dist.mafia}</div>
+          </div>
+          ${dist.don ? `
+          <div class="cell">
+            <div class="dot don"></div>
+            <div class="txt"><div class="role-name">Дон</div></div>
+            <div class="role-count">×${dist.don}</div>
+          </div>` : ''}
+          <div class="cell">
+            <div class="dot sheriff"></div>
+            <div class="txt"><div class="role-name">Шериф</div></div>
+            <div class="role-count">×${dist.sheriff}</div>
+          </div>
+          ${dist.doctor ? `
+          <div class="cell">
+            <div class="dot doctor"></div>
+            <div class="txt"><div class="role-name">Доктор</div></div>
+            <div class="role-count">×${dist.doctor}</div>
+          </div>` : ''}
+          ${dist.maniac ? `
+          <div class="cell">
+            <div class="dot maniac"></div>
+            <div class="txt"><div class="role-name">Маньяк</div></div>
+            <div class="role-count">×${dist.maniac}</div>
+          </div>` : ''}
+          ${dist.whore ? `
+          <div class="cell">
+            <div class="dot whore"></div>
+            <div class="txt"><div class="role-name">Путана</div></div>
+            <div class="role-count">×${dist.whore}</div>
+          </div>` : ''}
+          <div class="cell">
+            <div class="dot civilian"></div>
+            <div class="txt"><div class="role-name">Мирные</div></div>
+            <div class="role-count">×${dist.civilian}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">
+          <span class="num">03 /</span>
+          <span class="label">Дополнительные роли</span>
+          <span class="line"></span>
+        </div>
+        ${renderRoleToggle('don', '♛ Дон Мафии', 'Проверяет Шерифа ночью. Минимум 6 игроков.')}
+        ${renderRoleToggle('doctor', '✚ Доктор', 'Лечит одного игрока за ночь.')}
+        ${renderRoleToggle('maniac', '☠ Маньяк', 'Одиночка. Убивает сам за себя. Минимум 8 игроков.')}
+        ${renderRoleToggle('whore', '❀ Путана', 'Блокирует ночные способности. Минимум 8 игроков.')}
+      </div>
+
+      <button class="btn-primary" id="startBtn">Раздать роли →</button>
+      <div style="height: 12px;"></div>
+      <button class="btn-secondary" id="rulesBtn">Правила игры</button>
+    </div>
+  `;
+
+  document.getElementById('minusBtn').onclick = () => {
+    if (state.playerCount > 4) { state.playerCount--; validateRoles(); render(); }
+  };
+  document.getElementById('plusBtn').onclick = () => {
+    if (state.playerCount < 20) { state.playerCount++; validateRoles(); render(); }
+  };
+  document.getElementById('startBtn').onclick = () => {
+    state.screen = 'names';
+    render();
+  };
+  document.getElementById('rulesBtn').onclick = () => {
+    state.screen = 'rules';
+    render();
+  };
+
+  ['don', 'doctor', 'maniac', 'whore'].forEach(id => {
+    const el = document.getElementById(`toggle-${id}`);
+    if (el) el.onclick = () => {
+      if (!canEnableRole(id)) return;
+      state.optionalRoles[id] = !state.optionalRoles[id];
+      render();
+    };
+  });
+}
+
+function renderRoleToggle(id, name, desc) {
+  const active = state.optionalRoles[id];
+  const allowed = canEnableRole(id);
+  // Роль включена пользователем, но балансировщик её срезал (мало места для мирных)
+  const squeezed = active && allowed && !isRoleEffective(id);
+
+  return `
+    <div class="role-toggle ${active ? 'active' : ''} ${!allowed ? 'disabled' : ''}" id="toggle-${id}">
+      <div class="check"></div>
+      <div class="info">
+        <div class="name">${name}</div>
+        <div class="desc">${desc}</div>
+        ${!allowed ? `<div class="warn">Нужно минимум ${id === 'don' ? 6 : 8} игроков</div>` : ''}
+        ${squeezed ? `<div class="warn">⚠ Не поместится при текущем раскладе — другая роль важнее</div>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+// Автоматически выключает роли, которые нельзя применить при текущем числе игроков.
+function validateRoles() {
+  if (!canEnableRole('don')) state.optionalRoles.don = false;
+  if (!canEnableRole('maniac')) state.optionalRoles.maniac = false;
+  if (!canEnableRole('whore')) state.optionalRoles.whore = false;
+}
+
+// ============================================================
+// NAMES INPUT
+// ============================================================
+function renderNames() {
+  const app = document.getElementById('app');
+  // Initialize players array if not set
+  if (state.players.length !== state.playerCount) {
+    state.players = Array.from({length: state.playerCount}, (_, i) => ({
+      name: '', role: null, alive: true
+    }));
+  }
+
+  let inputsHtml = '';
+  for (let i = 0; i < state.playerCount; i++) {
+    const num = String(i+1).padStart(2, '0');
+    inputsHtml += `
+      <div class="name-input-row">
+        <div class="idx">${num}</div>
+        <input type="text" data-idx="${i}" value="${state.players[i].name}" 
+               placeholder="Игрок ${i+1}" maxlength="20" />
+      </div>
+    `;
+  }
+
+  app.innerHTML = `
+    <div class="screen">
+      <div class="home-header">
+        <div class="ornament"><span>D R A M A T I S · P E R S O N A E</span></div>
+        <div class="hero-wrap">
+          <h1 class="hero" style="font-size: 48px;">Имена<em>за столом</em></h1>
+        </div>
+        <p class="subtitle t-center mt-16">Введи имена или оставь стандартные</p>
+      </div>
+
+      <div class="name-inputs">
+        ${inputsHtml}
+      </div>
+
+      <button class="btn-primary" id="confirmNames">Раздать карты →</button>
+      <div style="height: 12px;"></div>
+      <button class="btn-ghost" id="backHome">← Назад</button>
+    </div>
+  `;
+
+  document.querySelectorAll('input[data-idx]').forEach(inp => {
+    inp.oninput = (e) => {
+      const idx = parseInt(e.target.dataset.idx);
+      state.players[idx].name = e.target.value;
+    };
+  });
+
+  document.getElementById('confirmNames').onclick = () => {
+    // Fill in empty names
+    state.players.forEach((p, i) => {
+      if (!p.name.trim()) p.name = `Игрок ${i+1}`;
+    });
+    dealRoles();
+    state.dealIndex = 0;
+    state.dealPhase = 'await';
+    state.screen = 'deal';
+    render();
+  };
+
+  document.getElementById('backHome').onclick = () => {
+    state.screen = 'home';
+    render();
+  };
+}
+
+// ============================================================
+// ROLE DEAL SCREEN
+// ============================================================
+function renderDeal() {
+  const app = document.getElementById('app');
+  const player = state.players[state.dealIndex];
+  const num = String(state.dealIndex + 1).padStart(2, '0');
+  const total = String(state.playerCount).padStart(2, '0');
+
+  if (state.dealPhase === 'await') {
+    app.innerHTML = `
+      <div class="deal-screen screen">
+        <div class="player-num">Игрок · ${num} / ${total}</div>
+        <div class="player-name-big">${player.name}</div>
+        <div class="passing-hint">передай телефон этому игроку</div>
+
+        <button class="reveal-btn" id="revealBtn">
+          <span>Показать<br>роль</span>
+        </button>
+
+        <p class="instruction">
+          Убедись, что никто<br>
+          не подглядывает за&nbsp;твоим плечом
+        </p>
+      </div>
+    `;
+
+    document.getElementById('revealBtn').onclick = () => {
+      state.dealPhase = 'shown';
+      render();
+    };
+  } else {
+    // Shown phase - display the role
+    const role = ROLES[player.role];
+    const isMafiaTeam = player.role === 'mafia' || player.role === 'don';
+    const mafiaTeamHtml = isMafiaTeam && getMafiaNames().length > 1
+      ? `
+        <div class="team-list">
+          <div class="t-label">Твои подельники</div>
+          <div class="team-names">${getMafiaNames().filter(n => n !== player.name).join(' · ')}</div>
+        </div>
+      ` : '';
+
+    app.innerHTML = `
+      <div class="deal-screen screen">
+        <div class="role-card">
+          <div class="kicker">${player.name}</div>
+          <div class="role-emblem">${role.emblem}</div>
+          <div class="role-title">${role.name}</div>
+          <div class="role-side">${role.side}</div>
+          <div class="divider"></div>
+          <div class="role-desc">${role.desc}</div>
+          ${mafiaTeamHtml}
+        </div>
+
+        <button class="btn-primary" id="doneBtn" style="max-width: 380px;">
+          ${state.dealIndex < state.playerCount - 1 ? 'Запомнил, передаю дальше →' : 'Начать игру →'}
+        </button>
+      </div>
+    `;
+
+    document.getElementById('doneBtn').onclick = () => {
+      if (state.dealIndex < state.playerCount - 1) {
+        state.dealIndex++;
+        state.dealPhase = 'await';
+        render();
+      } else {
+        // All dealt — go to host screen
+        state.screen = 'host';
+        state.day = 1;
+        state.phase = 'night';
+        state.stepIndex = 0;
+        render();
+      }
+    };
+  }
+}
+
+// ============================================================
+// HOST SCREEN
+// ============================================================
+function getNightSteps() {
+  const steps = [];
+  const hasAlive = (role) => state.players.some(p => p.role === role && p.alive);
+  const hasMafia = hasAlive('mafia') || hasAlive('don');
+  const isFirstNight = state.day === 1;
+
+  // На первой ночи мафия только знакомится (без убийства) — это классика.
+  // Ведущий сам решит в конце, но подсказка поможет.
+
+  steps.push({
+    title: 'Город засыпает',
+    say: 'Город засыпает. Все закрывают глаза. Прошу тишины.',
+    hint: 'Дождись полной тишины. Попроси игроков закрыть глаза и положить руки на стол — ритмичное постукивание скроет шорохи от активных ролей.'
+  });
+
+  // Первая ночь: мафия знакомится
+  if (isFirstNight && hasMafia) {
+    steps.push({
+      title: 'Мафия знакомится',
+      cls: 'mafia-action',
+      say: 'Мафия, просыпайся. Познакомьтесь друг с другом молча — взглядом и кивком.',
+      hint: 'Дай мафиози 10–15 секунд узнать друг друга. Это нужно только в первую ночь. В эту ночь мафия НЕ убивает — первого жителя убивают со второй ночи (по классике). Некоторые играют иначе — как договоритесь.'
+    });
+    steps.push({ title: 'Мафия засыпает', say: 'Мафия, закрой глаза.', hint: '' });
+  }
+
+  // Путана (ходит первой — блокирует способности)
+  if (state.optionalRoles.whore && hasAlive('whore')) {
+    steps.push({
+      title: 'Путана просыпается',
+      cls: 'whore-action',
+      say: 'Путана, открой глаза. Укажи, к кому идёшь этой ночью.',
+      hint: 'Запомни цель. Правила блокировки: этот игрок не сможет применить свою ночную способность. Если Путана пришла к мафиози — считается, что она застала их и погибает вместе с жертвой мафии (если мафия сегодня убивает). Нельзя ходить к одному и тому же игроку две ночи подряд.'
+    });
+    steps.push({ title: 'Путана засыпает', say: 'Путана, закрой глаза.', hint: '' });
+  }
+
+  // Мафия убивает (не на первой ночи, если играем по классике)
+  if (!isFirstNight && hasMafia) {
+    steps.push({
+      title: 'Мафия просыпается',
+      cls: 'mafia-action',
+      say: 'Мафия, просыпайся. Тихо, жестами выберите жертву.',
+      hint: 'Дождись единогласного решения. Если мафия не договорилась за ~30 секунд — ночь без убийства. Запомни имя жертвы. Если Путана заблокировала мафию — жертвы мафии тоже нет (и Путана умирает).'
+    });
+  } else if (isFirstNight && !hasMafia) {
+    // нет мафии в игре — не нужен шаг
+  }
+
+  // Дон ищет Шерифа (каждую ночь, включая первую)
+  if (state.optionalRoles.don && hasAlive('don')) {
+    steps.push({
+      title: 'Дон ищет Шерифа',
+      cls: 'mafia-action',
+      say: 'Дон, открой глаза. Укажи, кого проверяешь.',
+      hint: 'Покажи Дону ответ жестом: кивок (да) — это Шериф, покачивание (нет) — не Шериф. Если Дон был заблокирован Путаной — ничего не показывай (но чтобы он не догадался, сделай паузу и покажи «нет»).'
+    });
+  }
+
+  if (!isFirstNight && hasMafia) {
+    steps.push({ title: 'Мафия засыпает', say: 'Мафия, закрой глаза.', hint: '' });
+  } else if (state.optionalRoles.don && hasAlive('don')) {
+    // Если была только проверка Дона — усыпляем
+    steps.push({ title: 'Дон засыпает', say: 'Дон, закрой глаза.', hint: '' });
+  }
+
+  // Доктор
+  if (state.optionalRoles.doctor && hasAlive('doctor')) {
+    steps.push({
+      title: 'Доктор просыпается',
+      cls: 'doctor-action',
+      say: 'Доктор, просыпайся. Кого лечишь этой ночью?',
+      hint: 'Запомни выбор. Ограничения: (1) нельзя лечить одного игрока две ночи подряд; (2) себя можно лечить только ОДИН раз за всю игру. Доктор лечит от мафии И от маньяка (классика) — договоритесь об этом заранее. Если Доктор заблокирован Путаной — ничьё лечение не сработает.'
+    });
+    steps.push({ title: 'Доктор засыпает', say: 'Доктор, закрой глаза.', hint: '' });
+  }
+
+  // Шериф
+  if (hasAlive('sheriff')) {
+    steps.push({
+      title: 'Шериф просыпается',
+      cls: 'sheriff-action',
+      say: 'Шериф, просыпайся. Кого проверяешь этой ночью?',
+      hint: 'Ответ жестом: большой палец вверх — НЕ мафия, вниз — мафия. Важно: Дон для шерифа показывается как мафия. Маньяк — как НЕ мафия (он не красный). Если Шериф заблокирован Путаной — покажи ложный результат «не мафия» или вообще ничего (на ваше усмотрение, но одинаково всю игру).'
+    });
+    steps.push({ title: 'Шериф засыпает', say: 'Шериф, закрой глаза.', hint: '' });
+  }
+
+  // Маньяк
+  if (state.optionalRoles.maniac && hasAlive('maniac')) {
+    steps.push({
+      title: 'Маньяк просыпается',
+      cls: 'maniac-action',
+      say: 'Маньяк, открой глаза. Кого ты убиваешь этой ночью?',
+      hint: 'Запомни цель маньяка. Важно: Доктор по умолчанию лечит и от маньяка. Если маньяк и мафия выбрали одну цель — умирает один раз (Доктор может спасти). Если маньяк заблокирован Путаной — он не убивает.'
+    });
+    steps.push({ title: 'Маньяк засыпает', say: 'Маньяк, закрой глаза.', hint: '' });
+  }
+
+  // КРИТИЧЕСКИЙ ШАГ: подведение итогов ночи
+  steps.push({
+    title: 'Итог ночи',
+    say: '(про себя) Подведи итог ночи.',
+    hint: `📋 АЛГОРИТМ ПОДСЧЁТА ЖЕРТВ:
+
+1️⃣ Составь список целей: кого выбрала мафия, кого — маньяк.
+
+2️⃣ Применяй блокировки Путаны (если есть):
+   • Путана у мафиози → цель мафии снимается + Путана умирает
+   • Путана у маньяка → цель маньяка снимается
+   • Путана у Доктора → лечение не сработает
+   • Путана у Шерифа/Дона → их проверки недействительны (но жертвы это не отменяет)
+
+3️⃣ Применяй лечение Доктора:
+   • Если цель Доктора совпадает с целью мафии/маньяка — жертва выживает
+   • Помни про ограничения: та же цель два раза подряд — НЕЛЬЗЯ, себя — только раз за игру
+
+4️⃣ Итог: список реально умерших. Если пусто — «ночь прошла спокойно».`
+  });
+
+  steps.push({
+    title: 'Город просыпается',
+    say: 'Город просыпается. Открывайте глаза.',
+    hint: 'Сейчас ты объявишь результаты. Драматизируй: «Этой ночью на углу улиц...». Порядок объявления умерших — случайный, но запомни сам, чтобы потом задавать порядок обсуждения.'
+  });
+
+  return steps;
+}
+
+function getDaySteps() {
+  const isFirstDay = state.day === 1;
+  const steps = [];
+
+  steps.push({
+    title: isFirstDay ? 'Утро первого дня' : 'Объявление жертв',
+    say: isFirstDay
+      ? 'Доброе утро, город. Это первый день — все живы. Пора знакомиться и осматриваться.'
+      : `Наступает день ${state.day}. Этой ночью...`,
+    hint: isFirstDay
+      ? 'На первом дне обычно никого не убивают ночью (мафия знакомится). Пропусти объявление жертв и переходи к обсуждению.'
+      : 'Назови имена погибших драматично. Дай каждому погибшему последнее слово (30 секунд). По классике — погибший может открыть свою роль, но НЕ намекать на убийцу. Решите заранее, как играете.'
+  });
+
+  steps.push({
+    title: 'Обсуждение',
+    say: 'Время обсудить. У каждого минута, чтобы высказаться по кругу.',
+    hint: isFirstDay
+      ? 'Первый день обычно короткий — игроки почти ничего не знают. Можно ограничиться 30 секундами на человека. Начинайте с любого.'
+      : 'Начни с игрока слева от первого умершего (стандарт). Строго следи за таймингом. Никто не перебивает говорящего.'
+  });
+
+  steps.push({
+    title: 'Выдвижение кандидатов',
+    say: 'Кого вы подозреваете? Выдвигайте кандидатов на голосование.',
+    hint: 'Правила: один игрок выдвигает одного. Сам себя — нельзя. Выдвинутого нельзя «отозвать». Запиши список. Если никто не выдвинут — переходим сразу к ночи (голосования не будет).'
+  });
+
+  steps.push({
+    title: 'Последнее слово кандидатов',
+    say: 'Каждому кандидату — 30 секунд на оправдание.',
+    hint: 'Выступают в порядке выдвижения. Если выдвинут только один — можно сразу голосовать «за/против» него, либо считать, что город решил казнить его без голоса (по договорённости).'
+  });
+
+  return steps;
+}
+
+function getVoteSteps() {
+  return [
+    {
+      title: 'Голосование',
+      say: 'Голосуем. Поднимите руку за того, кого считаете мафией.',
+      hint: 'Называй кандидатов по очереди. Правила: (1) каждый голосует ровно ОДИН раз; (2) игрок не может голосовать за себя; (3) голосуют только ЖИВЫЕ; (4) если остался один неопределившийся и его голос ни на что не влияет — может не голосовать. Считай голоса вслух.'
+    },
+    {
+      title: 'Разрешение ничьи',
+      say: '(если голоса равны) Объявляю переголосование.',
+      hint: `⚖️ ЕСЛИ РАВНОЕ ЧИСЛО ГОЛОСОВ:
+
+Вариант 1 (классика): переголосование ТОЛЬКО между лидерами. Их последнее слово — 20 сек. Затем все снова голосуют.
+
+Вариант 2: если снова равенство — либо НИКТО не уходит («город не договорился»), либо УХОДЯТ ВСЕ лидеры сразу. Реши ДО игры, как играете.
+
+Если выдвинут только один кандидат — в большинстве клубов он уходит автоматически без голосования.
+
+Если лидеров нет (кандидатов не выдвигали) — пропусти этот шаг и следующий, переходи сразу к ночи.`
+    },
+    {
+      title: 'Казнь',
+      say: 'Город сделал свой выбор.',
+      hint: 'Тапни по имени казнённого в списке ниже — он станет мёртвым. Дай ему последнее слово (30 сек). По классике — открывает свою роль. Если никого не казнят — просто переходи к следующему шагу.'
+    }
+  ];
+}
+
+function getCurrentSteps() {
+  if (state.phase === 'night') return getNightSteps();
+  if (state.phase === 'day') return getDaySteps();
+  if (state.phase === 'vote') return getVoteSteps();
+  return [];
+}
+
+// Проверка условий победы.
+// Логика:
+// — «Мафия» (mafia + don) — одна команда.
+// — «Мирные» (civilian + sheriff + doctor + whore) — одна команда.
+// — «Маньяк» — сам за себя.
+//
+// Правила:
+// 1) Все мертвы → ничья.
+// 2) Если мафии 0 и маньяка 0 → победили мирные.
+// 3) Если мирных 0:
+//    — остался только маньяк (мафия=0) → победа маньяка.
+//    — осталась только мафия (маньяк=0) → победа мафии.
+//    — остались мафия и маньяк → играют между собой (продолжаем), пока один не останется.
+// 4) Если маньяка нет, и мафия >= мирных (паритет) → победа мафии.
+// 5) Если мафии нет, маньяк и мирные:
+//    — маньяк может убить только одного за ночь, голосовать нельзя ночью,
+//      поэтому победа маньяка только когда мирных 0 (см. п.3) или их 1
+//      и их осталось ровно 2 (маньяк + мирный): маньяк гарантированно побеждает
+//      (ночью убьёт последнего, днём голосования быть не может при 2-х).
+//      → Однако по классике маньяк ПОБЕЖДАЕТ уже когда мирных 1, а маньяк жив,
+//        и мафии нет, т.к. он убьёт его следующей же ночью.
+// 6) Если живы все три фракции — продолжаем.
+function checkWinCondition() {
+  const alive = state.players.filter(p => p.alive);
+  const mafia = alive.filter(p => p.role === 'mafia' || p.role === 'don');
+  const maniac = alive.filter(p => p.role === 'maniac');
+  const civilians = alive.filter(p => p.role !== 'mafia' && p.role !== 'don' && p.role !== 'maniac');
+
+  // 1) Все мертвы
+  if (alive.length === 0) return 'draw';
+
+  // 2) Город победил: никаких «красных» не осталось
+  if (mafia.length === 0 && maniac.length === 0) return 'city';
+
+  // 3) Остался только маньяк (в т.ч. один-на-один с мирным, когда других сил нет)
+  if (mafia.length === 0 && maniac.length > 0) {
+    // Маньяк побеждает когда мирных <= 1 (он ночью убьёт единственного, голосование против него не проходит)
+    if (civilians.length <= 1) return 'maniac';
+  }
+
+  // 4) Остались только мафия и мирные (маньяка нет)
+  if (maniac.length === 0 && mafia.length > 0) {
+    // Паритет или больше — победа мафии
+    if (mafia.length >= civilians.length) return 'mafia';
+  }
+
+  // 5) Маньяк, мафия, мирные — все живы. Особые случаи:
+  if (mafia.length > 0 && maniac.length > 0 && civilians.length === 0) {
+    // Только мафия vs маньяк — ничья продолжает игру; по классике если мафия >= 1 и маньяк 1 —
+    // продолжают убивать друг друга. Для упрощения: если живых 2 (1 маньяк + 1 мафия) —
+    // признаём ничью с предпочтением мафии (она убьёт его первой ночью).
+    if (mafia.length >= 1) return 'mafia';
+  }
+
+  // 6) Продолжаем игру
+  return null;
+}
+
+function renderHost() {
+  const app = document.getElementById('app');
+
+  // Проверяем победу перед рендером — на случай если ведущий пропустил момент.
+  const winner = checkWinCondition();
+  if (winner) {
+    state.winner = winner;
+    state.screen = 'gameover';
+    stopTimer();
+    render();
+    return;
+  }
+
+  const steps = getCurrentSteps();
+  // Защита: если stepIndex вышел за границу (например, после смены ролей между ночами)
+  if (state.stepIndex >= steps.length) state.stepIndex = steps.length - 1;
+  if (state.stepIndex < 0) state.stepIndex = 0;
+  const step = steps[state.stepIndex];
+  const isLast = state.stepIndex === steps.length - 1;
+
+  const phaseLabel = {
+    night: 'Ночь',
+    day: 'День',
+    vote: 'Голосование'
+  }[state.phase];
+
+  const phaseCls = state.phase;
+
+  const aliveCount = state.players.filter(p => p.alive).length;
+
+  app.innerHTML = `
+    <div class="screen">
+      <div class="host-header">
+        <div class="phase-badge ${phaseCls}">
+          ${state.phase === 'night' ? '🌙' : state.phase === 'day' ? '☀' : '⚖'}
+          День ${state.day} · ${phaseLabel}
+        </div>
+        <div class="phase-title">${step.title}</div>
+      </div>
+
+      <div class="step-card ${step.cls || ''}">
+        <div class="step-num">Шаг ${state.stepIndex + 1} / ${steps.length}</div>
+        <div class="step-title">Ведущий говорит</div>
+        <div class="step-say">${step.say}</div>
+        ${step.hint ? `<div class="step-hint">💡 ${step.hint}</div>` : ''}
+      </div>
+
+      ${((state.phase === 'day' && (state.stepIndex === 1 || state.stepIndex === 3)) || state.phase === 'vote') ? renderTimer() : ''}
+
+      <div class="section mt-24">
+        <div class="section-head">
+          <span class="num">✦</span>
+          <span class="label">Игроки · живых ${aliveCount}/${state.playerCount}</span>
+          <span class="line"></span>
+        </div>
+        <p class="step-hint mb-16" style="font-size: 13px;">Тапни по имени, чтобы отметить игрока мёртвым или воскресить (если ошибся)</p>
+        <div class="players-list">
+          ${state.players.map((p, i) => `
+            <div class="player-chip ${!p.alive ? 'dead' : ''}" data-player="${i}">
+              ${p.name}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="nav-row">
+        <button class="nav-btn" id="prevStep" ${state.stepIndex === 0 && state.phase === 'night' && state.day === 1 ? 'disabled' : ''}>← Назад</button>
+        <button class="nav-btn primary" id="nextStep">
+          ${isLast ? nextPhaseLabel() : 'Далее →'}
+        </button>
+      </div>
+
+      <div style="height: 16px;"></div>
+      <button class="btn-ghost" id="endGame" style="width: 100%;">Завершить игру</button>
+    </div>
+  `;
+
+  // Player toggle
+  document.querySelectorAll('[data-player]').forEach(el => {
+    el.onclick = () => {
+      const idx = parseInt(el.dataset.player);
+      state.players[idx].alive = !state.players[idx].alive;
+      const winner = checkWinCondition();
+      if (winner) {
+        state.winner = winner;
+        state.screen = 'gameover';
+      }
+      render();
+    };
+  });
+
+  // Nav
+  document.getElementById('prevStep').onclick = () => {
+    if (state.stepIndex > 0) {
+      state.stepIndex--;
+    } else {
+      // Go back to previous phase
+      if (state.phase === 'vote') { state.phase = 'day'; state.stepIndex = getDaySteps().length - 1; }
+      else if (state.phase === 'day') { state.phase = 'night'; state.stepIndex = getNightSteps().length - 1; }
+    }
+    stopTimer();
+    render();
+  };
+
+  document.getElementById('nextStep').onclick = () => {
+    if (state.stepIndex < steps.length - 1) {
+      state.stepIndex++;
+    } else {
+      // Transition
+      if (state.phase === 'night') { state.phase = 'day'; state.stepIndex = 0; }
+      else if (state.phase === 'day') { state.phase = 'vote'; state.stepIndex = 0; }
+      else if (state.phase === 'vote') {
+        const winner = checkWinCondition();
+        if (winner) {
+          state.winner = winner;
+          state.screen = 'gameover';
+        } else {
+          state.day++;
+          state.phase = 'night';
+          state.stepIndex = 0;
+        }
+      }
+    }
+    stopTimer();
+    render();
+  };
+
+  document.getElementById('endGame').onclick = () => {
+    if (confirm('Завершить игру и вернуться в меню?')) {
+      stopTimer();
+      state.screen = 'home';
+      render();
+    }
+  };
+}
+
+function nextPhaseLabel() {
+  if (state.phase === 'night') return 'К дню →';
+  if (state.phase === 'day') return 'К голосованию →';
+  if (state.phase === 'vote') return `Ночь ${state.day + 1} →`;
+  return 'Далее →';
+}
+
+// ============================================================
+// TIMER
+// ============================================================
+function renderTimer() {
+  const s = state.timer.seconds;
+  const mm = String(Math.floor(s/60)).padStart(2,'0');
+  const ss = String(s%60).padStart(2,'0');
+  const cls = s <= 10 ? 'warning' : '';
+
+  setTimeout(() => {
+    const minus = document.getElementById('timerMinus');
+    const plus = document.getElementById('timerPlus');
+    const reset = document.getElementById('timerReset');
+    const toggle = document.getElementById('timerToggle');
+    if (minus) minus.onclick = () => { adjustTimer(-15); };
+    if (plus) plus.onclick = () => { adjustTimer(15); };
+    if (reset) reset.onclick = () => { stopTimer(); state.timer.seconds = 60; render(); };
+    if (toggle) toggle.onclick = () => {
+      if (state.timer.running) stopTimer(); else startTimer();
+      render();
+    };
+  }, 0);
+
+  return `
+    <div class="step-card" style="border-left-color: var(--gold);">
+      <div class="step-title">Таймер обсуждения</div>
+      <div class="timer-display ${cls}">${mm}:${ss}</div>
+      <div class="timer-controls">
+        <button class="nav-btn" id="timerMinus">−15с</button>
+        <button class="nav-btn primary" id="timerToggle">${state.timer.running ? '⏸ Пауза' : '▶ Старт'}</button>
+        <button class="nav-btn" id="timerPlus">+15с</button>
+      </div>
+      <div style="height: 8px;"></div>
+      <button class="btn-ghost" id="timerReset" style="width: 100%;">Сброс на 1:00</button>
+    </div>
+  `;
+}
+
+function startTimer() {
+  if (state.timer.running) return;
+  // Если таймер на нуле — автоматически ресет на 60 секунд.
+  if (state.timer.seconds === 0) state.timer.seconds = 60;
+  state.timer.running = true;
+  state.timer.interval = setInterval(() => {
+    if (state.timer.seconds > 0) {
+      state.timer.seconds--;
+      const el = document.querySelector('.timer-display');
+      if (el) {
+        const s = state.timer.seconds;
+        el.textContent = `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+        if (s <= 10) el.classList.add('warning');
+        else el.classList.remove('warning');
+      }
+      if (state.timer.seconds === 0) {
+        stopTimer();
+        // Vibrate if supported
+        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+        render();
+      }
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  state.timer.running = false;
+  if (state.timer.interval) {
+    clearInterval(state.timer.interval);
+    state.timer.interval = null;
+  }
+}
+
+function adjustTimer(delta) {
+  state.timer.seconds = Math.max(0, Math.min(600, state.timer.seconds + delta));
+  render();
+}
+
+// ============================================================
+// GAME OVER
+// ============================================================
+function renderGameOver() {
+  const app = document.getElementById('app');
+  const winner = state.winner;
+
+  const verdict = {
+    city: { text: 'Город<br>победил', sub: 'Мафия вычищена из города. Справедливость восторжествовала.', cls: 'city-wins' },
+    mafia: { text: 'Мафия<br>победила', sub: 'Город в руках семьи. Теперь здесь правят другие законы.', cls: 'mafia-wins' },
+    maniac: { text: 'Маньяк<br>победил', sub: 'Последний, кто остался в живых. Все остальные — на кладбище.', cls: 'mafia-wins' },
+    draw: { text: 'Ничья', sub: 'Никто не выжил, чтобы сказать об этом. Город опустел.', cls: '' }
+  }[winner];
+
+  app.innerHTML = `
+    <div class="game-over screen">
+      <div class="label mb-16">Финал</div>
+      <div class="verdict ${verdict.cls}">${verdict.text}</div>
+      <p class="verdict-sub">${verdict.sub}</p>
+
+      <div class="section">
+        <div class="section-head">
+          <span class="num">✦</span>
+          <span class="label">Все участники</span>
+          <span class="line"></span>
+        </div>
+        <div class="final-list">
+          ${state.players.map(p => `
+            <div class="final-item ${!p.alive ? 'dead' : ''}">
+              <div class="name-col">${p.name}</div>
+              <div class="role-col">${ROLES[p.role].emblem} ${ROLES[p.role].name}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <button class="btn-primary" id="newGame">Новая партия</button>
+    </div>
+  `;
+
+  document.getElementById('newGame').onclick = () => {
+    state.screen = 'home';
+    state.day = 1;
+    state.phase = 'night';
+    state.stepIndex = 0;
+    state.winner = null;
+    render();
+  };
+}
+
+// ============================================================
+// RULES
+// ============================================================
+function renderRules() {
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div class="screen">
+      <div class="home-header">
+        <div class="ornament"><span>R E G U L A · L U D I</span></div>
+        <div class="hero-wrap">
+          <h1 class="hero" style="font-size: 48px;">Правила<em>игры</em></h1>
+        </div>
+      </div>
+
+      <div class="rules-content">
+        <h3>Суть игры</h3>
+        <p>Часть игроков — мафия, знают друг друга и ночью «убивают». Остальные — мирные, не знают никого и днём пытаются вычислить мафию голосованием.</p>
+
+        <h3>Цикл игры</h3>
+        <ul>
+          <li><strong>Ночь:</strong> активные роли действуют по очереди (мафия выбирает жертву, шериф проверяет и т.д.)</li>
+          <li><strong>День:</strong> объявление жертв, обсуждение, выдвижение кандидатов</li>
+          <li><strong>Голосование:</strong> город голосованием выбирает, кого казнить</li>
+        </ul>
+
+        <h3>Условия победы</h3>
+        <ul>
+          <li><strong>Мирные:</strong> выгнать всех членов мафии (и маньяка, если он есть)</li>
+          <li><strong>Мафия:</strong> когда их число сравняется с числом мирных или превысит</li>
+          <li><strong>Маньяк:</strong> остался живым, мафии нет, мирных ≤ 1</li>
+        </ul>
+
+        <h3>Эдж-кейсы ночью</h3>
+        <ul>
+          <li><strong>Мафия не договорилась:</strong> ночь без убийства</li>
+          <li><strong>Доктор лечит жертву мафии:</strong> жертва выживает</li>
+          <li><strong>Путана блокирует мафию:</strong> жертвы мафии нет, Путана тоже умирает</li>
+          <li><strong>Путана блокирует Доктора/Шерифа/Дона:</strong> их действие не сработало этой ночью</li>
+          <li><strong>Маньяк + мафия на одну цель:</strong> если Доктор её лечит — спасается, иначе умирает (всё равно один раз)</li>
+          <li><strong>Маньяк и Доктор:</strong> Доктор лечит и от маньяка (классика; обсудите до игры)</li>
+          <li><strong>Шериф проверяет Дона:</strong> показывается как мафия</li>
+          <li><strong>Шериф проверяет Маньяка:</strong> показывается как НЕ мафия</li>
+        </ul>
+
+        <h3>Эдж-кейсы голосования</h3>
+        <ul>
+          <li><strong>Никто не выдвинут:</strong> переходим сразу к ночи</li>
+          <li><strong>Один кандидат:</strong> либо голосуем «за/против», либо казнь без голоса (договоритесь)</li>
+          <li><strong>Равенство голосов:</strong> переголосование между лидерами; если снова равенство — никто не уходит ИЛИ все лидеры уходят (решите до игры)</li>
+          <li><strong>Голосовать нельзя:</strong> за себя, мёртвым</li>
+        </ul>
+
+        <h3>Общие правила</h3>
+        <ul>
+          <li>Мёртвые игроки не подсказывают живым ни словом, ни жестом, ни мимикой</li>
+          <li>Нельзя показывать свою карту/роль другим в течение игры</li>
+          <li>Мафия знакомится в первую ночь (без убийства)</li>
+          <li>Нельзя намекать на проверку/лечение жестом или интонацией</li>
+          <li>Ведущий — высшая власть, его решения окончательны</li>
+        </ul>
+
+        <h3>Советы ведущему</h3>
+        <ul>
+          <li>Драматизируй рассказ — это создаёт атмосферу</li>
+          <li>Следи за глазами: кто-то может подглядывать</li>
+          <li>Используй таймер — обсуждения склонны затягиваться</li>
+          <li>Если игрок случайно выдал роль — решай по ситуации (обычно игра продолжается)</li>
+        </ul>
+      </div>
+
+      <div style="height: 32px;"></div>
+      <button class="btn-primary" id="backFromRules">← Вернуться в меню</button>
+    </div>
+  `;
+
+  document.getElementById('backFromRules').onclick = () => {
+    state.screen = 'home';
+    render();
+  };
+}
+
+// ============================================================
+// INIT
+// ============================================================
+
+// Применяем тему до первого рендера, чтобы не было вспышки.
+applyTheme();
+
+// Подключаем переключатель темы (он вне app, рендерится один раз в HTML).
+const themeBtn = document.getElementById('themeToggle');
+if (themeBtn) {
+  themeBtn.onclick = toggleTheme;
+}
+
+render();
+</script>
+</body>
+</html>
