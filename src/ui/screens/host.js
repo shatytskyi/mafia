@@ -86,7 +86,7 @@ export function renderHost({ render, clearSavedGame }) {
                 <div class="roster-num">${String(i+1).padStart(2,'0')}</div>
                 <div class="roster-name">${escapeHtml(p.name)}</div>
                 <div class="roster-role">
-                  <span class="roster-dot ${p.role}"></span>
+                  <span class="role-icon ${p.role}" aria-hidden="true">${role.emblem}</span>
                   ${role.name}
                 </div>
               </div>

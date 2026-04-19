@@ -1,5 +1,6 @@
 import { state } from '../../state/state.js';
 import { html, escapeHtml } from '../html.js';
+import { ROLES } from '../../core/roles.js';
 import { calcRoleDistribution, canEnableRole, isRoleEffective } from '../../core/distribution.js';
 import { formatSavedAgo, savedGameDescription } from '../../state/persistence.js';
 
@@ -61,43 +62,13 @@ export function renderHome({ render, loadGame, clearSavedGame, restoreGame }) {
           <span class="line"></span>
         </div>
         <div class="role-dist">
-          <div class="cell">
-            <div class="dot mafia"></div>
-            <div class="txt"><div class="role-name">Мафия</div></div>
-            <div class="role-count">×${dist.mafia}</div>
-          </div>
-          ${state.playerCount >= 6 ? `
-          <div class="cell ${dist.don ? '' : 'muted'}">
-            <div class="dot don"></div>
-            <div class="txt"><div class="role-name">Дон</div></div>
-            <div class="role-count">${dist.don ? `×${dist.don}` : '—'}</div>
-          </div>` : ''}
-          <div class="cell">
-            <div class="dot sheriff"></div>
-            <div class="txt"><div class="role-name">Шериф</div></div>
-            <div class="role-count">×${dist.sheriff}</div>
-          </div>
-          <div class="cell ${dist.doctor ? '' : 'muted'}">
-            <div class="dot doctor"></div>
-            <div class="txt"><div class="role-name">Доктор</div></div>
-            <div class="role-count">${dist.doctor ? `×${dist.doctor}` : '—'}</div>
-          </div>
-          ${state.playerCount >= 8 ? `
-          <div class="cell ${dist.maniac ? '' : 'muted'}">
-            <div class="dot maniac"></div>
-            <div class="txt"><div class="role-name">Маньяк</div></div>
-            <div class="role-count">${dist.maniac ? `×${dist.maniac}` : '—'}</div>
-          </div>
-          <div class="cell ${dist.whore ? '' : 'muted'}">
-            <div class="dot whore"></div>
-            <div class="txt"><div class="role-name">Путана</div></div>
-            <div class="role-count">${dist.whore ? `×${dist.whore}` : '—'}</div>
-          </div>` : ''}
-          <div class="cell">
-            <div class="dot civilian"></div>
-            <div class="txt"><div class="role-name">Мирные</div></div>
-            <div class="role-count">×${dist.civilian}</div>
-          </div>
+          ${distCell('mafia', 'Мафия', dist.mafia)}
+          ${state.playerCount >= 6 ? distCell('don', 'Дон', dist.don) : ''}
+          ${distCell('sheriff', 'Шериф', dist.sheriff)}
+          ${distCell('doctor', 'Доктор', dist.doctor)}
+          ${state.playerCount >= 8 ? distCell('maniac', 'Маньяк', dist.maniac) : ''}
+          ${state.playerCount >= 8 ? distCell('whore', 'Путана', dist.whore) : ''}
+          ${distCell('civilian', 'Мирные', dist.civilian)}
         </div>
       </div>
 
@@ -107,10 +78,10 @@ export function renderHome({ render, loadGame, clearSavedGame, restoreGame }) {
           <span class="label">Дополнительные роли</span>
           <span class="line"></span>
         </div>
-        ${renderRoleToggle('don',    '♛ Дон Мафии', 'Проверяет Шерифа ночью. Минимум 6 игроков.')}
-        ${renderRoleToggle('doctor', '✚ Доктор',    'Лечит одного игрока за ночь.')}
-        ${renderRoleToggle('maniac', '☠ Маньяк',    'Одиночка. Убивает сам за себя. Минимум 8 игроков.')}
-        ${renderRoleToggle('whore',  '❀ Путана',    'Блокирует ночные способности. Минимум 8 игроков.')}
+        ${renderRoleToggle('don',    'Дон Мафии', 'Проверяет Шерифа ночью. Минимум 6 игроков.')}
+        ${renderRoleToggle('doctor', 'Доктор',    'Лечит одного игрока за ночь.')}
+        ${renderRoleToggle('maniac', 'Маньяк',    'Одиночка. Убивает сам за себя. Минимум 8 игроков.')}
+        ${renderRoleToggle('whore',  'Путана',    'Блокирует ночные способности. Минимум 8 игроков.')}
       </div>
 
       <button class="btn-primary" id="startBtn">Раздать роли →</button>
@@ -176,11 +147,25 @@ export function renderHome({ render, loadGame, clearSavedGame, restoreGame }) {
   });
 }
 
+function distCell(roleId, label, count) {
+  const role = ROLES[roleId];
+  const muted = !count;
+  return `
+    <div class="cell ${muted ? 'muted' : ''}">
+      <span class="role-icon ${roleId}" aria-hidden="true">${role.emblem}</span>
+      <div class="txt"><div class="role-name">${label}</div></div>
+      <div class="role-count">${count ? `×${count}` : '—'}</div>
+    </div>
+  `;
+}
+
 function renderRoleToggle(id, name, desc) {
   const distInput = { playerCount: state.playerCount, optionalRoles: state.optionalRoles };
   const active = state.optionalRoles[id];
   const allowed = canEnableRole(id, state.playerCount);
   const squeezed = active && allowed && !isRoleEffective(id, distInput);
+  const role = ROLES[id];
+  const label = `<span class="role-icon ${id}" aria-hidden="true">${role.emblem}</span> ${name}`;
 
   let subOptions = '';
   if (active && allowed) {
@@ -215,7 +200,7 @@ function renderRoleToggle(id, name, desc) {
       <div class="role-toggle-head">
         <div class="check"></div>
         <div class="info">
-          <div class="name">${name}</div>
+          <div class="name">${label}</div>
           <div class="desc">${desc}</div>
           ${!allowed ? `<div class="warn">Нужно минимум ${id === 'don' ? 6 : 8} игроков</div>` : ''}
           ${squeezed ? `<div class="warn">⚠ Не поместится при текущем раскладе — другая роль важнее</div>` : ''}

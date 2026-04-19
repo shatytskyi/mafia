@@ -390,20 +390,13 @@
     color: var(--text-dim);
   }
 
-  .role-dist .dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
+  .role-dist .role-icon {
+    font-size: 20px;
+    line-height: 1;
+    width: 24px;
+    text-align: center;
     flex-shrink: 0;
   }
-
-  .role-dist .dot.mafia { background: var(--blood-bright); box-shadow: 0 0 8px rgba(198, 40, 40, 0.5); }
-  .role-dist .dot.civilian { background: var(--paper); }
-  .role-dist .dot.sheriff { background: var(--gold); box-shadow: 0 0 8px var(--border-soft); }
-  .role-dist .dot.doctor { background: #5a9b8e; }
-  .role-dist .dot.don { background: #6b0000; box-shadow: 0 0 10px rgba(139, 26, 26, 0.8); }
-  .role-dist .dot.maniac { background: #8e5a9b; }
-  .role-dist .dot.whore { background: #c77d9e; }
 
   .role-dist .txt {
     flex: 1;
@@ -1321,19 +1314,37 @@
     color: var(--text-dim);
   }
 
-  .roster-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
+  /* Shared role icon. Team colors: red = mafia side, green = peaceful side,
+     near-black = maniac. Sizing is set by the parent context. */
+  .role-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
     flex-shrink: 0;
+    font-feature-settings: normal;
   }
-  .roster-dot.mafia { background: var(--blood-bright); }
-  .roster-dot.don { background: #6b0000; box-shadow: 0 0 4px rgba(139, 26, 26, 0.8); }
-  .roster-dot.sheriff { background: var(--gold); }
-  .roster-dot.doctor { background: #5a9b8e; }
-  .roster-dot.maniac { background: #8e5a9b; }
-  .roster-dot.whore { background: #c77d9e; }
-  .roster-dot.civilian { background: var(--paper); opacity: 0.5; }
+  .role-icon.mafia,
+  .role-icon.don { color: var(--blood-bright); }
+  .role-icon.don { text-shadow: 0 0 6px rgba(139, 26, 26, 0.5); }
+  .role-icon.sheriff,
+  .role-icon.doctor,
+  .role-icon.whore,
+  .role-icon.civilian { color: #7ba87b; }
+  .role-icon.maniac { color: #8e5a9b; }
+
+  .roster-row .role-icon {
+    font-size: 14px;
+    width: 18px;
+    height: 18px;
+  }
+
+  .role-toggle .name .role-icon {
+    font-size: 18px;
+    width: 22px;
+    margin-right: 4px;
+    vertical-align: -2px;
+  }
 
   /* === NAME INPUT === */
   .name-inputs {

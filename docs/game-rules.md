@@ -33,10 +33,11 @@ Written while preparing an architecture refactor — do not let the code and thi
 
 - `home`: counter, role distribution card, optional-role toggles, sub-options for maniac/whore, "Resume saved game" panel if applicable.
 - `names`: text inputs (max 20 chars, no sanitisation), empty names auto-fill `Игрок N` on submit.
-- `deal`: per-player reveal. Two sub-phases `state.dealPhase ∈ {await, shown}`.
+- `deal`: per-player reveal. Sub-phases `state.dealPhase ∈ {await, shown, handoff}`.
   - `await`: big player name + pulse button; transition on tap.
   - `shown`: role card with emblem/side/desc. For mafia/don, also shows other mafia names (filtered to exclude self).
-  - Last player's confirm button becomes "Начать игру →".
+  - Last player's confirm button says "Запомнил, передаю ведущему →" and advances to `handoff`.
+  - `handoff`: transition screen shown to the whole table — the last player hands the phone to the moderator so they don't see the host-screen roster. Confirming moves to `host`.
 - `host`: main game loop — see §3.
 - `gameover`: winner verdict + full roster with roles + "Новая партия" button.
 - `rules`: static HTML overview.
@@ -53,30 +54,54 @@ Written while preparing an architecture refactor — do not let the code and thi
 
 `state.day` (1-based), `state.phase ∈ {night, day, vote}`, `state.stepIndex`.
 
-Steps are computed on every render via `getCurrentSteps()` → `getNightSteps` / `getDaySteps` / `getVoteSteps`. Order within a night:
+Steps are computed on every render via `getCurrentSteps()` → `getNightSteps` / `getDaySteps` / `getVoteSteps`.
+
+### Night steps (compacted 2026-04-19)
+
+Standalone "`<role>` засыпает" steps have been removed — every role-action step
+carries the closing script (e.g., "После выбора — «Доктор, закрой глаза»") in
+its hint. "Итог ночи" + "Город просыпается" were merged into one step
+("Рассвет").
+
+Order within a night:
 
 1. "Город засыпает" (always).
-2. **First night only** and mafia alive: "Мафия знакомится" + "Мафия засыпает" — mafia does NOT kill on night 1.
-3. Whore alive: "Путана просыпается" (pick target) + "Путана засыпает". Whore goes *before* everyone else so blocks resolve correctly.
-4. **Not first night** and mafia alive: "Мафия просыпается" — either a pickTarget step or a blockedAction "pустышка" if whore blocks mafia.
-5. Don alive: "Дон ищет Шерифа" — either pickTarget with live result (`✓ Шериф` / `✗ Не Шериф`) or blockedAction.
-6. "Мафия засыпает" if not first night; "Дон засыпает" if first night and Don alive.
-7. Doctor alive: pick or blocked + засыпает.
-8. Sheriff alive: pick or blocked + засыпает. Sheriff result uses the `sheriffSeesManiac` option (see §4).
-9. Maniac alive: pick or blocked + засыпает. Note: **maniac acts on the first night too** — this is by design in the code (`resolveNight` does not gate maniac by `isFirstNight`).
-10. "Итог ночи" — runs `resolveNight` and shows summary to the host.
-11. "Город просыпается" — narrative step, no action.
+2. **First night only** and mafia alive: "Мафия знакомится" — no kill; hint
+   reminds the host to say «Мафия, закрой глаза» at the end.
+3. Whore alive: "Путана" (pickTarget). Goes *before* everyone else so blocks
+   resolve correctly.
+4. **Not first night** and mafia alive: "Мафия просыпается" — pickTarget or
+   blockedAction if whore blocks mafia. Mafia closes eyes here *only if* Don
+   is not active; otherwise the Don step carries the closing.
+5. Don alive: "Дон ищет Шерифа" — pickTarget with live result
+   (`✓ Шериф` / `✗ Не Шериф`) or blockedAction. Closes all mafia on non-first
+   nights; closes Don alone on first night.
+6. Doctor alive: pickTarget or blockedAction.
+7. Sheriff alive: pickTarget or blockedAction. Sheriff result uses the
+   `sheriffSeesManiac` option (see §4).
+8. Maniac alive: pickTarget or blockedAction. **Maniac acts on the first
+   night too** — confirmed by every external source (see
+   `docs/external-rules/README.md`) and implemented in `resolveNight`
+   (no `isFirstNight` gate).
+9. "Рассвет" — merged resolve + city-wake. Renders the summary card, runs
+   `resolveNight` at render-time (if not cached), applies kills on `#nextStep`
+   via `applyNightResolution`.
 
-Day steps (`getDaySteps`):
-1. "Утро первого дня" / "Объявление жертв" — summary of the night. 30s timer for last word (skipped on day 1). On day 1, `victimsText = 'Первый день — смертей нет.'`.
-2. "Обсуждение" — 60s timer labelled "Минута на игрока".
-3. "Выдвижение кандидатов" — no action, just text.
-4. "Последнее слово кандидатов" — 30s timer.
+### Day steps (`getDaySteps`, 3 steps)
 
-Vote steps (`getVoteSteps`):
-1. "Голосование" — no action.
-2. "Разрешение ничьи" — 20s timer for re-vote.
-3. "Казнь" — pickKilled action (who was voted out, or "Никто не уходит").
+1. "Утро первого дня" (day 1 + peaceful night) or "Объявление жертв"
+   (otherwise) — shows the actual resolved kills. A 30s last-word timer is
+   attached whenever someone died, including day 1 after a maniac kill.
+2. "Обсуждение" — 60s timer "Минута на игрока".
+3. "Выдвижение и оправдания" — 30s timer per candidate. Host restarts the
+   timer for each new candidate.
+
+### Vote steps (`getVoteSteps`, 1 step)
+
+1. "Голосование и казнь" — pickKilled action + 30s last-word timer for the
+   executed player. Tie handling is narrative (host decides "no one leaves"
+   or "all tied candidates leave" per club convention); there is no
+   dedicated re-vote timer.
 
 ### "Next" gate
 `isNextDisabled` allows advancing only when:
@@ -200,7 +225,7 @@ Restore:
 
 Write conditions:
 - `saveGame` is a no-op unless `state.screen === 'host'`.
-- `clearSavedGame` runs on entering `home` (so reaching the home menu always wipes the save).
+- `clearSavedGame` runs only on explicit intents: «Удалить» on home, «Завершить игру» on host, «Новая партия» on gameover. Reaching home via refresh does NOT wipe the save — that was the old behaviour and broke the «Продолжить» button.
 
 Safari private-mode guard: `storageGet/Set/Remove` wrap in try/catch.
 

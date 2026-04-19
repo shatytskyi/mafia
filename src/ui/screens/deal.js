@@ -1,5 +1,5 @@
 import { state, resetNightSelections } from '../../state/state.js';
-import { ROLES, getMafiaNames } from '../../core/roles.js';
+import { ROLES, getMafiaNames, getRoleDesc } from '../../core/roles.js';
 import { escapeHtml } from '../html.js';
 
 export function renderDeal({ render }) {
@@ -7,6 +7,32 @@ export function renderDeal({ render }) {
   const player = state.players[state.dealIndex];
   const num = String(state.dealIndex + 1).padStart(2, '0');
   const total = String(state.playerCount).padStart(2, '0');
+
+  if (state.dealPhase === 'handoff') {
+    app.innerHTML = `
+      <div class="deal-screen screen">
+        <div class="player-num">Все роли розданы</div>
+        <div class="player-name-big">Передай телефон<br>ведущему</div>
+        <div class="passing-hint">только ведущий должен видеть следующий экран — там все роли игроков</div>
+
+        <button class="btn-primary" id="hostReadyBtn" style="max-width: 380px;">
+          Я ведущий — начинаем →
+        </button>
+      </div>
+    `;
+    document.getElementById('hostReadyBtn').onclick = () => {
+      state.screen = 'host';
+      state.day = 1;
+      state.phase = 'night';
+      state.stepIndex = 0;
+      state.doctorHistory = [];
+      state.doctorSelfUsed = false;
+      state.whoreHistory = [];
+      resetNightSelections();
+      render();
+    };
+    return;
+  }
 
   if (state.dealPhase === 'await') {
     app.innerHTML = `
@@ -48,12 +74,12 @@ export function renderDeal({ render }) {
           <div class="role-title">${role.name}</div>
           <div class="role-side">${role.side}</div>
           <div class="divider"></div>
-          <div class="role-desc">${role.desc}</div>
+          <div class="role-desc">${getRoleDesc(player.role, state.gameOptions)}</div>
           ${mafiaTeamHtml}
         </div>
 
         <button class="btn-primary" id="doneBtn" style="max-width: 380px;">
-          ${state.dealIndex < state.playerCount - 1 ? 'Запомнил, передаю дальше →' : 'Начать игру →'}
+          ${state.dealIndex < state.playerCount - 1 ? 'Запомнил, передаю дальше →' : 'Запомнил, передаю ведущему →'}
         </button>
       </div>
     `;
@@ -64,14 +90,7 @@ export function renderDeal({ render }) {
         state.dealPhase = 'await';
         render();
       } else {
-        state.screen = 'host';
-        state.day = 1;
-        state.phase = 'night';
-        state.stepIndex = 0;
-        state.doctorHistory = [];
-        state.doctorSelfUsed = false;
-        state.whoreHistory = [];
-        resetNightSelections();
+        state.dealPhase = 'handoff';
         render();
       }
     };

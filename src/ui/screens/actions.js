@@ -56,12 +56,17 @@ function renderPickTarget(action) {
     warnHtml = `<div class="action-warn">⚠ ${escapeHtml(validation.reason)}</div>`;
   }
 
+  const selfIdx = action.excludeSelf && action.role
+    ? state.players.findIndex(p => p.role === action.role)
+    : -1;
+
   return `
     <div class="step-card action-card">
       <div class="step-title">${action.label}</div>
       <div class="target-grid">
         ${state.players.map((p, i) => {
           if (!p.alive) return '';
+          if (i === selfIdx) return '';
           const isSelected = selected === i;
           return `
             <div class="target-chip ${isSelected ? 'selected' : ''}" data-target-idx="${i}" data-field="${action.field}">

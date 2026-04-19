@@ -1,11 +1,11 @@
 export const ROLES = {
   mafia: {
-    id: 'mafia', name: 'Мафия', side: 'Тёмная сторона', emblem: '🔪',
+    id: 'mafia', name: 'Мафия', side: 'Тёмная сторона', emblem: '⚜',
     desc: 'Каждую ночь вы вместе с подельниками выбираете жертву. Днём притворяйтесь мирным жителем и сбивайте с толку.',
     color: 'mafia'
   },
   civilian: {
-    id: 'civilian', name: 'Мирный', side: 'Светлая сторона', emblem: '☗',
+    id: 'civilian', name: 'Мирный', side: 'Светлая сторона', emblem: '♟',
     desc: 'У вас нет особых способностей. Ваше оружие — логика, интуиция и красноречие. Найдите мафию, пока не поздно.',
     color: 'civilian'
   },
@@ -25,16 +25,30 @@ export const ROLES = {
     color: 'don'
   },
   maniac: {
-    id: 'maniac', name: 'Маньяк', side: 'Одиночка', emblem: '☠',
+    id: 'maniac', name: 'Маньяк', side: 'Одиночка', emblem: '☠\uFE0E',
     desc: 'Вы играете сами за себя. Каждую ночь убиваете одного игрока. Побеждаете, если останетесь с одним мирным один на один.',
     color: 'maniac'
   },
   whore: {
     id: 'whore', name: 'Путана', side: 'Светлая сторона', emblem: '❀',
-    desc: 'Каждую ночь вы выбираете игрока — он «спит» у вас и не может применить свою ночную способность. Осторожно: если заблокируете мафию, можете сами погибнуть.',
+    desc: 'Каждую ночь вы выбираете игрока — он «спит» у вас и не может применить свою ночную способность. Если попадёте к мафии — получите алиби, но мафию заблокируете только если это последний живой мафиози.',
     color: 'whore'
   }
 };
+
+/**
+ * Role description that depends on game settings. Currently only Whore text
+ * changes based on `gameOptions.whoreDiesAtMafia`.
+ * @param {string} roleId
+ * @param {{whoreDiesAtMafia?: boolean}} [gameOptions]
+ * @returns {string}
+ */
+export function getRoleDesc(roleId, gameOptions) {
+  if (roleId === 'whore' && gameOptions && gameOptions.whoreDiesAtMafia) {
+    return 'Каждую ночь вы выбираете игрока — он «спит» у вас и не может применить свою ночную способность. Осторожно: если попадёте к мафии — погибнете вместе с ней.';
+  }
+  return ROLES[roleId].desc;
+}
 
 /**
  * @param {string | null} role
