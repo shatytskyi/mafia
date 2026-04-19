@@ -23,6 +23,10 @@
     --grain-opacity: 0.08;
     --button-text: #f4ecd8;
 
+    /* Phase accents — night badge needs darker ink-blue on cream for contrast. */
+    --night-border: #324063;
+    --night-text: #324063;
+
     /* Общие альфа-цвета */
     --border-soft: rgba(138, 106, 31, 0.25);
     --border-softer: rgba(138, 106, 31, 0.15);
@@ -60,6 +64,9 @@
     --vignette: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.6) 100%);
     --grain-opacity: 0.06;
     --button-text: #f4ecd8;
+
+    --night-border: #4a5a8e;
+    --night-text: #8ea5d1;
 
     --border-soft: var(--border-soft);
     --border-softer: var(--border-softer);
@@ -1054,7 +1061,7 @@
     margin-bottom: 12px;
   }
 
-  .phase-badge.night { border-color: #4a5a8e; color: #8ea5d1; }
+  .phase-badge.night { border-color: var(--night-border); color: var(--night-text); }
   .phase-badge.day { border-color: var(--gold); color: var(--gold); }
   .phase-badge.vote { border-color: var(--blood-bright); color: var(--blood-bright); }
 
