@@ -8,6 +8,7 @@ import { state, resetNightSelections } from './state/state.js';
 import {
   createPersistence, buildSnapshot, applySnapshotToState, formatSavedAgo, savedGameDescription
 } from './state/persistence.js';
+import { applyTheme, bindThemeToggle, onThemeChange, updateThemeIcon } from './ui/theme.js';
 
 const persistence = createPersistence();
 
@@ -15,18 +16,6 @@ const persistence = createPersistence();
 // STATE
 // ============================================================
 // State and resetNightSelections are imported from './state/state.js'
-
-// Применяет тему (CSS-атрибут на <html>).
-function applyTheme() {
-  document.documentElement.setAttribute('data-theme', state.theme === 'dark' ? 'dark' : 'light');
-}
-
-function toggleTheme() {
-  state.theme = state.theme === 'light' ? 'dark' : 'light';
-  applyTheme();
-  saveTheme();
-  render();
-}
 
 // ============================================================
 // PERSISTENCE (localStorage)
@@ -89,12 +78,6 @@ function render() {
   saveGame();
   // Сохранённую игру чистим когда вышли на главную
   if (state.screen === 'home') clearSavedGame();
-}
-
-// Обновляет иконку переключателя темы.
-function updateThemeIcon() {
-  const icon = document.getElementById('themeIcon');
-  if (icon) icon.textContent = state.theme === 'light' ? '☾' : '☀';
 }
 
 // ============================================================
@@ -1223,14 +1206,10 @@ function renderRules() {
 // INIT
 // ============================================================
 
-// Загружаем тему до первого рендера, чтобы не было вспышки.
+// Load theme before first render to avoid flash.
 loadTheme();
 applyTheme();
-
-// Подключаем переключатель темы (он вне app, рендерится один раз в HTML).
-const themeBtn = document.getElementById('themeToggle');
-if (themeBtn) {
-  themeBtn.onclick = toggleTheme;
-}
+onThemeChange(render);
+bindThemeToggle({ saveTheme });
 
 render();
