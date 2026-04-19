@@ -11,8 +11,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Vanilla JavaScript ES modules, no bundler.** Tests via `node --test`.
 - **Run locally:** `python3 -m http.server 8000` (native modules need HTTP, not `file://`).
 - **Run tests:** `npm test`.
-- **Deploy:** static hosting — upload the repo root.
+- **Deploy:** GitHub Pages from `main` branch (root folder). Push to `main` → Pages picks it up within ~1 min.
 - **Dependencies:** none. Fonts are fetched from Google Fonts at runtime.
+
+## Context
+
+Small side project — a helper for playing Mafia with friends. No CI, no test gate before deploy — every push to `main` is live. Keep paths relative (they are today: `./src/main.js`) so subpath hosting keeps working.
 
 ## Architecture
 
