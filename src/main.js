@@ -16,6 +16,7 @@ import { renderDeal } from './ui/screens/deal.js';
 import { renderTimer, startTimer, stopTimer, bindTimerHandlers } from './ui/screens/timer.js';
 import { renderAction, bindActionHandlers, isNextDisabled } from './ui/screens/actions.js';
 import { renderHost } from './ui/screens/host.js';
+import { renderGameOver } from './ui/screens/gameover.js';
 
 const persistence = createPersistence();
 
@@ -60,62 +61,8 @@ registerScreen('home', () => renderHome({ render, loadGame, clearSavedGame, rest
 registerScreen('names', () => renderNames({ render }));
 registerScreen('deal', () => renderDeal({ render }));
 registerScreen('host', () => renderHost({ render, clearSavedGame }));
-registerScreen('gameover', renderGameOver);
+registerScreen('gameover', () => renderGameOver({ render }));
 registerScreen('rules', renderRules);
-
-// ============================================================
-// GAME OVER
-// ============================================================
-function renderGameOver() {
-  const app = document.getElementById('app');
-  const winner = state.winner;
-
-  const verdict = {
-    city: { text: 'Город<br>победил', sub: 'Мафия вычищена из города. Справедливость восторжествовала.', cls: 'city-wins' },
-    mafia: { text: 'Мафия<br>победила', sub: 'Город в руках семьи. Теперь здесь правят другие законы.', cls: 'mafia-wins' },
-    maniac: { text: 'Маньяк<br>победил', sub: 'Последний, кто остался в живых. Все остальные — на кладбище.', cls: 'mafia-wins' },
-    draw: { text: 'Ничья', sub: 'Никто не выжил, чтобы сказать об этом. Город опустел.', cls: '' }
-  }[winner];
-
-  app.innerHTML = `
-    <div class="game-over screen">
-      <div class="label mb-16">Финал</div>
-      <div class="verdict ${verdict.cls}">${verdict.text}</div>
-      <p class="verdict-sub">${verdict.sub}</p>
-
-      <div class="section">
-        <div class="section-head">
-          <span class="num">✦</span>
-          <span class="label">Все участники</span>
-          <span class="line"></span>
-        </div>
-        <div class="final-list">
-          ${state.players.map(p => `
-            <div class="final-item ${!p.alive ? 'dead' : ''}">
-              <div class="name-col">${p.name}</div>
-              <div class="role-col">${ROLES[p.role].emblem} ${ROLES[p.role].name}</div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-
-      <button class="btn-primary" id="newGame">Новая партия</button>
-    </div>
-  `;
-
-  document.getElementById('newGame').onclick = () => {
-    state.screen = 'home';
-    state.day = 1;
-    state.phase = 'night';
-    state.stepIndex = 0;
-    state.winner = null;
-    state.doctorHistory = [];
-    state.doctorSelfUsed = false;
-    state.whoreHistory = [];
-    resetNightSelections();
-    render();
-  };
-}
 
 // ============================================================
 // RULES
