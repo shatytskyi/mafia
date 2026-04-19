@@ -58,6 +58,7 @@ export function renderDeal({ render }) {
   } else {
     const role = ROLES[player.role];
     const isMafiaTeam = player.role === 'mafia' || player.role === 'don';
+    const sideKey = isMafiaTeam ? 'dark' : player.role === 'maniac' ? 'solo' : 'light';
     const mafiaTeamHtml = isMafiaTeam && getMafiaNames(state.players).length > 1
       ? `
         <div class="team-list">
@@ -68,7 +69,7 @@ export function renderDeal({ render }) {
 
     app.innerHTML = `
       <div class="deal-screen screen">
-        <div class="role-card">
+        <div class="role-card side-${sideKey}">
           <div class="kicker">${escapeHtml(player.name)}</div>
           <div class="role-emblem">${role.emblem}</div>
           <div class="role-title">${getRoleName(player.role)}</div>

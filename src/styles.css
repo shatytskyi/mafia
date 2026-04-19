@@ -938,7 +938,7 @@
 
   /* === ROLE REVEAL === */
   .role-card {
-    animation: cardReveal 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+    animation: cardReveal 1s cubic-bezier(0.2, 0.8, 0.2, 1) both;
     width: 100%;
     max-width: 380px;
     background: linear-gradient(to bottom, var(--card-bg-start), var(--card-bg-end));
@@ -946,17 +946,107 @@
     padding: 40px 32px;
     position: relative;
     margin-bottom: 32px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 120px rgba(139, 26, 26, 0.2);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 120px rgba(201, 169, 97, 0.22);
+    transform-origin: center center;
   }
+  /* Per-side ambient glow behind the card */
+  .role-card.side-dark  { box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 120px rgba(216, 56, 56, 0.28); }
+  .role-card.side-light { box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 120px rgba(123, 168, 123, 0.32); }
+  .role-card.side-solo  { box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 120px rgba(184, 121, 217, 0.28); }
 
   @keyframes cardReveal {
-    from {
+    0% {
       opacity: 0;
-      transform: rotateY(90deg) scale(0.8);
+      transform: scale(0.72) rotateX(22deg);
+      filter: blur(14px) brightness(0.4);
     }
-    to {
+    45% {
       opacity: 1;
-      transform: rotateY(0) scale(1);
+      filter: blur(5px) brightness(0.7);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) rotateX(0);
+      filter: blur(0) brightness(1);
+    }
+  }
+
+  /* Staggered child reveal — theatrical, total ~3s */
+  .role-card > * {
+    animation: roleChildFade 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  .role-card .kicker     { animation-delay: 0.55s; }
+  .role-card .role-side  { animation-delay: 1.9s; }
+  .role-card .role-desc  { animation-delay: 2.35s; }
+  .role-card .team-list  { animation-delay: 2.65s; }
+
+  .role-card .role-emblem {
+    animation: emblemBurstLight 1.1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.85s both;
+  }
+  .role-card.side-dark .role-emblem { animation-name: emblemBurstDark; }
+  .role-card.side-light .role-emblem { animation-name: emblemBurstLight; }
+  .role-card.side-solo .role-emblem { animation-name: emblemBurstSolo; }
+  .role-card .role-title {
+    animation: titleReveal 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) 1.35s both;
+  }
+  .role-card .divider {
+    animation: dividerExpand 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 2.05s both;
+    transform-origin: center;
+  }
+
+  @keyframes roleChildFade {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes emblemBurstDark {
+    0%   { opacity: 0; transform: scale(0.25); filter: sepia(0.3) blur(8px) drop-shadow(0 0 0 transparent); }
+    55%  { opacity: 1; transform: scale(1.35); filter: sepia(0.3) blur(0) drop-shadow(0 0 30px #d83838); }
+    80%  { transform: scale(0.94); }
+    100% { opacity: 1; transform: scale(1);    filter: sepia(0.3) blur(0) drop-shadow(0 0 10px #d83838); }
+  }
+  @keyframes emblemBurstLight {
+    0%   { opacity: 0; transform: scale(0.25); filter: sepia(0.3) blur(8px) drop-shadow(0 0 0 transparent); }
+    55%  { opacity: 1; transform: scale(1.35); filter: sepia(0.3) blur(0) drop-shadow(0 0 30px #7ba87b); }
+    80%  { transform: scale(0.94); }
+    100% { opacity: 1; transform: scale(1);    filter: sepia(0.3) blur(0) drop-shadow(0 0 10px #7ba87b); }
+  }
+  @keyframes emblemBurstSolo {
+    0%   { opacity: 0; transform: scale(0.25); filter: sepia(0.3) blur(8px) drop-shadow(0 0 0 transparent); }
+    55%  { opacity: 1; transform: scale(1.35); filter: sepia(0.3) blur(0) drop-shadow(0 0 30px #b879d9); }
+    80%  { transform: scale(0.94); }
+    100% { opacity: 1; transform: scale(1);    filter: sepia(0.3) blur(0) drop-shadow(0 0 10px #b879d9); }
+  }
+
+  @keyframes titleReveal {
+    0% {
+      opacity: 0;
+      letter-spacing: 0.6em;
+      filter: blur(6px);
+    }
+    60% {
+      opacity: 1;
+      filter: blur(0);
+    }
+    100% {
+      opacity: 1;
+      letter-spacing: 0.04em;
+      filter: blur(0);
+    }
+  }
+
+  @keyframes dividerExpand {
+    from { transform: scaleX(0); opacity: 0; }
+    to   { transform: scaleX(1); opacity: 0.3; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .role-card,
+    .role-card > *,
+    .role-card .role-emblem,
+    .role-card .role-title,
+    .role-card .divider {
+      animation: none !important;
     }
   }
 
@@ -1007,6 +1097,10 @@
     color: var(--card-accent);
     margin-bottom: 20px;
   }
+  /* Side text tinted per team — same palette as the emblem glow */
+  .role-card.side-dark  .role-side { color: #d83838; }
+  .role-card.side-light .role-side { color: #7ba87b; }
+  .role-card.side-solo  .role-side { color: #b879d9; }
 
   .role-card .divider {
     height: 1px;
@@ -1437,7 +1531,19 @@
     color: var(--blood-bright);
   }
 
-  /* === RESOLVE CARD (итог ночи) === */
+  /* === RESOLVE CARD (приватный итог для ведущего) === */
+  .resolve-subtitle {
+    margin-top: -4px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed var(--border-soft);
+    font-family: var(--font-italic);
+    font-style: italic;
+    color: var(--text-dim);
+    font-size: 13px;
+    letter-spacing: 0.03em;
+  }
+
   .resolve-card .resolve-line {
     padding: 10px 0;
     font-family: 'Cormorant Garamond', serif;
@@ -1448,12 +1554,6 @@
   }
 
   .resolve-card .resolve-line:last-of-type { border-bottom: none; }
-
-  .resolve-peaceful {
-    font-family: var(--font-italic);
-    color: var(--text-dim) !important;
-    font-style: italic;
-  }
 
   .resolve-death {
     color: var(--blood-bright) !important;
@@ -1475,17 +1575,6 @@
 
   .resolve-info {
     color: var(--gold) !important;
-  }
-
-  .resolve-hint {
-    margin-top: 14px;
-    padding-top: 14px;
-    border-top: 1px dashed var(--border-soft);
-    font-family: var(--font-italic);
-    font-style: italic;
-    color: var(--text-dim);
-    font-size: 15px;
-    line-height: 1.5;
   }
 
   /* === SUMMARY & ALIVE COUNTER === */
