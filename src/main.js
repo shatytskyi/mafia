@@ -5,6 +5,11 @@ import { resolveNight, applyNightResolution, canDoctorHeal, canWhoreGo, getWhore
 import { checkWinCondition } from './core/win.js';
 import { getNightSteps, getDaySteps, getVoteSteps, getCurrentSteps } from './core/steps.js';
 import { state, resetNightSelections } from './state/state.js';
+import {
+  createPersistence, buildSnapshot, applySnapshotToState, formatSavedAgo, savedGameDescription
+} from './state/persistence.js';
+
+const persistence = createPersistence();
 
 // ============================================================
 // STATE
@@ -26,124 +31,23 @@ function toggleTheme() {
 // ============================================================
 // PERSISTENCE (localStorage)
 // ============================================================
-const STORAGE_KEY_GAME = 'mafia.game.v1';
-const STORAGE_KEY_THEME = 'mafia.theme';
-// Сколько времени хранить сохранённую игру (дольше — не будит предлагать восстановление)
-const SAVE_TTL_MS = 6 * 60 * 60 * 1000; // 6 часов
 
-// Безопасный доступ к localStorage — в некоторых режимах (incognito Safari)
-// localStorage может быть недоступен или кидать ошибку.
-function storageGet(key) {
-  try { return localStorage.getItem(key); } catch (e) { return null; }
-}
-function storageSet(key, val) {
-  try { localStorage.setItem(key, val); } catch (e) { /* quota/private mode */ }
-}
-function storageRemove(key) {
-  try { localStorage.removeItem(key); } catch (e) {}
-}
-
-// Сохраняем тему отдельно — её надо применить до загрузки игры.
-function saveTheme() {
-  storageSet(STORAGE_KEY_THEME, state.theme);
-}
-function loadTheme() {
-  const t = storageGet(STORAGE_KEY_THEME);
-  if (t === 'dark' || t === 'light') state.theme = t;
-}
-
-// Сохраняем игру (только host-фазу — раздачу восстанавливать не будем).
 let _saveTimer = null;
 function saveGame() {
-  // Не сохраняем если игра не началась (на home/rules/names/deal/gameover)
   if (state.screen !== 'host') return;
-  // Debounce — чтобы не писать на каждый чих
   if (_saveTimer) clearTimeout(_saveTimer);
-  _saveTimer = setTimeout(doSaveGame, 300);
+  _saveTimer = setTimeout(() => persistence.saveSnapshot(buildSnapshot(state)), 300);
 }
 
-function doSaveGame() {
-  const snapshot = {
-    ts: Date.now(),
-    playerCount: state.playerCount,
-    optionalRoles: state.optionalRoles,
-    gameOptions: state.gameOptions,
-    players: state.players,
-    day: state.day,
-    phase: state.phase,
-    stepIndex: state.stepIndex,
-    night: state.night,
-    doctorHistory: state.doctorHistory,
-    doctorSelfUsed: state.doctorSelfUsed,
-    whoreHistory: state.whoreHistory,
-    dayVoteKilled: state.dayVoteKilled,
-    winner: state.winner || null
-  };
-  try {
-    storageSet(STORAGE_KEY_GAME, JSON.stringify(snapshot));
-  } catch (e) { /* ignore */ }
-}
+function loadGame() { return persistence.loadSnapshot(); }
+function clearSavedGame() { persistence.clearSnapshot(); }
 
-// Возвращает сохранённую игру, если она есть и свежая. Иначе null.
-function loadGame() {
-  const raw = storageGet(STORAGE_KEY_GAME);
-  if (!raw) return null;
-  try {
-    const data = JSON.parse(raw);
-    if (!data || !data.ts) return null;
-    if (Date.now() - data.ts > SAVE_TTL_MS) {
-      storageRemove(STORAGE_KEY_GAME);
-      return null;
-    }
-    return data;
-  } catch (e) {
-    storageRemove(STORAGE_KEY_GAME);
-    return null;
-  }
-}
+function restoreGame(data) { applySnapshotToState(state, data); }
 
-// Применяет сохранённую игру в state и открывает host-экран.
-function restoreGame(data) {
-  state.playerCount = data.playerCount;
-  state.optionalRoles = data.optionalRoles;
-  // gameOptions могут отсутствовать в старых сохранениях — используем дефолт
-  if (data.gameOptions) {
-    state.gameOptions = Object.assign({}, state.gameOptions, data.gameOptions);
-  }
-  state.players = data.players;
-  state.day = data.day;
-  state.phase = data.phase;
-  state.stepIndex = data.stepIndex;
-  state.night = data.night || { mafiaTarget: null, donCheck: null, whoreTarget: null, doctorTarget: null, sheriffCheck: null, maniacTarget: null, resolved: null, applied: false };
-  state.doctorHistory = data.doctorHistory || [];
-  state.doctorSelfUsed = !!data.doctorSelfUsed;
-  state.whoreHistory = data.whoreHistory || [];
-  state.dayVoteKilled = data.dayVoteKilled != null ? data.dayVoteKilled : null;
-  state.winner = data.winner || null;
-  state.screen = state.winner ? 'gameover' : 'host';
-}
-
-// Удаляет сохранённую игру.
-function clearSavedGame() {
-  storageRemove(STORAGE_KEY_GAME);
-}
-
-// Человеко-читаемое «когда сохранено»
-function formatSavedAgo(ts) {
-  const diff = Math.max(0, Date.now() - ts);
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'только что';
-  if (mins < 60) return `${mins} мин назад`;
-  const hours = Math.floor(mins / 60);
-  const rest = mins % 60;
-  return `${hours} ч ${rest} мин назад`;
-}
-
-// Краткое описание сохранённой игры для плашки "Продолжить"
-function savedGameDescription(data) {
-  const alive = data.players.filter(p => p.alive).length;
-  const phase = { night: 'Ночь', day: 'День', vote: 'Голосование' }[data.phase] || '';
-  return `${phase} · День ${data.day} · Живых ${alive}/${data.players.length}`;
+function saveTheme() { persistence.saveTheme(state.theme); }
+function loadTheme() {
+  const t = persistence.loadTheme();
+  if (t) state.theme = t;
 }
 
 // ============================================================
