@@ -39,6 +39,7 @@ src/
     render.js              Screen dispatcher.
     theme.js               Light/dark + header toggle binding.
     html.js                escapeHtml + `html` tagged template.
+    version.js             APP_VERSION constant + page-bottom version footer.
     screens/
       home.js, names.js, deal.js, host.js, actions.js, timer.js, gameover.js, rules.js
   types.js                 JSDoc typedefs.
@@ -60,6 +61,20 @@ Rules:
 - User-facing copy stays Russian — this is a Russian-language product.
 - One module = one responsibility. Screens return HTML strings and bind handlers after insertion (no `setTimeout(…, 0)` hacks).
 - Touch-friendly mobile layout (max-width 520px, `user-select: none`).
+
+## Versioning
+
+Semver displayed at the bottom of every page. Bump **before committing** user-visible changes. Two places to edit, keep in sync:
+
+- `src/ui/version.js` — `APP_VERSION` constant (what users see)
+- `package.json` — `version` field
+
+Rules:
+- **patch** (1.0.0 → 1.0.1) — bug fixes, copy tweaks, style polish
+- **minor** (1.0.x → 1.1.0) — new feature or meaningful UX change
+- **major** (1.x.y → 2.0.0) — save-format break (`mafia.game.v1` → v2) or fundamental rework
+
+Chore-only commits (docs, CI, gitignore) don't need a bump.
 
 ## Further reading
 
