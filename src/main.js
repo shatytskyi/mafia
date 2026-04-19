@@ -13,6 +13,7 @@ import { createRender, registerScreen } from './ui/render.js';
 import { renderHome } from './ui/screens/home.js';
 import { renderNames } from './ui/screens/names.js';
 import { renderDeal } from './ui/screens/deal.js';
+import { renderTimer, startTimer, stopTimer, bindTimerHandlers } from './ui/screens/timer.js';
 
 const persistence = createPersistence();
 
@@ -167,6 +168,9 @@ function renderHost() {
       <button class="btn-ghost" id="endGame" style="width: 100%;">Завершить игру</button>
     </div>
   `;
+
+  // Bind timer handlers after HTML is in the DOM (temporary bridge; Task 20 will call directly)
+  if (step.timerSeconds) setTimeout(() => bindTimerHandlers(), 0);
 
   // Обработчики action (выбор цели / пропуск)
   bindActionHandlers(step);
@@ -477,168 +481,6 @@ function nextPhaseLabel() {
   if (state.phase === 'day') return 'К голосованию →';
   if (state.phase === 'vote') return `Ночь ${state.day + 1} →`;
   return 'Далее →';
-}
-
-// ============================================================
-// TIMER
-// ============================================================
-
-// Отслеживаем, на каком шаге был последний ресет, чтобы не ресетить повторно
-// при обновлениях внутри того же шага.
-let lastTimerStepKey = null;
-
-// Web Audio API — тихий "тик" и финальный "гонг".
-let audioCtx = null;
-function getAudioCtx() {
-  if (!audioCtx) {
-    try {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    } catch(e) { return null; }
-  }
-  return audioCtx;
-}
-
-function playTick(isFinal) {
-  const ctx = getAudioCtx();
-  if (!ctx) return;
-  // На iOS контекст может быть suspended — разбудим при первом тапе пользователя.
-  if (ctx.state === 'suspended') ctx.resume();
-
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-
-  if (isFinal) {
-    // Финальный сигнал — две ноты, колокольный
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(880, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.6);
-    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.8);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.8);
-  } else {
-    // Короткий тик
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(1200, ctx.currentTime);
-    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.15, ctx.currentTime + 0.01);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.12);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.12);
-  }
-}
-
-// Обновляет только цифры в DOM (без полного render).
-function updateTimerDisplay() {
-  const el = document.querySelector('.timer-display');
-  if (!el) return;
-  const s = state.timer.seconds;
-  el.textContent = `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
-  el.classList.toggle('warning', s > 0 && s <= 5);
-  el.classList.toggle('caution', s > 5 && s <= 10);
-}
-
-// Обновляет только надпись на кнопке старт/пауза.
-function updateTimerToggleBtn() {
-  const btn = document.getElementById('timerToggle');
-  if (btn) btn.textContent = state.timer.running ? '⏸ Пауза' : '▶ Старт';
-}
-
-function formatTime(s) {
-  return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
-}
-
-// renderTimer теперь принимает preset (нужные секунды для текущего шага)
-// и автоматически сбрасывает таймер на preset при смене шага.
-function renderTimer(presetSeconds, presetLabel) {
-  const stepKey = `${state.phase}:${state.day}:${state.stepIndex}`;
-  // При смене шага — сбрасываем таймер на preset и останавливаем.
-  if (lastTimerStepKey !== stepKey) {
-    lastTimerStepKey = stepKey;
-    stopTimer();
-    state.timer.seconds = presetSeconds;
-    state.timer.preset = presetSeconds;
-  }
-
-  const s = state.timer.seconds;
-  const preset = state.timer.preset || presetSeconds;
-  const cls = s > 0 && s <= 5 ? 'warning' : (s > 5 && s <= 10 ? 'caution' : '');
-
-  // Подключаем обработчики после вставки в DOM.
-  setTimeout(() => {
-    const minus = document.getElementById('timerMinus');
-    const plus = document.getElementById('timerPlus');
-    const reset = document.getElementById('timerReset');
-    const toggle = document.getElementById('timerToggle');
-    if (minus) minus.onclick = () => adjustTimer(-10);
-    if (plus) plus.onclick = () => adjustTimer(+10);
-    if (reset) reset.onclick = () => {
-      stopTimer();
-      state.timer.seconds = preset;
-      updateTimerDisplay();
-      updateTimerToggleBtn();
-    };
-    if (toggle) toggle.onclick = () => {
-      // Важно: первый тап разбудит аудиоконтекст на iOS
-      getAudioCtx();
-      if (state.timer.running) stopTimer(); else startTimer();
-      updateTimerToggleBtn();
-    };
-  }, 0);
-
-  return `
-    <div class="step-card timer-card" style="border-left-color: var(--gold);">
-      <div class="step-title">${presetLabel || 'Таймер'}</div>
-      <div class="timer-display ${cls}">${formatTime(s)}</div>
-      <div class="timer-controls">
-        <button class="nav-btn" id="timerMinus">−10с</button>
-        <button class="nav-btn primary" id="timerToggle">${state.timer.running ? '⏸ Пауза' : '▶ Старт'}</button>
-        <button class="nav-btn" id="timerPlus">+10с</button>
-      </div>
-      <div style="height: 8px;"></div>
-      <button class="btn-ghost" id="timerReset" style="width: 100%;">Сброс на ${formatTime(preset)}</button>
-    </div>
-  `;
-}
-
-function startTimer() {
-  if (state.timer.running) return;
-  // Если таймер на нуле — сбросим на preset
-  if (state.timer.seconds === 0) state.timer.seconds = state.timer.preset || 60;
-  state.timer.running = true;
-  state.timer.interval = setInterval(() => {
-    if (state.timer.seconds > 0) {
-      state.timer.seconds--;
-      updateTimerDisplay();
-      // Тикаем на последних 5 секундах
-      if (state.timer.seconds > 0 && state.timer.seconds <= 5) {
-        playTick(false);
-      }
-      if (state.timer.seconds === 0) {
-        stopTimer();
-        playTick(true);
-        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-        updateTimerDisplay();
-        updateTimerToggleBtn();
-      }
-    }
-  }, 1000);
-}
-
-function stopTimer() {
-  state.timer.running = false;
-  if (state.timer.interval) {
-    clearInterval(state.timer.interval);
-    state.timer.interval = null;
-  }
-}
-
-function adjustTimer(delta) {
-  state.timer.seconds = Math.max(0, Math.min(600, state.timer.seconds + delta));
-  updateTimerDisplay();
 }
 
 // ============================================================
