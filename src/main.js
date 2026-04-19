@@ -2,6 +2,7 @@ import { shuffle } from './core/shuffle.js';
 import { ROLES, isMafiaRole, getRole, getMafiaNames } from './core/roles.js';
 import { calcRoleDistribution, canEnableRole, isRoleEffective, dealRoles } from './core/distribution.js';
 import { resolveNight, applyNightResolution, canDoctorHeal, canWhoreGo, getWhoreBlocks } from './core/night.js';
+import { checkWinCondition } from './core/win.js';
 
 // ============================================================
 // STATE
@@ -1027,66 +1028,12 @@ function getCurrentSteps() {
 // Проверка условий победы.
 // Логика:
 // — «Мафия» (mafia + don) — одна команда.
-// — «Мирные» (civilian + sheriff + doctor + whore) — одна команда.
-// — «Маньяк» — сам за себя.
-//
-// Правила:
-// 1) Все мертвы → ничья.
-// 2) Если мафии 0 и маньяка 0 → победили мирные.
-// 3) Если мирных 0:
-//    — остался только маньяк (мафия=0) → победа маньяка.
-//    — осталась только мафия (маньяк=0) → победа мафии.
-//    — остались мафия и маньяк → играют между собой (продолжаем), пока один не останется.
-// 4) Если маньяка нет, и мафия >= мирных (паритет) → победа мафии.
-// 5) Если мафии нет, маньяк и мирные:
-//    — маньяк может убить только одного за ночь, голосовать нельзя ночью,
-//      поэтому победа маньяка только когда мирных 0 (см. п.3) или их 1
-//      и их осталось ровно 2 (маньяк + мирный): маньяк гарантированно побеждает
-//      (ночью убьёт последнего, днём голосования быть не может при 2-х).
-//      → Однако по классике маньяк ПОБЕЖДАЕТ уже когда мирных 1, а маньяк жив,
-//        и мафии нет, т.к. он убьёт его следующей же ночью.
-// 6) Если живы все три фракции — продолжаем.
-function checkWinCondition() {
-  const alive = state.players.filter(p => p.alive);
-  const mafia = alive.filter(p => p.role === 'mafia' || p.role === 'don');
-  const maniac = alive.filter(p => p.role === 'maniac');
-  const civilians = alive.filter(p => p.role !== 'mafia' && p.role !== 'don' && p.role !== 'maniac');
-
-  // 1) Все мертвы
-  if (alive.length === 0) return 'draw';
-
-  // 2) Город победил: никаких «красных» не осталось
-  if (mafia.length === 0 && maniac.length === 0) return 'city';
-
-  // 3) Остался только маньяк (в т.ч. один-на-один с мирным, когда других сил нет)
-  if (mafia.length === 0 && maniac.length > 0) {
-    // Маньяк побеждает когда мирных <= 1 (он ночью убьёт единственного, голосование против него не проходит)
-    if (civilians.length <= 1) return 'maniac';
-  }
-
-  // 4) Остались только мафия и мирные (маньяка нет)
-  if (maniac.length === 0 && mafia.length > 0) {
-    // Паритет или больше — победа мафии
-    if (mafia.length >= civilians.length) return 'mafia';
-  }
-
-  // 5) Маньяк, мафия, мирные — все живы. Особые случаи:
-  if (mafia.length > 0 && maniac.length > 0 && civilians.length === 0) {
-    // Только мафия vs маньяк — ничья продолжает игру; по классике если мафия >= 1 и маньяк 1 —
-    // продолжают убивать друг друга. Для упрощения: если живых 2 (1 маньяк + 1 мафия) —
-    // признаём ничью с предпочтением мафии (она убьёт его первой ночью).
-    if (mafia.length >= 1) return 'mafia';
-  }
-
-  // 6) Продолжаем игру
-  return null;
-}
 
 function renderHost() {
   const app = document.getElementById('app');
 
   // Проверяем победу перед рендером.
-  const winner = checkWinCondition();
+  const winner = checkWinCondition(state);
   if (winner) {
     state.winner = winner;
     state.screen = 'gameover';
@@ -1208,7 +1155,7 @@ function renderHost() {
         state.night.resolved = resolveNight(state);
       }
       applyNightResolution(state);
-      const w = checkWinCondition();
+      const w = checkWinCondition(state);
       if (w) {
         state.winner = w;
         state.screen = 'gameover';
@@ -1221,7 +1168,7 @@ function renderHost() {
     // Применяем казнь при переходе с шага казни
     if (step.action && step.action.type === 'pickKilled' && state.dayVoteKilled != null && state.dayVoteKilled >= 0) {
       state.players[state.dayVoteKilled].alive = false;
-      const w = checkWinCondition();
+      const w = checkWinCondition(state);
       if (w) {
         state.winner = w;
         state.screen = 'gameover';
@@ -1242,7 +1189,7 @@ function renderHost() {
         state.phase = 'vote';
         state.stepIndex = 0;
       } else if (state.phase === 'vote') {
-        const w = checkWinCondition();
+        const w = checkWinCondition(state);
         if (w) {
           state.winner = w;
           state.screen = 'gameover';
