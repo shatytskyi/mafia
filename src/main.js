@@ -9,6 +9,7 @@ import {
   createPersistence, buildSnapshot, applySnapshotToState, formatSavedAgo, savedGameDescription
 } from './state/persistence.js';
 import { applyTheme, bindThemeToggle, onThemeChange, updateThemeIcon } from './ui/theme.js';
+import { createRender, registerScreen } from './ui/render.js';
 
 const persistence = createPersistence();
 
@@ -44,41 +45,17 @@ function loadTheme() {
 // ============================================================
 
 
-let _lastScreen = null;
-let _lastDealKey = null;
-function render() {
-  const app = document.getElementById('app');
-  const screenChanged = _lastScreen !== state.screen;
-  // Для экрана раздачи ролей также анимируем смену игрока и фазы (await↔shown)
-  const dealKey = state.screen === 'deal' ? `${state.dealIndex}:${state.dealPhase}` : null;
-  const dealChanged = dealKey !== null && _lastDealKey !== dealKey;
+const render = createRender({
+  beforeRender: () => saveGame(),
+  afterRender: () => { if (state.screen === 'home') clearSavedGame(); }
+});
 
-  app.innerHTML = '';
-  if (state.screen === 'home') renderHome();
-  else if (state.screen === 'names') renderNames();
-  else if (state.screen === 'deal') renderDeal();
-  else if (state.screen === 'host') renderHost();
-  else if (state.screen === 'gameover') renderGameOver();
-  else if (state.screen === 'rules') renderRules();
-  updateThemeIcon();
-
-  // Анимация появления — при смене экрана, либо при смене игрока/фазы на экране раздачи.
-  // Без этого весь host-экран мерцает на каждый шаг/тап.
-  if (screenChanged || dealChanged) {
-    _lastScreen = state.screen;
-    _lastDealKey = dealKey;
-    const firstChild = app.firstElementChild;
-    if (firstChild) {
-      firstChild.classList.add('screen-enter');
-    }
-    if (screenChanged) window.scrollTo(0, 0);
-  }
-
-  // Сохраняем состояние игры (debounced, только если на host-экране).
-  saveGame();
-  // Сохранённую игру чистим когда вышли на главную
-  if (state.screen === 'home') clearSavedGame();
-}
+registerScreen('home', renderHome);
+registerScreen('names', renderNames);
+registerScreen('deal', renderDeal);
+registerScreen('host', renderHost);
+registerScreen('gameover', renderGameOver);
+registerScreen('rules', renderRules);
 
 // ============================================================
 // HOME SCREEN
