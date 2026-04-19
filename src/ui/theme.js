@@ -7,8 +7,18 @@ let onChange = null;
  */
 export function onThemeChange(cb) { onChange = cb; }
 
+// Keep system UI (status bar in standalone PWA, Android Chrome tab bar)
+// in sync with the active theme.
+const THEME_COLORS = { light: '#f2ead5', dark: '#0a0807' };
+
+function syncThemeColorMeta() {
+  const meta = document.getElementById('themeColorMeta');
+  if (meta) meta.setAttribute('content', THEME_COLORS[state.theme] || THEME_COLORS.dark);
+}
+
 export function applyTheme() {
   document.documentElement.setAttribute('data-theme', state.theme === 'dark' ? 'dark' : 'light');
+  syncThemeColorMeta();
 }
 
 /**
