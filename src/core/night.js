@@ -104,8 +104,8 @@ export function getWhoreBlocks(players, night, gameOptions) {
 }
 
 /**
- * @param {{players: {role: string, alive: boolean, name: string}[], day: number, night: NightSelections, gameOptions: GameOptions}} state
- * @returns {NightResult}
+ * @param {import('../types.js').AppState} state
+ * @returns {import('../types.js').NightResult}
  */
 export function resolveNight(state) {
   const n = state.night;
@@ -217,7 +217,7 @@ export function resolveNight(state) {
  * Mutates `state.players` (kills) and updates doctor/whore histories.
  * Idempotent via `state.night.applied`.
  *
- * @param {{players: {alive: boolean, role: string}[], night: NightSelections & {resolved?: NightResult, applied?: boolean}, doctorHistory: (number|null)[], whoreHistory: (number|null)[], doctorSelfUsed: boolean}} state
+ * @param {import('../types.js').AppState} state
  */
 export function applyNightResolution(state) {
   const r = state.night.resolved;

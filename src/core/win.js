@@ -1,5 +1,5 @@
 /**
- * @param {{players: {role: string, alive: boolean}[]}} state
+ * @param {import('../types.js').AppState} state
  * @returns {'city'|'mafia'|'maniac'|'draw'|null}
  */
 export function checkWinCondition(state) {

@@ -26,7 +26,10 @@ import { getWhoreBlocks, canDoctorHeal, canWhoreGo } from './night.js';
  * @property {string} [summary]
  */
 
-/** @returns {Step[]} */
+/**
+ * @param {import('../types.js').AppState} state
+ * @returns {Step[]}
+ */
 export function getNightSteps(state) {
   const steps = [];
   const hasAlive = (role) => state.players.some(p => p.role === role && p.alive);
@@ -276,7 +279,10 @@ export function getNightSteps(state) {
   return steps;
 }
 
-/** @returns {Step[]} */
+/**
+ * @param {import('../types.js').AppState} state
+ * @returns {Step[]}
+ */
 export function getDaySteps(state) {
   const isFirstDay = state.day === 1;
   const steps = [];
@@ -372,7 +378,10 @@ export function getVoteSteps() {
   ];
 }
 
-/** @returns {Step[]} */
+/**
+ * @param {import('../types.js').AppState} state
+ * @returns {Step[]}
+ */
 export function getCurrentSteps(state) {
   if (state.phase === 'night') return getNightSteps(state);
   if (state.phase === 'day') return getDaySteps(state);

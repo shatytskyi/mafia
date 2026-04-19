@@ -1,3 +1,4 @@
+/** @type {import('../types.js').AppState} */
 export const state = {
   screen: 'home',
   playerCount: 8,
