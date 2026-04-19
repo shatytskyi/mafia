@@ -116,7 +116,7 @@ function showBanner(mode) {
       </div>
       <div class="install-actions">
         ${action}
-        <button class="install-dismiss" id="installBtnDismiss" type="button" aria-label="${t('install.dismissAria')}">✕</button>
+        <button class="install-dismiss" id="installBtnDismiss" type="button" aria-label="${t('install.dismissAria')}" title="${t('install.dismissAria')}">✕</button>
       </div>
     </div>
   `;
