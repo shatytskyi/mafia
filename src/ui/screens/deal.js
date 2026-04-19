@@ -1,6 +1,7 @@
 import { state, resetNightSelections } from '../../state/state.js';
-import { ROLES, getMafiaNames, getRoleDesc } from '../../core/roles.js';
+import { ROLES, getMafiaNames, getRoleDesc, getRoleName, getRoleSide } from '../../core/roles.js';
 import { escapeHtml } from '../html.js';
+import { t } from '../../i18n/index.js';
 
 export function renderDeal({ render }) {
   const app = document.getElementById('app');
@@ -11,12 +12,12 @@ export function renderDeal({ render }) {
   if (state.dealPhase === 'handoff') {
     app.innerHTML = `
       <div class="deal-screen screen">
-        <div class="player-num">Все роли розданы</div>
-        <div class="player-name-big">Передай телефон<br>ведущему</div>
-        <div class="passing-hint">только ведущий должен видеть следующий экран — там все роли игроков</div>
+        <div class="player-num">${t('deal.handoffKicker')}</div>
+        <div class="player-name-big">${t('deal.handoffTitle')}</div>
+        <div class="passing-hint">${t('deal.handoffHint')}</div>
 
         <button class="btn-primary" id="hostReadyBtn" style="max-width: 380px;">
-          Я ведущий — начинаем →
+          ${t('deal.handoffBtn')}
         </button>
       </div>
     `;
@@ -37,18 +38,15 @@ export function renderDeal({ render }) {
   if (state.dealPhase === 'await') {
     app.innerHTML = `
       <div class="deal-screen screen">
-        <div class="player-num">Игрок · ${num} / ${total}</div>
+        <div class="player-num">${t('deal.playerKicker', { num, total })}</div>
         <div class="player-name-big">${escapeHtml(player.name)}</div>
-        <div class="passing-hint">передай телефон этому игроку</div>
+        <div class="passing-hint">${t('deal.passHint')}</div>
 
         <button class="reveal-btn" id="revealBtn">
-          <span>Показать<br>роль</span>
+          <span>${t('deal.revealBtn')}</span>
         </button>
 
-        <p class="instruction">
-          Убедись, что никто<br>
-          не подглядывает за&nbsp;твоим плечом
-        </p>
+        <p class="instruction">${t('deal.instruction')}</p>
       </div>
     `;
     document.getElementById('revealBtn').onclick = () => {
@@ -61,7 +59,7 @@ export function renderDeal({ render }) {
     const mafiaTeamHtml = isMafiaTeam && getMafiaNames(state.players).length > 1
       ? `
         <div class="team-list">
-          <div class="t-label">Твои подельники</div>
+          <div class="t-label">${t('deal.teamLabel')}</div>
           <div class="team-names">${getMafiaNames(state.players).filter(n => n !== player.name).map(escapeHtml).join(' · ')}</div>
         </div>
       ` : '';
@@ -71,15 +69,15 @@ export function renderDeal({ render }) {
         <div class="role-card">
           <div class="kicker">${escapeHtml(player.name)}</div>
           <div class="role-emblem">${role.emblem}</div>
-          <div class="role-title">${role.name}</div>
-          <div class="role-side">${role.side}</div>
+          <div class="role-title">${getRoleName(player.role)}</div>
+          <div class="role-side">${getRoleSide(player.role)}</div>
           <div class="divider"></div>
           <div class="role-desc">${getRoleDesc(player.role, state.gameOptions)}</div>
           ${mafiaTeamHtml}
         </div>
 
         <button class="btn-primary" id="doneBtn" style="max-width: 380px;">
-          ${state.dealIndex < state.playerCount - 1 ? 'Запомнил, передаю дальше →' : 'Запомнил, передаю ведущему →'}
+          ${state.dealIndex < state.playerCount - 1 ? t('deal.nextBtn') : t('deal.lastBtn')}
         </button>
       </div>
     `;

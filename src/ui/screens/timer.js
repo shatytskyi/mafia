@@ -1,4 +1,5 @@
 import { state } from '../../state/state.js';
+import { t } from '../../i18n/index.js';
 
 let lastTimerStepKey = null;
 let audioCtx = null;
@@ -52,7 +53,7 @@ function updateTimerDisplay() {
 
 function updateTimerToggleBtn() {
   const btn = document.getElementById('timerToggle');
-  if (btn) btn.textContent = state.timer.running ? '⏸ Пауза' : '▶ Старт';
+  if (btn) btn.textContent = state.timer.running ? t('timer.pause') : t('timer.start');
 }
 
 function formatTime(s) {
@@ -110,15 +111,15 @@ export function renderTimer(presetSeconds, presetLabel) {
 
   return `
     <div class="step-card timer-card" style="border-left-color: var(--gold);">
-      <div class="step-title">${presetLabel || 'Таймер'}</div>
+      <div class="step-title">${presetLabel || t('timer.label')}</div>
       <div class="timer-display ${cls}">${formatTime(s)}</div>
       <div class="timer-controls">
-        <button class="nav-btn" id="timerMinus">−10с</button>
-        <button class="nav-btn primary" id="timerToggle">${state.timer.running ? '⏸ Пауза' : '▶ Старт'}</button>
-        <button class="nav-btn" id="timerPlus">+10с</button>
+        <button class="nav-btn" id="timerMinus">${t('timer.minus10')}</button>
+        <button class="nav-btn primary" id="timerToggle">${state.timer.running ? t('timer.pause') : t('timer.start')}</button>
+        <button class="nav-btn" id="timerPlus">${t('timer.plus10')}</button>
       </div>
       <div style="height: 8px;"></div>
-      <button class="btn-ghost" id="timerReset" style="width: 100%;">Сброс на ${formatTime(preset)}</button>
+      <button class="btn-ghost" id="timerReset" style="width: 100%;">${t('timer.resetTo', { time: formatTime(preset) })}</button>
     </div>
   `;
 }

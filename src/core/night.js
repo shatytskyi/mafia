@@ -1,4 +1,5 @@
 import { isMafiaRole, getRole } from './roles.js';
+import { t } from '../i18n/index.js';
 
 /**
  * @typedef {object} NightSelections
@@ -40,15 +41,15 @@ import { isMafiaRole, getRole } from './roles.js';
 export function canDoctorHeal(players, targetIdx, doctorHistory, doctorSelfUsed) {
   if (targetIdx == null || targetIdx < 0) return { ok: true, reason: '' };
   const target = players[targetIdx];
-  if (!target) return { ok: false, reason: 'Игрока нет' };
+  if (!target) return { ok: false, reason: t('validation.playerMissing') };
 
   const lastTarget = doctorHistory[doctorHistory.length - 1];
   if (lastTarget === targetIdx) {
-    return { ok: false, reason: 'Этого игрока Доктор лечил прошлой ночью' };
+    return { ok: false, reason: t('validation.doctorSameTarget') };
   }
   const doctorIdx = players.findIndex(p => p.role === 'doctor');
   if (targetIdx === doctorIdx && doctorSelfUsed) {
-    return { ok: false, reason: 'Себя можно лечить только один раз за игру' };
+    return { ok: false, reason: t('validation.doctorSelfLimit') };
   }
   return { ok: true, reason: '' };
 }
@@ -63,11 +64,11 @@ export function canWhoreGo(players, targetIdx, whoreHistory) {
   if (targetIdx == null || targetIdx < 0) return { ok: true, reason: '' };
   const whoreIdx = players.findIndex(p => p.role === 'whore');
   if (targetIdx === whoreIdx) {
-    return { ok: false, reason: 'К себе Путана не ходит' };
+    return { ok: false, reason: t('validation.whoreSelf') };
   }
   const lastTarget = whoreHistory[whoreHistory.length - 1];
   if (lastTarget === targetIdx) {
-    return { ok: false, reason: 'К этому игроку Путана ходила прошлой ночью' };
+    return { ok: false, reason: t('validation.whoreSameTarget') };
   }
   return { ok: true, reason: '' };
 }

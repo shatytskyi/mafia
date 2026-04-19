@@ -1,5 +1,8 @@
+import { t } from '../i18n/index.js';
+
 const STORAGE_KEY_GAME = 'mafia.game.v1';
 const STORAGE_KEY_THEME = 'mafia.theme';
+const STORAGE_KEY_LOCALE = 'mafia.locale';
 const SAVE_TTL_MS = 6 * 60 * 60 * 1000;
 
 /**
@@ -27,8 +30,15 @@ export function createPersistence(storage) {
     saveTheme(theme) { st.set(STORAGE_KEY_THEME, theme); },
 
     loadTheme() {
-      const t = st.get(STORAGE_KEY_THEME);
-      return (t === 'dark' || t === 'light') ? t : null;
+      const v = st.get(STORAGE_KEY_THEME);
+      return (v === 'dark' || v === 'light') ? v : null;
+    },
+
+    saveLocale(locale) { st.set(STORAGE_KEY_LOCALE, locale); },
+
+    loadLocale() {
+      const v = st.get(STORAGE_KEY_LOCALE);
+      return (v === 'ru' || v === 'uk' || v === 'en') ? v : null;
     },
 
     saveSnapshot(snapshot) {
@@ -107,15 +117,15 @@ export function applySnapshotToState(state, data) {
 export function formatSavedAgo(ts) {
   const diff = Math.max(0, Date.now() - ts);
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'только что';
-  if (mins < 60) return `${mins} мин назад`;
+  if (mins < 1) return t('resume.justNow');
+  if (mins < 60) return t('resume.minAgo', { n: mins });
   const hours = Math.floor(mins / 60);
   const rest = mins % 60;
-  return `${hours} ч ${rest} мин назад`;
+  return t('resume.hourMinAgo', { h: hours, m: rest });
 }
 
 export function savedGameDescription(data) {
   const alive = data.players.filter(p => p.alive).length;
-  const phase = { night: 'Ночь', day: 'День', vote: 'Голосование' }[data.phase] || '';
-  return `${phase} · День ${data.day} · Живых ${alive}/${data.players.length}`;
+  const phase = t(`phases.${data.phase}`) || '';
+  return t('resume.description', { phase, day: data.day, alive, total: data.players.length });
 }

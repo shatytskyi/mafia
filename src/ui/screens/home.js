@@ -3,6 +3,7 @@ import { html, escapeHtml } from '../html.js';
 import { ROLES } from '../../core/roles.js';
 import { calcRoleDistribution, canEnableRole, isRoleEffective } from '../../core/distribution.js';
 import { formatSavedAgo, savedGameDescription } from '../../state/persistence.js';
+import { t } from '../../i18n/index.js';
 
 export function renderHome({ render, loadGame, clearSavedGame, restoreGame }) {
   const distInput = { playerCount: state.playerCount, optionalRoles: state.optionalRoles };
@@ -13,13 +14,13 @@ export function renderHome({ render, loadGame, clearSavedGame, restoreGame }) {
   const resumeBlock = saved ? `
     <div class="resume-card">
       <div class="resume-head">
-        <span class="resume-kicker">⟳ Сохранённая партия</span>
+        <span class="resume-kicker">${t('home.resumeKicker')}</span>
         <span class="resume-time">${escapeHtml(formatSavedAgo(saved.ts))}</span>
       </div>
       <div class="resume-desc">${escapeHtml(savedGameDescription(saved))}</div>
       <div class="resume-btns">
-        <button class="btn-primary" id="resumeBtn">Продолжить →</button>
-        <button class="btn-ghost" id="discardSavedBtn">Удалить</button>
+        <button class="btn-primary" id="resumeBtn">${t('home.resumeContinue')}</button>
+        <button class="btn-ghost" id="discardSavedBtn">${t('home.resumeDelete')}</button>
       </div>
     </div>
   ` : '';
@@ -27,13 +28,13 @@ export function renderHome({ render, loadGame, clearSavedGame, restoreGame }) {
   app.innerHTML = `
     <div class="screen">
       <div class="home-header">
-        <div class="ornament"><span>C O S A · N O S T R A</span></div>
+        <div class="ornament"><span>${t('home.ornament')}</span></div>
         <div class="hero-wrap">
-          <div class="year">Est. 1986</div>
-          <h1 class="hero">Мафия<em>in famiglia</em></h1>
+          <div class="year">${t('home.year')}</div>
+          <h1 class="hero">${t('home.title')}<em>${t('home.titleEm')}</em></h1>
         </div>
         <div class="tag">
-          <p class="subtitle">Город засыпает —<br>просыпается мафия</p>
+          <p class="subtitle">${t('home.subtitle')}</p>
         </div>
       </div>
 
@@ -42,14 +43,14 @@ export function renderHome({ render, loadGame, clearSavedGame, restoreGame }) {
       <div class="section">
         <div class="section-head">
           <span class="num">01 /</span>
-          <span class="label">Игроков за столом</span>
+          <span class="label">${t('home.sectionPlayers')}</span>
           <span class="line"></span>
         </div>
         <div class="counter">
           <button class="counter-btn" id="minusBtn" ${state.playerCount <= 4 ? 'disabled' : ''}>−</button>
           <div>
             <div class="counter-num">${state.playerCount}</div>
-            <div class="counter-label">человек</div>
+            <div class="counter-label">${t('home.playersUnit')}</div>
           </div>
           <button class="counter-btn" id="plusBtn" ${state.playerCount >= 20 ? 'disabled' : ''}>+</button>
         </div>
@@ -58,35 +59,35 @@ export function renderHome({ render, loadGame, clearSavedGame, restoreGame }) {
       <div class="section">
         <div class="section-head">
           <span class="num">02 /</span>
-          <span class="label">Расклад ролей</span>
+          <span class="label">${t('home.sectionRoles')}</span>
           <span class="line"></span>
         </div>
         <div class="role-dist">
-          ${distCell('mafia', 'Мафия', dist.mafia)}
-          ${state.playerCount >= 6 ? distCell('don', 'Дон', dist.don) : ''}
-          ${distCell('sheriff', 'Шериф', dist.sheriff)}
-          ${distCell('doctor', 'Доктор', dist.doctor)}
-          ${state.playerCount >= 8 ? distCell('maniac', 'Маньяк', dist.maniac) : ''}
-          ${state.playerCount >= 8 ? distCell('whore', 'Путана', dist.whore) : ''}
-          ${distCell('civilian', 'Мирные', dist.civilian)}
+          ${distCell('mafia', t('roles.mafia.name'), dist.mafia)}
+          ${state.playerCount >= 6 ? distCell('don', t('roles.don.nameShort'), dist.don) : ''}
+          ${distCell('sheriff', t('roles.sheriff.name'), dist.sheriff)}
+          ${distCell('doctor', t('roles.doctor.name'), dist.doctor)}
+          ${state.playerCount >= 8 ? distCell('maniac', t('roles.maniac.name'), dist.maniac) : ''}
+          ${state.playerCount >= 8 ? distCell('whore', t('roles.whore.name'), dist.whore) : ''}
+          ${distCell('civilian', t('roles.civilian.nameLabel'), dist.civilian)}
         </div>
       </div>
 
       <div class="section">
         <div class="section-head">
           <span class="num">03 /</span>
-          <span class="label">Дополнительные роли</span>
+          <span class="label">${t('home.sectionExtra')}</span>
           <span class="line"></span>
         </div>
-        ${renderRoleToggle('don',    'Дон Мафии', 'Проверяет Шерифа ночью. Минимум 6 игроков.')}
-        ${renderRoleToggle('doctor', 'Доктор',    'Лечит одного игрока за ночь.')}
-        ${renderRoleToggle('maniac', 'Маньяк',    'Одиночка. Убивает сам за себя. Минимум 8 игроков.')}
-        ${renderRoleToggle('whore',  'Путана',    'Блокирует ночные способности. Минимум 8 игроков.')}
+        ${renderRoleToggle('don',    t('roles.don.name'),    t('home.roleDesc.don'))}
+        ${renderRoleToggle('doctor', t('roles.doctor.name'), t('home.roleDesc.doctor'))}
+        ${renderRoleToggle('maniac', t('roles.maniac.name'), t('home.roleDesc.maniac'))}
+        ${renderRoleToggle('whore',  t('roles.whore.name'),  t('home.roleDesc.whore'))}
       </div>
 
-      <button class="btn-primary" id="startBtn">Раздать роли →</button>
+      <button class="btn-primary" id="startBtn">${t('home.startBtn')}</button>
       <div style="height: 12px;"></div>
-      <button class="btn-secondary" id="rulesBtn">Правила игры</button>
+      <button class="btn-secondary" id="rulesBtn">${t('home.rulesBtn')}</button>
     </div>
   `;
 
@@ -111,7 +112,7 @@ export function renderHome({ render, loadGame, clearSavedGame, restoreGame }) {
   const discardBtn = document.getElementById('discardSavedBtn');
   if (discardBtn) {
     discardBtn.onclick = () => {
-      if (confirm('Удалить сохранённую партию?')) {
+      if (confirm(t('home.resumeConfirmDelete'))) {
         clearSavedGame();
         render();
       }
@@ -173,11 +174,11 @@ function renderRoleToggle(id, name, desc) {
       const mode = state.gameOptions.sheriffSeesManiac || 'afterMafia';
       subOptions = `
         <div class="role-suboptions" data-role-opt="maniac">
-          <div class="suboption-label">Шериф видит Маньяка как мафию</div>
+          <div class="suboption-label">${t('home.suboption.sheriffSeesManiac')}</div>
           <div class="suboption-segmented">
-            <button class="seg-btn ${mode === 'never' ? 'active' : ''}" data-opt-sheriff="never">Никогда</button>
-            <button class="seg-btn ${mode === 'afterMafia' ? 'active' : ''}" data-opt-sheriff="afterMafia">После смерти мафии</button>
-            <button class="seg-btn ${mode === 'always' ? 'active' : ''}" data-opt-sheriff="always">Всегда</button>
+            <button class="seg-btn ${mode === 'never' ? 'active' : ''}" data-opt-sheriff="never">${t('home.suboption.never')}</button>
+            <button class="seg-btn ${mode === 'afterMafia' ? 'active' : ''}" data-opt-sheriff="afterMafia">${t('home.suboption.afterMafia')}</button>
+            <button class="seg-btn ${mode === 'always' ? 'active' : ''}" data-opt-sheriff="always">${t('home.suboption.always')}</button>
           </div>
         </div>
       `;
@@ -185,15 +186,17 @@ function renderRoleToggle(id, name, desc) {
       const dies = !!state.gameOptions.whoreDiesAtMafia;
       subOptions = `
         <div class="role-suboptions" data-role-opt="whore">
-          <div class="suboption-label">Путана у мафии</div>
+          <div class="suboption-label">${t('home.suboption.whoreAtMafia')}</div>
           <div class="suboption-segmented">
-            <button class="seg-btn ${!dies ? 'active' : ''}" data-opt-whore="alive">Остаётся жива</button>
-            <button class="seg-btn ${dies ? 'active' : ''}" data-opt-whore="dies">Погибает</button>
+            <button class="seg-btn ${!dies ? 'active' : ''}" data-opt-whore="alive">${t('home.suboption.whoreStaysAlive')}</button>
+            <button class="seg-btn ${dies ? 'active' : ''}" data-opt-whore="dies">${t('home.suboption.whoreDies')}</button>
           </div>
         </div>
       `;
     }
   }
+
+  const minPlayers = id === 'don' ? 6 : 8;
 
   return `
     <div class="role-toggle ${active ? 'active' : ''} ${!allowed ? 'disabled' : ''}" id="toggle-${id}">
@@ -202,8 +205,8 @@ function renderRoleToggle(id, name, desc) {
         <div class="info">
           <div class="name">${label}</div>
           <div class="desc">${desc}</div>
-          ${!allowed ? `<div class="warn">Нужно минимум ${id === 'don' ? 6 : 8} игроков</div>` : ''}
-          ${squeezed ? `<div class="warn">⚠ Не поместится при текущем раскладе — другая роль важнее</div>` : ''}
+          ${!allowed ? `<div class="warn">${t('home.warnMinPlayers', { n: minPlayers })}</div>` : ''}
+          ${squeezed ? `<div class="warn">${t('home.warnSqueezed')}</div>` : ''}
         </div>
       </div>
       ${subOptions}

@@ -1,5 +1,6 @@
 import { isMafiaRole, getRole } from './roles.js';
 import { getWhoreBlocks, canDoctorHeal, canWhoreGo } from './night.js';
+import { t } from '../i18n/index.js';
 
 /**
  * @typedef {object} StepAction
@@ -39,38 +40,38 @@ export function getNightSteps(state) {
   const blocks = getWhoreBlocks(state.players, state.night, state.gameOptions);
 
   steps.push({
-    title: 'Город засыпает',
-    say: 'Город засыпает. Все закрывают глаза. Прошу тишины.',
-    hint: 'Дождись полной тишины. Ритмичное постукивание по столу скроет шорохи от активных ролей.'
+    title: t('steps.cityFallsAsleep.title'),
+    say: t('steps.cityFallsAsleep.say'),
+    hint: t('steps.cityFallsAsleep.hint'),
   });
 
   // First-night mafia meet-and-greet. No kill. All mafia (incl. Don) go back to
   // sleep at the end so Don can wake alone for his check.
   if (isFirstNight && hasMafia) {
     steps.push({
-      title: 'Мафия знакомится',
+      title: t('steps.mafiaMeet.title'),
       cls: 'mafia-action',
-      say: 'Мафия, просыпайся. Познакомьтесь молча — взглядом и кивком. В эту ночь мафия НЕ убивает.',
-      hint: 'Дай 10–15 секунд. Затем скажи: «Мафия, закрой глаза».'
+      say: t('steps.mafiaMeet.say'),
+      hint: t('steps.mafiaMeet.hint'),
     });
   }
 
   // Whore goes first among active roles so blocks resolve before others act.
   if (state.optionalRoles.whore && hasAlive('whore')) {
-    const whoreAtMafiaHint = state.gameOptions.whoreDiesAtMafia
-      ? 'Если пойдёт к мафиози — Путана погибает вместе с ним.'
-      : 'Если пойдёт к мафиози — у Путаны алиби; мафия заблокирована, только если это её последний живой боец.';
+    const atMafia = state.gameOptions.whoreDiesAtMafia
+      ? t('steps.whore.hintDies')
+      : t('steps.whore.hintAlive');
     steps.push({
-      title: 'Путана',
+      title: t('steps.whore.title'),
       cls: 'whore-action',
-      say: 'Путана, открой глаза. К кому идёшь этой ночью?',
-      hint: `Её ночная способность не сработает. ${whoreAtMafiaHint} Нельзя ходить к одному игроку две ночи подряд. После выбора — «Путана, закрой глаза».`,
+      say: t('steps.whore.say'),
+      hint: t('steps.whore.hint', { atMafia }),
       action: {
         type: 'pickTarget',
         field: 'whoreTarget',
         role: 'whore',
         excludeSelf: true,
-        label: 'К кому идёт Путана',
+        label: t('steps.whore.label'),
         allowSkip: false,
         validate: (idx) => canWhoreGo(state.players, idx, state.whoreHistory)
       }
@@ -81,34 +82,34 @@ export function getNightSteps(state) {
   // is NOT active; otherwise Don's step will close all mafia.
   if (!isFirstNight && hasMafia) {
     const closing = hasDonActive
-      ? 'Далее ходит Дон — мафия остаётся бодрствовать.'
-      : 'После выбора — «Мафия, закрой глаза».';
+      ? t('steps.mafiaKill.closingDon')
+      : t('steps.mafiaKill.closingAlone');
     if (blocks.mafia) {
       steps.push({
-        title: 'Мафия просыпается',
+        title: t('steps.mafiaKill.title'),
         cls: 'mafia-action',
-        say: 'Мафия, просыпайся. Ночью мафия никого не убивает.',
-        hint: `Путана заблокировала мафию — убийства не будет. Выдержи паузу, покажи любой жест, будто мафия совещается. ${closing}`,
+        say: t('steps.mafiaKill.sayBlocked'),
+        hint: t('steps.mafiaKill.hintBlocked', { closing }),
         action: {
           type: 'blockedAction',
           field: 'mafiaTarget',
-          label: 'Мафия не убивает этой ночью',
-          confirmLabel: 'Мафия никого не убивает'
+          label: t('steps.mafiaKill.blockedLabel'),
+          confirmLabel: t('steps.mafiaKill.blockedConfirm'),
         }
       });
     } else {
       steps.push({
-        title: 'Мафия просыпается',
+        title: t('steps.mafiaKill.title'),
         cls: 'mafia-action',
-        say: 'Мафия, просыпайся. Жестами выберите жертву.',
-        hint: `Дождись единогласного решения. Если не договорились — «Мафия не договорилась». ${closing}`,
+        say: t('steps.mafiaKill.say'),
+        hint: t('steps.mafiaKill.hint', { closing }),
         action: {
           type: 'pickTarget',
           field: 'mafiaTarget',
           role: 'mafia',
-          label: 'Жертва мафии',
+          label: t('steps.mafiaKill.label'),
           allowSkip: true,
-          skipLabel: 'Мафия не договорилась'
+          skipLabel: t('steps.mafiaKill.skipLabel'),
         }
       });
     }
@@ -117,40 +118,40 @@ export function getNightSteps(state) {
   // Don check. Closing varies: first night puts Don back to sleep alone; later
   // nights close the entire mafia (including Don).
   if (hasDonActive) {
-    const donOpening = isFirstNight ? 'Дон, просыпайся. ' : '';
+    const opening = isFirstNight ? t('steps.don.opening') : '';
     const closing = isFirstNight
-      ? 'Затем скажи: «Дон, закрой глаза».'
-      : 'Затем скажи: «Мафия, закрой глаза» — все мафиози и Дон закрывают глаза вместе.';
+      ? t('steps.don.closingFirst')
+      : t('steps.don.closingLater');
     if (blocks.donCheck) {
       steps.push({
-        title: 'Дон ищет Шерифа',
+        title: t('steps.don.title'),
         cls: 'mafia-action',
-        say: `${donOpening}Этой ночью ты никого не проверяешь.`,
-        hint: `Путана заблокировала Дона — проверка не сработает. Выдержи паузу и покажи любой жест, чтобы Путана не догадалась. ${closing}`,
+        say: t('steps.don.sayBlocked', { opening }),
+        hint: t('steps.don.hintBlocked', { closing }),
         action: {
           type: 'blockedAction',
           field: 'donCheck',
-          label: 'Дон не проверяет этой ночью',
-          confirmLabel: 'Дон никого не проверяет'
+          label: t('steps.don.blockedLabel'),
+          confirmLabel: t('steps.don.blockedConfirm'),
         }
       });
     } else {
       steps.push({
-        title: 'Дон ищет Шерифа',
+        title: t('steps.don.title'),
         cls: 'mafia-action',
-        say: `${donOpening}Укажи, кого проверяешь.`,
-        hint: `Приложение покажет, Шериф ли это. Передай Дону жестом: кивок — да, покачивание — нет. ${closing}`,
+        say: t('steps.don.say', { opening }),
+        hint: t('steps.don.hint', { closing }),
         action: {
           type: 'pickTarget',
           field: 'donCheck',
           role: 'don',
           excludeSelf: true,
-          label: 'Проверка Дона',
+          label: t('steps.don.label'),
           allowSkip: true,
-          skipLabel: 'Не проверять',
+          skipLabel: t('steps.don.skipLabel'),
           showResult: (idx) => {
             const role = getRole(state.players, idx);
-            return role === 'sheriff' ? '✓ Это Шериф' : '✗ Не Шериф';
+            return role === 'sheriff' ? t('steps.don.resultSheriff') : t('steps.don.resultNotSheriff');
           }
         }
       });
@@ -160,30 +161,30 @@ export function getNightSteps(state) {
   if (state.optionalRoles.doctor && hasAlive('doctor')) {
     if (blocks.doctor) {
       steps.push({
-        title: 'Доктор',
+        title: t('steps.doctor.title'),
         cls: 'doctor-action',
-        say: 'Доктор, просыпайся. Этой ночью ты никого не лечишь.',
-        hint: 'Путана заблокировала Доктора. Выдержи паузу, покажи любой жест. Затем — «Доктор, закрой глаза».',
+        say: t('steps.doctor.sayBlocked'),
+        hint: t('steps.doctor.hintBlocked'),
         action: {
           type: 'blockedAction',
           field: 'doctorTarget',
-          label: 'Доктор не лечит этой ночью',
-          confirmLabel: 'Доктор никого не лечит'
+          label: t('steps.doctor.blockedLabel'),
+          confirmLabel: t('steps.doctor.blockedConfirm'),
         }
       });
     } else {
       steps.push({
-        title: 'Доктор',
+        title: t('steps.doctor.title'),
         cls: 'doctor-action',
-        say: 'Доктор, просыпайся. Кого лечишь этой ночью?',
-        hint: 'Нельзя лечить одного игрока две ночи подряд. Себя — один раз за игру. Доктор лечит и от мафии, и от маньяка. После выбора — «Доктор, закрой глаза».',
+        say: t('steps.doctor.say'),
+        hint: t('steps.doctor.hint'),
         action: {
           type: 'pickTarget',
           field: 'doctorTarget',
           role: 'doctor',
-          label: 'Кого лечит Доктор',
+          label: t('steps.doctor.label'),
           allowSkip: true,
-          skipLabel: 'Не лечить никого',
+          skipLabel: t('steps.doctor.skipLabel'),
           validate: (idx) => canDoctorHeal(state.players, idx, state.doctorHistory, state.doctorSelfUsed)
         }
       });
@@ -193,31 +194,31 @@ export function getNightSteps(state) {
   if (hasAlive('sheriff')) {
     if (blocks.sheriff) {
       steps.push({
-        title: 'Шериф',
+        title: t('steps.sheriff.title'),
         cls: 'sheriff-action',
-        say: 'Шериф, просыпайся. Этой ночью ты никого не проверяешь.',
-        hint: 'Путана заблокировала Шерифа. Выдержи паузу, покажи любой жест. Затем — «Шериф, закрой глаза».',
+        say: t('steps.sheriff.sayBlocked'),
+        hint: t('steps.sheriff.hintBlocked'),
         action: {
           type: 'blockedAction',
           field: 'sheriffCheck',
-          label: 'Шериф не проверяет этой ночью',
-          confirmLabel: 'Шериф никого не проверяет'
+          label: t('steps.sheriff.blockedLabel'),
+          confirmLabel: t('steps.sheriff.blockedConfirm'),
         }
       });
     } else {
       steps.push({
-        title: 'Шериф',
+        title: t('steps.sheriff.title'),
         cls: 'sheriff-action',
-        say: 'Шериф, просыпайся. Кого проверяешь?',
-        hint: 'Приложение покажет результат. Передай Шерифу жестом: палец вверх — НЕ мафия, вниз — мафия. После — «Шериф, закрой глаза».',
+        say: t('steps.sheriff.say'),
+        hint: t('steps.sheriff.hint'),
         action: {
           type: 'pickTarget',
           field: 'sheriffCheck',
           role: 'sheriff',
           excludeSelf: true,
-          label: 'Проверка Шерифа',
+          label: t('steps.sheriff.label'),
           allowSkip: true,
-          skipLabel: 'Не проверять',
+          skipLabel: t('steps.sheriff.skipLabel'),
           showResult: (idx) => {
             const role = getRole(state.players, idx);
             let looksLikeMafia = isMafiaRole(role);
@@ -230,7 +231,7 @@ export function getNightSteps(state) {
                 if (!mafiaAlive) looksLikeMafia = true;
               }
             }
-            return looksLikeMafia ? '🔴 МАФИЯ' : '🟢 НЕ МАФИЯ';
+            return looksLikeMafia ? t('steps.sheriff.resultMafia') : t('steps.sheriff.resultNotMafia');
           }
         }
       });
@@ -242,31 +243,31 @@ export function getNightSteps(state) {
   if (state.optionalRoles.maniac && hasAlive('maniac')) {
     if (blocks.maniac) {
       steps.push({
-        title: 'Маньяк',
+        title: t('steps.maniac.title'),
         cls: 'maniac-action',
-        say: 'Маньяк, открой глаза. Этой ночью ты никого не убиваешь.',
-        hint: 'Путана заблокировала Маньяка. Выдержи паузу. Затем — «Маньяк, закрой глаза».',
+        say: t('steps.maniac.sayBlocked'),
+        hint: t('steps.maniac.hintBlocked'),
         action: {
           type: 'blockedAction',
           field: 'maniacTarget',
-          label: 'Маньяк не убивает этой ночью',
-          confirmLabel: 'Маньяк никого не убивает'
+          label: t('steps.maniac.blockedLabel'),
+          confirmLabel: t('steps.maniac.blockedConfirm'),
         }
       });
     } else {
       steps.push({
-        title: 'Маньяк',
+        title: t('steps.maniac.title'),
         cls: 'maniac-action',
-        say: 'Маньяк, открой глаза. Кого убиваешь?',
-        hint: 'Маньяк действует и в первую ночь. Доктор может спасти от маньяка. После выбора — «Маньяк, закрой глаза».',
+        say: t('steps.maniac.say'),
+        hint: t('steps.maniac.hint'),
         action: {
           type: 'pickTarget',
           field: 'maniacTarget',
           role: 'maniac',
           excludeSelf: true,
-          label: 'Жертва Маньяка',
+          label: t('steps.maniac.label'),
           allowSkip: true,
-          skipLabel: 'Маньяк не убивает'
+          skipLabel: t('steps.maniac.skipLabel'),
         }
       });
     }
@@ -275,9 +276,9 @@ export function getNightSteps(state) {
   // Merged: resolve summary + "city wakes up" announcement. The summary card is
   // rendered by renderAction; applyNightResolution runs on Next click.
   steps.push({
-    title: 'Рассвет',
-    say: 'Город просыпается. Открывайте глаза.',
-    hint: 'Сверься с итогом ночи ниже, затем объявляй драматично: «Этой ночью на углу улиц...». Если никто не умер — «эта ночь прошла спокойно». Нажми «Далее», чтобы применить результаты и перейти ко дню.',
+    title: t('steps.dawn.title'),
+    say: t('steps.dawn.say'),
+    hint: t('steps.dawn.hint'),
     action: { type: 'resolveNight' }
   });
 
@@ -299,19 +300,25 @@ export function getDaySteps(state) {
   let victimsText;
   if (peaceful) {
     victimsSay = isFirstDay
-      ? 'Доброе утро, город. Первый день — все живы. Пора знакомиться.'
-      : `День ${state.day}. Этой ночью никто не погиб.`;
-    victimsText = 'Эта ночь прошла спокойно. Все живы.';
+      ? t('steps.victimsPeacefulFirst')
+      : t('steps.victimsPeacefulLater', { day: state.day });
+    victimsText = t('steps.victimsPeacefulText');
   } else {
     const names = killed.map(idx => state.players[idx].name).join(', ');
     const plural = killed.length > 1;
-    victimsSay = isFirstDay
-      ? `Доброе утро, город. Страшная новость: этой ночью погиб${plural ? 'ли' : ''}: ${names}.`
-      : `День ${state.day}. Этой ночью погиб${plural ? 'ли' : ''}: ${names}.`;
-    victimsText = `Погибшие: ${names}`;
+    if (isFirstDay) {
+      victimsSay = plural
+        ? t('steps.victimsDeathFirstMany', { names })
+        : t('steps.victimsDeathFirstOne', { names });
+    } else {
+      victimsSay = plural
+        ? t('steps.victimsDeathLaterMany', { names, day: state.day })
+        : t('steps.victimsDeathLaterOne', { names, day: state.day });
+    }
+    victimsText = t('steps.victimsDeathText', { names });
     if (resolved && resolved.savedByDoctor != null) {
       const savedName = state.players[resolved.savedByDoctor].name;
-      victimsText += `\n(Доктор спас ${savedName})`;
+      victimsText += t('steps.victimsSavedByDoctor', { name: savedName });
     }
   }
 
@@ -320,32 +327,28 @@ export function getDaySteps(state) {
   const showLastWordTimer = !peaceful;
 
   steps.push({
-    title: isFirstDay && peaceful ? 'Утро первого дня' : 'Объявление жертв',
+    title: isFirstDay && peaceful ? t('steps.victimsFirstPeacefulTitle') : t('steps.victimsTitle'),
     say: victimsSay,
-    hint: peaceful
-      ? 'Переходи к обсуждению.'
-      : 'По классике — погибший может открыть свою роль, но НЕ намекать на убийцу. Дай 30 секунд на последнее слово.',
+    hint: peaceful ? t('steps.victimsHintPeaceful') : t('steps.victimsHint'),
     timerSeconds: showLastWordTimer ? 30 : null,
-    timerLabel: 'Последнее слово погибшего',
+    timerLabel: t('steps.victimsTimerLabel'),
     summary: victimsText
   });
 
   steps.push({
-    title: 'Обсуждение',
-    say: 'Время обсудить. У каждого минута, чтобы высказаться по кругу.',
-    hint: isFirstDay
-      ? 'Первый день обычно короткий — игроки почти ничего не знают. Начинайте с любого.'
-      : 'Начни с игрока слева от первого умершего. Строго следи за таймингом. Никто не перебивает.',
+    title: t('steps.discussionTitle'),
+    say: t('steps.discussionSay'),
+    hint: isFirstDay ? t('steps.discussionHintFirst') : t('steps.discussionHint'),
     timerSeconds: 60,
-    timerLabel: 'Минута на игрока'
+    timerLabel: t('steps.discussionTimerLabel'),
   });
 
   steps.push({
-    title: 'Выдвижение и оправдания',
-    say: 'Кого вы подозреваете? Выдвигайте кандидатов. Каждому — 30 секунд на оправдание.',
-    hint: 'Один игрок выдвигает одного. Сам себя — нельзя. Если никто не выдвинут — голосования не будет, сразу к ночи. Таймер запускай на каждого кандидата отдельно.',
+    title: t('steps.nominationTitle'),
+    say: t('steps.nominationSay'),
+    hint: t('steps.nominationHint'),
     timerSeconds: 30,
-    timerLabel: '30 секунд кандидату'
+    timerLabel: t('steps.nominationTimerLabel'),
   });
 
   return steps;
@@ -355,16 +358,16 @@ export function getDaySteps(state) {
 export function getVoteSteps() {
   return [
     {
-      title: 'Голосование и казнь',
-      say: 'Голосуем. Поднимите руку за того, кого считаете мафией.',
-      hint: 'Называй кандидатов по очереди. Каждый голосует один раз, не за себя. Считай голоса вслух. При ничьей реши сам: никто не уходит или все лидеры уходят (договоритесь до игры). Выбери казнённого ниже или «Никто не уходит» — ему 30 секунд на последнее слово.',
+      title: t('steps.voteTitle'),
+      say: t('steps.voteSay'),
+      hint: t('steps.voteHint'),
       timerSeconds: 30,
-      timerLabel: 'Последнее слово казнённого',
+      timerLabel: t('steps.voteTimerLabel'),
       action: {
         type: 'pickKilled',
-        label: 'Кого казнил город',
+        label: t('steps.voteLabel'),
         allowSkip: true,
-        skipLabel: 'Никто не уходит'
+        skipLabel: t('steps.voteSkipLabel'),
       }
     }
   ];

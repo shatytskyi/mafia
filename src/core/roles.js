@@ -1,40 +1,35 @@
+import { t } from '../i18n/index.js';
+
+// Non-localizable role metadata. Names, sides and descriptions come from i18n
+// via the helpers below — always resolve at call time so locale switches
+// propagate without reloading the module.
 export const ROLES = {
-  mafia: {
-    id: 'mafia', name: 'Мафия', side: 'Тёмная сторона', emblem: '⚜',
-    desc: 'Каждую ночь вы вместе с подельниками выбираете жертву. Днём притворяйтесь мирным жителем и сбивайте с толку.',
-    color: 'mafia'
-  },
-  civilian: {
-    id: 'civilian', name: 'Мирный', side: 'Светлая сторона', emblem: '♟',
-    desc: 'У вас нет особых способностей. Ваше оружие — логика, интуиция и красноречие. Найдите мафию, пока не поздно.',
-    color: 'civilian'
-  },
-  sheriff: {
-    id: 'sheriff', name: 'Шериф', side: 'Светлая сторона', emblem: '✦',
-    desc: 'Каждую ночь вы проверяете одного игрока — ведущий покажет, мафия он или нет. Но если мафия узнает вас — вы труп.',
-    color: 'sheriff'
-  },
-  doctor: {
-    id: 'doctor', name: 'Доктор', side: 'Светлая сторона', emblem: '✚',
-    desc: 'Каждую ночь вы лечите одного игрока. Если мафия выберет его — он выживет. Себя можно лечить только один раз за игру.',
-    color: 'doctor'
-  },
-  don: {
-    id: 'don', name: 'Дон Мафии', side: 'Тёмная сторона', emblem: '♛',
-    desc: 'Вы — глава мафии. Кроме участия в убийствах, каждую ночь можете проверить, является ли игрок Шерифом.',
-    color: 'don'
-  },
-  maniac: {
-    id: 'maniac', name: 'Маньяк', side: 'Одиночка', emblem: '☠\uFE0E',
-    desc: 'Вы играете сами за себя. Каждую ночь убиваете одного игрока. Побеждаете, если останетесь с одним мирным один на один.',
-    color: 'maniac'
-  },
-  whore: {
-    id: 'whore', name: 'Путана', side: 'Светлая сторона', emblem: '❀',
-    desc: 'Каждую ночь вы выбираете игрока — он «спит» у вас и не может применить свою ночную способность. Если попадёте к мафии — получите алиби, но мафию заблокируете только если это последний живой мафиози.',
-    color: 'whore'
-  }
+  mafia:    { id: 'mafia',    emblem: '⚜',      color: 'mafia' },
+  civilian: { id: 'civilian', emblem: '♟',      color: 'civilian' },
+  sheriff:  { id: 'sheriff',  emblem: '✦',      color: 'sheriff' },
+  doctor:   { id: 'doctor',   emblem: '✚',      color: 'doctor' },
+  don:      { id: 'don',      emblem: '♛',      color: 'don' },
+  maniac:   { id: 'maniac',   emblem: '☠\uFE0E', color: 'maniac' },
+  whore:    { id: 'whore',    emblem: '❀',      color: 'whore' },
 };
+
+const SIDE_KEY = {
+  mafia: 'sides.dark',
+  don: 'sides.dark',
+  civilian: 'sides.light',
+  sheriff: 'sides.light',
+  doctor: 'sides.light',
+  whore: 'sides.light',
+  maniac: 'sides.solo',
+};
+
+export function getRoleName(roleId) {
+  return t(`roles.${roleId}.name`);
+}
+
+export function getRoleSide(roleId) {
+  return t(SIDE_KEY[roleId] || 'sides.light');
+}
 
 /**
  * Role description that depends on game settings. Currently only Whore text
@@ -45,9 +40,9 @@ export const ROLES = {
  */
 export function getRoleDesc(roleId, gameOptions) {
   if (roleId === 'whore' && gameOptions && gameOptions.whoreDiesAtMafia) {
-    return 'Каждую ночь вы выбираете игрока — он «спит» у вас и не может применить свою ночную способность. Осторожно: если попадёте к мафии — погибнете вместе с ней.';
+    return t('roles.whore.descDies');
   }
-  return ROLES[roleId].desc;
+  return t(`roles.${roleId}.desc`);
 }
 
 /**

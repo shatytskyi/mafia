@@ -1,11 +1,12 @@
 import { state, resetNightSelections } from '../../state/state.js';
-import { ROLES } from '../../core/roles.js';
+import { ROLES, getRoleName } from '../../core/roles.js';
 import { checkWinCondition } from '../../core/win.js';
 import { getCurrentSteps, getNightSteps, getDaySteps } from '../../core/steps.js';
 import { resolveNight, applyNightResolution } from '../../core/night.js';
 import { renderAction, bindActionHandlers, isNextDisabled } from './actions.js';
 import { renderTimer, bindTimerHandlers, stopTimer } from './timer.js';
 import { escapeHtml } from '../html.js';
+import { t } from '../../i18n/index.js';
 
 export function renderHost({ render, clearSavedGame }) {
   const app = document.getElementById('app');
@@ -25,7 +26,7 @@ export function renderHost({ render, clearSavedGame }) {
   const step = steps[state.stepIndex];
   const isLast = state.stepIndex === steps.length - 1;
 
-  const phaseLabel = { night: 'Ночь', day: 'День', vote: 'Голосование' }[state.phase];
+  const phaseLabel = t(`phases.${state.phase}`);
   const phaseCls = state.phase;
   const aliveCount = state.players.filter(p => p.alive).length;
 
@@ -35,7 +36,7 @@ export function renderHost({ render, clearSavedGame }) {
   if (step.summary) {
     summaryHtml = `
       <div class="step-card" style="border-left-color: var(--blood);">
-        <div class="step-title">Результат</div>
+        <div class="step-title">${t('host.resultTitle')}</div>
         <div class="summary-text">${escapeHtml(step.summary).replace(/\n/g, '<br>')}</div>
       </div>
     `;
@@ -49,22 +50,22 @@ export function renderHost({ render, clearSavedGame }) {
       <div class="host-header">
         <div class="phase-badge ${phaseCls}">
           ${state.phase === 'night' ? '🌙' : state.phase === 'day' ? '☀' : '⚖'}
-          День ${state.day} · ${phaseLabel}
+          ${t('host.phaseDay', { day: state.day, phase: phaseLabel })}
         </div>
         <div class="phase-title">${step.title}</div>
       </div>
 
       <div class="step-card ${step.cls || ''}">
-        <div class="step-num">Шаг ${state.stepIndex + 1} / ${steps.length}</div>
-        <div class="step-title">Ведущий говорит</div>
+        <div class="step-num">${t('host.stepNum', { current: state.stepIndex + 1, total: steps.length })}</div>
+        <div class="step-title">${t('host.hostSays')}</div>
         <div class="step-say">${step.say}</div>
         ${step.hint ? `<div class="step-hint">💡 ${step.hint}</div>` : ''}
       </div>
 
       <div class="nav-row nav-row-sticky">
-        <button class="nav-btn" id="prevStep" ${isVeryFirstStep ? 'disabled' : ''}>← Назад</button>
+        <button class="nav-btn" id="prevStep" ${isVeryFirstStep ? 'disabled' : ''}>${t('common.back')}</button>
         <button class="nav-btn primary" id="nextStep" ${isNextDisabled(step) ? 'disabled' : ''}>
-          ${isLast ? nextPhaseLabel() : 'Далее →'}
+          ${isLast ? nextPhaseLabel() : t('common.next')}
         </button>
       </div>
 
@@ -75,7 +76,7 @@ export function renderHost({ render, clearSavedGame }) {
       <div class="section mt-24">
         <div class="section-head">
           <span class="num">✦</span>
-          <span class="label">Игроки · живых ${aliveCount}/${state.playerCount}</span>
+          <span class="label">${t('host.playersHeader', { alive: aliveCount, total: state.playerCount })}</span>
           <span class="line"></span>
         </div>
         <div class="roster">
@@ -87,7 +88,7 @@ export function renderHost({ render, clearSavedGame }) {
                 <div class="roster-name">${escapeHtml(p.name)}</div>
                 <div class="roster-role">
                   <span class="role-icon ${p.role}" aria-hidden="true">${role.emblem}</span>
-                  ${role.name}
+                  ${getRoleName(p.role)}
                 </div>
               </div>
             `;
@@ -96,7 +97,7 @@ export function renderHost({ render, clearSavedGame }) {
       </div>
 
       <div style="height: 16px;"></div>
-      <button class="btn-ghost" id="endGame" style="width: 100%;">Завершить игру</button>
+      <button class="btn-ghost" id="endGame" style="width: 100%;">${t('host.endGame')}</button>
     </div>
   `;
 
@@ -165,7 +166,7 @@ export function renderHost({ render, clearSavedGame }) {
   };
 
   document.getElementById('endGame').onclick = () => {
-    if (confirm('Завершить игру и вернуться в меню?')) {
+    if (confirm(t('host.endConfirm'))) {
       stopTimer();
       state.screen = 'home';
       clearSavedGame();
@@ -175,8 +176,8 @@ export function renderHost({ render, clearSavedGame }) {
 }
 
 function nextPhaseLabel() {
-  if (state.phase === 'night') return 'К дню →';
-  if (state.phase === 'day') return 'К голосованию →';
-  if (state.phase === 'vote') return `Ночь ${state.day + 1} →`;
-  return 'Далее →';
+  if (state.phase === 'night') return t('host.nextPhaseNight');
+  if (state.phase === 'day') return t('host.nextPhaseDay');
+  if (state.phase === 'vote') return t('host.nextPhaseVote', { day: state.day + 1 });
+  return t('common.next');
 }

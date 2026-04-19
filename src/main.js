@@ -4,6 +4,8 @@ import {
 } from './state/persistence.js';
 import { createRender, registerScreen } from './ui/render.js';
 import { applyTheme, bindThemeToggle, onThemeChange } from './ui/theme.js';
+import { bindLocaleToggle, onLocaleToggle } from './ui/locale.js';
+import { setLocale, detectLocale } from './i18n/index.js';
 import { initVersionFooter } from './ui/version.js';
 import { renderHome } from './ui/screens/home.js';
 import { renderNames } from './ui/screens/names.js';
@@ -19,6 +21,12 @@ function loadTheme() {
   const t = persistence.loadTheme();
   if (t) state.theme = t;
 }
+
+function loadLocale() {
+  const saved = persistence.loadLocale();
+  setLocale(saved || detectLocale());
+}
+function saveLocale(locale) { persistence.saveLocale(locale); }
 
 let _saveTimer = null;
 function saveGame() {
@@ -42,8 +50,11 @@ registerScreen('gameover', () => renderGameOver({ render, clearSavedGame }));
 registerScreen('rules',    () => renderRules({ render }));
 
 loadTheme();
+loadLocale();
 applyTheme();
 onThemeChange(render);
+onLocaleToggle(render);
 bindThemeToggle({ saveTheme });
+bindLocaleToggle({ saveLocale });
 initVersionFooter();
 render();

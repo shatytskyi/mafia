@@ -1,6 +1,7 @@
 import { state } from '../../state/state.js';
 import { dealRoles } from '../../core/distribution.js';
 import { escapeHtml } from '../html.js';
+import { t } from '../../i18n/index.js';
 
 export function renderNames({ render }) {
   const app = document.getElementById('app');
@@ -14,11 +15,12 @@ export function renderNames({ render }) {
   let inputsHtml = '';
   for (let i = 0; i < state.playerCount; i++) {
     const num = String(i+1).padStart(2, '0');
+    const placeholder = t('names.placeholder', { n: i + 1 });
     inputsHtml += `
       <div class="name-input-row">
         <div class="idx">${num}</div>
         <input type="text" data-idx="${i}" value="${escapeHtml(state.players[i].name)}"
-               placeholder="Игрок ${i+1}" maxlength="20" />
+               placeholder="${escapeHtml(placeholder)}" maxlength="20" />
       </div>
     `;
   }
@@ -26,20 +28,20 @@ export function renderNames({ render }) {
   app.innerHTML = `
     <div class="screen">
       <div class="home-header">
-        <div class="ornament"><span>D R A M A T I S · P E R S O N A E</span></div>
+        <div class="ornament"><span>${t('names.ornament')}</span></div>
         <div class="hero-wrap">
-          <h1 class="hero" style="font-size: 48px;">Имена<em>за столом</em></h1>
+          <h1 class="hero" style="font-size: 48px;">${t('names.title')}<em>${t('names.titleEm')}</em></h1>
         </div>
-        <p class="subtitle t-center mt-16">Введи имена или оставь стандартные</p>
+        <p class="subtitle t-center mt-16">${t('names.subtitle')}</p>
       </div>
 
       <div class="name-inputs">
         ${inputsHtml}
       </div>
 
-      <button class="btn-primary" id="confirmNames">Раздать карты →</button>
+      <button class="btn-primary" id="confirmNames">${t('names.confirmBtn')}</button>
       <div style="height: 12px;"></div>
-      <button class="btn-ghost" id="backHome">← Назад</button>
+      <button class="btn-ghost" id="backHome">${t('common.back')}</button>
     </div>
   `;
 
@@ -52,7 +54,7 @@ export function renderNames({ render }) {
 
   document.getElementById('confirmNames').onclick = () => {
     state.players.forEach((p, i) => {
-      if (!p.name.trim()) p.name = `Игрок ${i+1}`;
+      if (!p.name.trim()) p.name = t('names.defaultName', { n: i + 1 });
     });
     state.players = dealRoles(state.players, {
       playerCount: state.playerCount,
