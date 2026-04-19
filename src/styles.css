@@ -1,0 +1,1546 @@
+  /* === СВЕТЛАЯ ТЕМА (по умолчанию) === */
+  :root {
+    --bg: #f2ead5;            /* кремовая бумага */
+    --bg-2: #e8dec5;          /* чуть темнее для карточек */
+    --bg-3: #dccfb0;          /* рамки, разделители */
+    --paper: #1a1410;         /* тёмный текст (инвертировано) */
+    --paper-dark: #0f0a07;    /* самый тёмный */
+    --blood: #8b1a1a;         /* бордо */
+    --blood-bright: #a82020;
+    --gold: #8a6a1f;          /* тёмное золото — хорошо на кремовом */
+    --gold-dim: #a88d4a;
+    --ash: #6b6460;
+    --text: #1a1410;
+    --text-dim: #5a4e42;
+
+    /* Специальные цвета для карточки роли (инвертируется на свете) */
+    --card-bg-start: #1a1410;
+    --card-bg-end: #0f0a07;
+    --card-text: #f4ecd8;
+    --card-accent: #d4b565;
+
+    --vignette: radial-gradient(ellipse at center, transparent 40%, rgba(101, 75, 40, 0.2) 100%);
+    --grain-opacity: 0.08;
+    --button-text: #f4ecd8;
+
+    /* Общие альфа-цвета */
+    --border-soft: rgba(138, 106, 31, 0.25);
+    --border-softer: rgba(138, 106, 31, 0.15);
+    --border-softest: rgba(138, 106, 31, 0.08);
+    --quote-bg: rgba(26, 20, 16, 0.06);
+    --reveal-grad-start: #f4ecd8;
+    --reveal-grad-end: #e0d3b0;
+    --reveal-shadow: 0 0 30px rgba(138, 106, 31, 0.2), inset 0 0 20px rgba(138, 106, 31, 0.15);
+  }
+
+  /* === ТЁМНАЯ ТЕМА === */
+  :root[data-theme="dark"] {
+    --bg: #0a0807;
+    --bg-2: #141110;
+    --bg-3: #1e1a17;
+    --paper: #f4ecd8;
+    --paper-dark: #1a1614;
+    --blood: #8b1a1a;
+    --blood-bright: #c62828;
+    --gold: #c9a961;
+    --gold-dim: #8a7444;
+    --ash: #6b6460;
+    --text: #e8e3d8;
+    --text-dim: #a8a196;
+
+    --card-bg-start: #f4ecd8;
+    --card-bg-end: #ebe0c7;
+    --card-text: #1a1614;
+    --card-accent: #8b1a1a;
+
+    --vignette: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.6) 100%);
+    --grain-opacity: 0.06;
+    --button-text: #f4ecd8;
+
+    --border-soft: var(--border-soft);
+    --border-softer: var(--border-softer);
+    --border-softest: var(--border-softest);
+    --quote-bg: rgba(0, 0, 0, 0.3);
+    --reveal-grad-start: #2a1e1a;
+    --reveal-grad-end: #0a0807;
+    --reveal-shadow: 0 0 40px rgba(0,0,0,0.8), inset 0 0 30px rgba(0,0,0,0.6);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    font-family: 'Cormorant Garamond', serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    position: relative;
+  }
+
+  /* Grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: var(--grain-opacity);
+    z-index: 100;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* Vignette */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 99;
+    background: var(--vignette);
+  }
+
+  .app {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 24px 20px 40px;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Floating theme toggle */
+  .theme-toggle {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 50;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--bg-2);
+    border: 1px solid var(--border-soft);
+    color: var(--gold);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .theme-toggle:active {
+    transform: scale(0.92);
+    background: var(--gold);
+    color: var(--bg);
+  }
+
+  /* Анимация появления — только opacity, без translate, чтобы не создавать эффект «прыжка».
+     Класс навешивается только при СМЕНЕ ЭКРАНА, а не на каждый рендер. */
+  .screen-enter {
+    animation: fadeIn 0.35s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* Плавное появление элементов внутри экрана (step-card, timer-card и т.п.) */
+  .step-card, .timer-card {
+    transition: border-color 0.2s ease;
+  }
+
+  /* Плавное изменение чипов игроков при смене жив/мёртв */
+  .player-chip {
+    transition: background 0.2s ease, color 0.2s ease, opacity 0.2s ease, border-color 0.2s ease;
+  }
+
+  /* === TYPOGRAPHY === */
+  .title {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    font-size: 14px;
+    color: var(--gold-dim);
+  }
+
+  .hero {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 300;
+    font-size: 72px;
+    line-height: 0.9;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    color: var(--paper);
+  }
+
+  .hero em {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--blood-bright);
+    display: block;
+    font-size: 0.7em;
+    letter-spacing: 0.02em;
+  }
+
+  .subtitle {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--text-dim);
+    font-weight: 400;
+  }
+
+  .label {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 400;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-size: 11px;
+    color: var(--gold-dim);
+  }
+
+  /* === HOME SCREEN === */
+  .home-header {
+    padding-top: 40px;
+    margin-bottom: 32px;
+  }
+
+  .home-header .ornament {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .home-header .ornament::before,
+  .home-header .ornament::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--gold-dim);
+  }
+
+  .home-header .ornament span {
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.4em;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+
+  .hero-wrap {
+    text-align: center;
+    margin-bottom: 20px;
+    position: relative;
+  }
+
+  .hero-wrap .year {
+    position: absolute;
+    top: -12px;
+    right: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ash);
+    letter-spacing: 0.1em;
+  }
+
+  .home-header .tag {
+    text-align: center;
+    margin-top: 20px;
+  }
+
+  /* === SECTIONS === */
+  .section {
+    margin-bottom: 36px;
+  }
+
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .section-head .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--gold);
+  }
+
+  .section-head .line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, var(--gold-dim), transparent);
+  }
+
+  /* === PLAYER COUNTER === */
+  .counter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    padding: 32px 24px;
+    background: var(--bg-2);
+    border: 1px solid var(--border-soft);
+    position: relative;
+  }
+
+  .counter::before, .counter::after {
+    content: '';
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border: 1px solid var(--gold);
+  }
+  .counter::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+  .counter::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+  .counter-btn {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 1px solid var(--gold-dim);
+    background: transparent;
+    color: var(--gold);
+    font-size: 24px;
+    font-family: 'Oswald', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 300;
+  }
+
+  .counter-btn:active {
+    background: var(--gold);
+    color: var(--bg);
+    transform: scale(0.95);
+  }
+
+  .counter-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .counter-num {
+    font-family: 'Oswald', sans-serif;
+    font-size: 84px;
+    font-weight: 300;
+    line-height: 1;
+    color: var(--paper);
+    min-width: 120px;
+    text-align: center;
+  }
+
+  .counter-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    text-align: center;
+    margin-top: 8px;
+  }
+
+  /* === ROLE DISTRIBUTION === */
+  .role-dist {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border-softer);
+    border: 1px solid var(--border-softer);
+  }
+
+  .role-dist .cell {
+    background: var(--bg-2);
+    padding: 16px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .role-dist .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .role-dist .dot.mafia { background: var(--blood-bright); box-shadow: 0 0 8px rgba(198, 40, 40, 0.5); }
+  .role-dist .dot.civilian { background: var(--paper); }
+  .role-dist .dot.sheriff { background: var(--gold); box-shadow: 0 0 8px var(--border-soft); }
+  .role-dist .dot.doctor { background: #5a9b8e; }
+  .role-dist .dot.don { background: #6b0000; box-shadow: 0 0 10px rgba(139, 26, 26, 0.8); }
+  .role-dist .dot.maniac { background: #8e5a9b; }
+  .role-dist .dot.whore { background: #c77d9e; }
+
+  .role-dist .txt {
+    flex: 1;
+  }
+
+  .role-dist .role-name {
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .role-dist .role-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    color: var(--gold);
+    font-weight: 500;
+  }
+
+  /* === OPTIONAL ROLES === */
+  .role-toggle {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    background: var(--bg-2);
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+    margin-bottom: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .role-toggle.active {
+    border-color: var(--gold);
+    background: linear-gradient(to right, var(--border-softest), transparent);
+  }
+
+  .role-toggle.disabled {
+    opacity: 0.4;
+  }
+
+  .role-toggle-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 18px 16px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .role-toggle-head:active { background: var(--border-softest); }
+
+  .role-toggle.disabled .role-toggle-head {
+    cursor: not-allowed;
+  }
+
+  .role-toggle .check {
+    width: 22px;
+    height: 22px;
+    border: 1px solid var(--gold-dim);
+    flex-shrink: 0;
+    margin-top: 2px;
+    position: relative;
+    transition: all 0.2s;
+  }
+
+  .role-toggle.active .check {
+    background: var(--gold);
+    border-color: var(--gold);
+  }
+
+  .role-toggle.active .check::after {
+    content: '✓';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--bg);
+    font-size: 14px;
+    font-weight: bold;
+  }
+
+  .role-toggle .info {
+    flex: 1;
+  }
+
+  .role-toggle .name {
+    font-family: 'Oswald', sans-serif;
+    font-size: 15px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--paper);
+    margin-bottom: 4px;
+  }
+
+  .role-toggle .desc {
+    font-size: 15px;
+    line-height: 1.4;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+
+  .role-toggle .warn {
+    margin-top: 8px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--blood-bright);
+    font-style: normal;
+  }
+
+  /* === ПОДОПЦИИ РОЛИ (сегментированный селектор внутри карточки) === */
+  .role-suboptions {
+    padding: 14px 16px 16px;
+    border-top: 1px dashed var(--border-soft);
+    background: var(--border-softest);
+  }
+
+  .suboption-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    margin-bottom: 10px;
+  }
+
+  .suboption-segmented {
+    display: flex;
+    gap: 4px;
+    background: var(--bg);
+    padding: 3px;
+    border: 1px solid var(--border-softer);
+  }
+
+  .seg-btn {
+    flex: 1;
+    padding: 10px 8px;
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-family: 'Oswald', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    line-height: 1.2;
+  }
+
+  .seg-btn:active { transform: scale(0.97); }
+
+  .seg-btn.active {
+    background: var(--gold);
+    color: var(--bg);
+    font-weight: 600;
+  }
+
+  /* === PRIMARY BUTTON === */
+  .btn-primary {
+    width: 100%;
+    padding: 22px;
+    background: var(--blood);
+    color: var(--button-text);
+    border: none;
+    font-family: 'Oswald', sans-serif;
+    font-size: 14px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    font-weight: 500;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+    overflow: hidden;
+  }
+
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border: 1px solid rgba(244, 236, 216, 0.2);
+    pointer-events: none;
+  }
+
+  .btn-primary:active {
+    background: var(--blood-bright);
+    transform: scale(0.99);
+  }
+
+  .btn-primary:disabled {
+    background: var(--bg-2);
+    color: var(--ash);
+    cursor: not-allowed;
+  }
+
+  .btn-secondary {
+    width: 100%;
+    padding: 18px;
+    background: transparent;
+    color: var(--gold);
+    border: 1px solid var(--gold-dim);
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-secondary:active {
+    background: var(--gold);
+    color: var(--bg);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-dim);
+    border: none;
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 12px 0;
+  }
+
+  /* === DEAL SCREEN === */
+  .deal-screen {
+    min-height: calc(100vh - 40px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+    position: relative;
+  }
+
+  .player-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ash);
+    letter-spacing: 0.3em;
+    margin-bottom: 8px;
+  }
+
+  .deal-screen .instruction {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 20px;
+    color: var(--text-dim);
+    margin-bottom: 40px;
+    line-height: 1.4;
+    max-width: 360px;
+  }
+
+  .player-name-big {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 300;
+    font-size: 48px;
+    color: var(--paper);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    margin-bottom: 8px;
+    line-height: 1;
+  }
+
+  .passing-hint {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    color: var(--gold-dim);
+    font-size: 16px;
+    margin-bottom: 48px;
+  }
+
+  .reveal-btn {
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, var(--reveal-grad-start), var(--reveal-grad-end));
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: 'Oswald', sans-serif;
+    font-size: 14px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+    box-shadow: var(--reveal-shadow);
+    margin-bottom: 48px;
+  }
+
+  .reveal-btn::before {
+    content: '';
+    position: absolute;
+    inset: 12px;
+    border-radius: 50%;
+    border: 1px solid var(--gold-dim);
+  }
+
+  .reveal-btn::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    border: 1px solid var(--border-softer);
+    animation: pulse 2.5s infinite ease-in-out;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.08); opacity: 0.2; }
+  }
+
+  .reveal-btn:active {
+    transform: scale(0.96);
+  }
+
+  /* === ROLE REVEAL === */
+  .role-card {
+    animation: cardReveal 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+    width: 100%;
+    max-width: 380px;
+    background: linear-gradient(to bottom, var(--card-bg-start), var(--card-bg-end));
+    color: var(--card-text);
+    padding: 40px 32px;
+    position: relative;
+    margin-bottom: 32px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 120px rgba(139, 26, 26, 0.2);
+  }
+
+  @keyframes cardReveal {
+    from {
+      opacity: 0;
+      transform: rotateY(90deg) scale(0.8);
+    }
+    to {
+      opacity: 1;
+      transform: rotateY(0) scale(1);
+    }
+  }
+
+  .role-card::before, .role-card::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--card-accent);
+  }
+  .role-card::before { top: 12px; left: 12px; border-right: none; border-bottom: none; }
+  .role-card::after { bottom: 12px; right: 12px; border-left: none; border-top: none; }
+
+  .role-card .kicker {
+    font-family: 'Oswald', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    text-align: center;
+    color: var(--card-accent);
+    margin-bottom: 20px;
+  }
+
+  .role-card .role-emblem {
+    text-align: center;
+    font-size: 56px;
+    margin-bottom: 8px;
+    filter: sepia(0.3);
+  }
+
+  .role-card .role-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 38px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-align: center;
+    color: var(--card-text);
+    margin-bottom: 4px;
+    line-height: 1;
+  }
+
+  .role-card .role-side {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 16px;
+    text-align: center;
+    color: var(--card-accent);
+    margin-bottom: 20px;
+  }
+
+  .role-card .divider {
+    height: 1px;
+    background: var(--card-text);
+    opacity: 0.3;
+    margin: 20px 0;
+  }
+
+  .role-card .role-desc {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+    line-height: 1.5;
+    color: var(--card-text);
+    text-align: center;
+  }
+
+  .role-card .team-list {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--card-text);
+  }
+
+  .role-card .team-list .t-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--card-accent);
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  .role-card .team-names {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    text-align: center;
+    font-size: 17px;
+    color: var(--card-text);
+  }
+
+  /* === HOST SCREEN === */
+  .host-header {
+    padding: 20px 0;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+
+  .phase-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: var(--bg-2);
+    border: 1px solid var(--gold-dim);
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+
+  .phase-badge.night { border-color: #4a5a8e; color: #8ea5d1; }
+  .phase-badge.day { border-color: var(--gold); color: var(--gold); }
+  .phase-badge.vote { border-color: var(--blood-bright); color: var(--blood-bright); }
+
+  .phase-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 32px;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--paper);
+    line-height: 1;
+  }
+
+  .step-card {
+    background: var(--bg-2);
+    border-left: 2px solid var(--gold-dim);
+    padding: 20px 18px;
+    margin-bottom: 12px;
+    position: relative;
+  }
+
+  .step-card.mafia-action { border-left-color: var(--blood-bright); }
+  .step-card.sheriff-action { border-left-color: var(--gold); }
+  .step-card.doctor-action { border-left-color: #5a9b8e; }
+  .step-card.maniac-action { border-left-color: #8e5a9b; }
+  .step-card.whore-action { border-left-color: #c77d9e; }
+
+  .step-card .step-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--gold);
+    letter-spacing: 0.2em;
+    margin-bottom: 8px;
+  }
+
+  .step-card .step-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--paper);
+    margin-bottom: 10px;
+  }
+
+  .step-card .step-say {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 17px;
+    line-height: 1.5;
+    color: var(--text);
+    padding: 12px 14px;
+    background: var(--quote-bg);
+    border-left: 2px solid var(--gold-dim);
+    margin-bottom: 10px;
+  }
+
+  .step-card .step-say::before {
+    content: '«';
+    color: var(--gold);
+    margin-right: 2px;
+  }
+  .step-card .step-say::after {
+    content: '»';
+    color: var(--gold);
+    margin-left: 2px;
+  }
+
+  .step-card .step-hint {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+
+  /* === NAV === */
+  .nav-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 32px;
+  }
+
+  /* Когда кнопки идут прямо под карточкой шага — уменьшаем отступ */
+  .nav-row-sticky {
+    margin-top: 14px;
+  }
+
+  .nav-btn {
+    flex: 1;
+    padding: 16px;
+    background: var(--bg-2);
+    color: var(--text);
+    border: 1px solid var(--border-soft);
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .nav-btn:active {
+    background: var(--gold);
+    color: var(--bg);
+  }
+
+  .nav-btn.primary {
+    background: var(--blood);
+    color: var(--button-text);
+    border-color: var(--blood);
+  }
+
+  .nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  /* === PLAYERS LIST (HOST) === */
+  .players-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .player-chip {
+    padding: 12px 10px;
+    background: var(--bg-2);
+    border: 1px solid var(--border-softer);
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text);
+    position: relative;
+  }
+
+  .player-chip:active { transform: scale(0.98); }
+
+  .player-chip.dead {
+    color: var(--ash);
+    text-decoration: line-through;
+    background: transparent;
+    border-style: dashed;
+  }
+
+  .player-chip.dead::after {
+    content: '✕';
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    color: var(--blood-bright);
+    font-size: 10px;
+  }
+
+  /* === ACTION (выбор цели) === */
+  .action-card {
+    border-left-color: var(--gold) !important;
+  }
+
+  .target-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 14px;
+  }
+
+  .target-chip {
+    padding: 14px 10px;
+    background: var(--bg-3);
+    border: 1px solid var(--border-softer);
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    color: var(--text);
+  }
+
+  .target-chip:active { transform: scale(0.97); }
+
+  .target-chip.selected {
+    background: var(--blood);
+    color: var(--button-text);
+    border-color: var(--blood);
+    box-shadow: 0 2px 8px rgba(139, 26, 26, 0.3);
+  }
+
+  .target-skip {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    padding: 12px;
+    background: transparent;
+    border: 1px dashed var(--border-soft);
+    color: var(--text-dim);
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .target-skip:active { transform: scale(0.98); }
+
+  .target-skip.selected {
+    background: var(--bg-3);
+    color: var(--gold);
+    border-color: var(--gold);
+    border-style: solid;
+  }
+
+  /* Заблокированный Путаной шаг — пустышечный, с крупной кнопкой подтверждения */
+  .blocked-card {
+    border-left-color: #c77d9e !important;
+  }
+
+  .blocked-note {
+    margin: 14px 0;
+    padding: 14px;
+    background: var(--quote-bg);
+    border-left: 3px solid #c77d9e;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 16px;
+    color: var(--text);
+    line-height: 1.4;
+  }
+
+  .blocked-confirm {
+    margin-top: 4px;
+    padding: 16px;
+    font-size: 12px;
+  }
+
+  .blocked-confirm.selected {
+    background: #c77d9e;
+    color: var(--button-text);
+    border-color: #c77d9e;
+    border-style: solid;
+  }
+
+  .action-result {
+    margin-top: 14px;
+    padding: 14px;
+    background: var(--quote-bg);
+    border-left: 3px solid var(--gold);
+    font-family: 'Oswald', sans-serif;
+    font-size: 18px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-align: center;
+    color: var(--paper);
+  }
+
+  .action-warn {
+    margin-top: 10px;
+    padding: 10px;
+    border-left: 3px solid var(--blood-bright);
+    background: var(--quote-bg);
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    color: var(--blood-bright);
+  }
+
+  /* === RESOLVE CARD (итог ночи) === */
+  .resolve-card .resolve-line {
+    padding: 10px 0;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    line-height: 1.4;
+    color: var(--text);
+    border-bottom: 1px solid var(--border-softest);
+  }
+
+  .resolve-card .resolve-line:last-of-type { border-bottom: none; }
+
+  .resolve-peaceful {
+    color: var(--text-dim) !important;
+    font-style: italic;
+  }
+
+  .resolve-death {
+    color: var(--blood-bright) !important;
+    font-family: 'Oswald', sans-serif !important;
+    font-size: 16px !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase !important;
+  }
+
+  .resolve-saved {
+    color: #5a9b8e !important;
+  }
+
+  .resolve-note {
+    color: var(--text-dim) !important;
+    font-style: italic;
+  }
+
+  .resolve-info {
+    color: var(--gold) !important;
+  }
+
+  .resolve-hint {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--border-soft);
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    color: var(--text-dim);
+    font-size: 14px;
+  }
+
+  /* === SUMMARY & ALIVE COUNTER === */
+  .summary-text {
+    margin-top: 8px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    line-height: 1.4;
+    color: var(--text);
+  }
+
+  .alive-counter {
+    text-align: center;
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    padding: 12px;
+  }
+
+  /* === RESUME CARD (плашка "Продолжить партию") === */
+  .resume-card {
+    background: var(--bg-2);
+    border: 1px solid var(--gold);
+    padding: 18px 18px 16px;
+    margin-bottom: 24px;
+    position: relative;
+  }
+
+  .resume-card::before, .resume-card::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border: 1px solid var(--gold);
+  }
+  .resume-card::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+  .resume-card::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+  .resume-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+
+  .resume-kicker {
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .resume-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+
+  .resume-desc {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 17px;
+    color: var(--text);
+    margin-bottom: 14px;
+  }
+
+  .resume-btns {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .resume-btns .btn-primary {
+    flex: 1;
+    padding: 14px;
+    font-size: 12px;
+    letter-spacing: 0.3em;
+  }
+
+  .resume-btns .btn-ghost {
+    padding: 12px 14px;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+
+  /* === ROSTER (список игроков с ролями, некликабельный) === */
+  .roster {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background: var(--border-softest);
+    border: 1px solid var(--border-softest);
+    margin-top: 12px;
+  }
+
+  .roster-row {
+    display: grid;
+    grid-template-columns: 28px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--bg-2);
+    transition: opacity 0.2s ease;
+  }
+
+  .roster-row.dead {
+    opacity: 0.4;
+  }
+
+  .roster-row.dead .roster-name {
+    text-decoration: line-through;
+    color: var(--ash);
+  }
+
+  .roster-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+  }
+
+  .roster-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--paper);
+    line-height: 1;
+  }
+
+  .roster-role {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .roster-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .roster-dot.mafia { background: var(--blood-bright); }
+  .roster-dot.don { background: #6b0000; box-shadow: 0 0 4px rgba(139, 26, 26, 0.8); }
+  .roster-dot.sheriff { background: var(--gold); }
+  .roster-dot.doctor { background: #5a9b8e; }
+  .roster-dot.maniac { background: #8e5a9b; }
+  .roster-dot.whore { background: #c77d9e; }
+  .roster-dot.civilian { background: var(--paper); opacity: 0.5; }
+
+  /* === NAME INPUT === */
+  .name-inputs {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .name-input-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg-2);
+    padding: 4px 16px 4px 4px;
+    border: 1px solid var(--border-softer);
+  }
+
+  .name-input-row .idx {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--gold);
+    background: var(--border-softest);
+    width: 32px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 0.1em;
+  }
+
+  .name-input-row input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--paper);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    padding: 8px 0;
+    outline: none;
+    font-weight: 600;
+  }
+
+  .name-input-row input::placeholder {
+    color: var(--ash);
+    font-style: italic;
+    font-weight: 400;
+  }
+
+  /* === MODAL === */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .modal {
+    background: var(--bg-2);
+    border: 1px solid var(--gold-dim);
+    padding: 32px 24px;
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+    position: relative;
+  }
+
+  .modal::before, .modal::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--gold);
+  }
+  .modal::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+  .modal::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+  .modal h3 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 22px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--paper);
+    margin-bottom: 16px;
+  }
+
+  .modal p {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+    line-height: 1.5;
+    color: var(--text-dim);
+    margin-bottom: 24px;
+  }
+
+  .modal-btns {
+    display: flex;
+    gap: 12px;
+  }
+  .modal-btns > * { flex: 1; }
+
+  /* === HELPER CLASSES === */
+  .hidden { display: none !important; }
+  .t-center { text-align: center; }
+  .mt-8 { margin-top: 8px; }
+  .mt-16 { margin-top: 16px; }
+  .mt-24 { margin-top: 24px; }
+  .mb-16 { margin-bottom: 16px; }
+  .mb-24 { margin-bottom: 24px; }
+
+  /* === GAME OVER === */
+  .game-over {
+    text-align: center;
+    padding: 60px 20px;
+  }
+
+  .game-over .verdict {
+    font-family: 'Oswald', sans-serif;
+    font-size: 56px;
+    font-weight: 300;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+
+  .game-over .verdict.mafia-wins { color: var(--blood-bright); }
+  .game-over .verdict.city-wins { color: var(--gold); }
+
+  .game-over .verdict-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 20px;
+    color: var(--text-dim);
+    margin-bottom: 40px;
+  }
+
+  .final-list {
+    text-align: left;
+    margin-bottom: 32px;
+  }
+
+  .final-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-softest);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+  }
+
+  .final-item .name-col {
+    color: var(--paper);
+    font-weight: 600;
+  }
+
+  .final-item .role-col {
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .final-item.dead .name-col {
+    text-decoration: line-through;
+    color: var(--ash);
+  }
+
+  /* === RULES PAGE === */
+  .rules-content h3 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 14px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-top: 24px;
+    margin-bottom: 12px;
+  }
+
+  .rules-content p {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+
+  .rules-content ul {
+    margin-left: 20px;
+    margin-bottom: 16px;
+  }
+
+  .rules-content li {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+
+  /* === TIMER === */
+  .timer-display {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 64px;
+    font-weight: 500;
+    color: var(--gold);
+    text-align: center;
+    letter-spacing: 0.05em;
+    padding: 20px 0;
+  }
+
+  .timer-display.warning { color: var(--blood-bright); animation: blink 1s infinite; }
+  @keyframes blink { 50% { opacity: 0.3; } }
+
+  .timer-controls {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  @media (max-width: 380px) {
+    .hero { font-size: 56px; }
+    .counter-num { font-size: 68px; min-width: 100px; }
+    .reveal-btn { width: 200px; height: 200px; }
+  }
