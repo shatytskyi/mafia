@@ -41,15 +41,22 @@ export function renderHost({ render, clearSavedGame }) {
       </div>
     `;
   }
-  // Compute night resolution once before rendering so the render path stays
-  // side-effect free. Subsequent renders (after Next → applyNightResolution)
-  // reuse the already-populated `state.night.resolved`.
-  if (step.action && step.action.type === 'resolveNight' && !state.night.resolved) {
+  // Recompute night resolution on every dawn render until it's applied — this
+  // ensures the summary reflects the latest picks if the host navigated back
+  // and changed anything. After `applied`, the stored result is frozen.
+  if (step.action && step.action.type === 'resolveNight' && !state.night.applied) {
     state.night.resolved = resolveNight(state);
   }
   if (step.action) actionHtml = renderAction(step.action);
 
-  const isVeryFirstStep = state.stepIndex === 0 && state.phase === 'night' && state.day === 1;
+  // Back is disabled at any phase-start whose prior phase committed irreversible
+  // state: night step 0 (vote already killed a player, night selections reset;
+  // or day 1 where there is no prior phase) and day step 0 (night resolution
+  // already applied players' deaths). Vote step 0 stays reversible — returning
+  // to nominations commits nothing.
+  const isBackDisabled =
+    (state.phase === 'night' && state.stepIndex === 0) ||
+    (state.phase === 'day' && state.stepIndex === 0);
 
   app.innerHTML = `
     <div class="screen">
@@ -69,7 +76,7 @@ export function renderHost({ render, clearSavedGame }) {
       </div>
 
       <div class="nav-row nav-row-sticky">
-        <button class="nav-btn" id="prevStep" ${isVeryFirstStep ? 'disabled' : ''}>${t('common.back')}</button>
+        <button class="nav-btn" id="prevStep" ${isBackDisabled ? 'disabled' : ''}>${t('common.back')}</button>
         <button class="nav-btn primary" id="nextStep" ${isNextDisabled(step) ? 'disabled' : ''}>
           ${isLast ? nextPhaseLabel() : t('common.next')}
         </button>
@@ -111,11 +118,12 @@ export function renderHost({ render, clearSavedGame }) {
   if (step.timerSeconds) bindTimerHandlers();
 
   document.getElementById('prevStep').onclick = () => {
+    if (isBackDisabled) return;
     if (state.stepIndex > 0) {
       state.stepIndex--;
-    } else {
-      if (state.phase === 'vote') { state.phase = 'day'; state.stepIndex = getDaySteps(state).length - 1; }
-      else if (state.phase === 'day') { state.phase = 'night'; state.stepIndex = getNightSteps(state).length - 1; }
+    } else if (state.phase === 'vote') {
+      state.phase = 'day';
+      state.stepIndex = getDaySteps(state).length - 1;
     }
     stopTimer();
     render();

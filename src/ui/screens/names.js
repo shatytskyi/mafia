@@ -16,11 +16,16 @@ export function renderNames({ render }) {
   for (let i = 0; i < state.playerCount; i++) {
     const num = String(i+1).padStart(2, '0');
     const placeholder = t('names.placeholder', { n: i + 1 });
+    const isLast = i === state.playerCount - 1;
     inputsHtml += `
       <div class="name-input-row">
         <div class="idx">${num}</div>
         <input type="text" data-idx="${i}" value="${escapeHtml(state.players[i].name)}"
-               placeholder="${escapeHtml(placeholder)}" maxlength="20" />
+               placeholder="${escapeHtml(placeholder)}" maxlength="20"
+               name="player-name-${i + 1}" id="player-name-${i + 1}"
+               autocomplete="off" autocorrect="off" autocapitalize="words"
+               spellcheck="false" inputmode="text"
+               enterkeyhint="${isLast ? 'done' : 'next'}" />
       </div>
     `;
   }
