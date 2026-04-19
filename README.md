@@ -26,8 +26,8 @@ Everything lives in the browser. No server, no database, no sign-in. Close the t
 ## Features
 
 - **Role dealing via pass-the-phone** — each player sees only their own role, with a handoff screen so the last player can pass the device back to the moderator without revealing the table.
-- **Six roles out of the box** — Mafia, Don, Sheriff, Doctor, Maniac, Whore, and Civilians, with automatic distribution tuned to player count (4–20).
-- **Guided night resolution** — the app walks the host through each role's action in order, resolves Doctor saves, handles the Whore's blocking of night abilities, and produces a human-readable summary.
+- **Seven roles plus civilians** — Mafia, Don, Sheriff, Doctor, Maniac, Whore, Veteran, with automatic distribution tuned to player count (4–20). The in-app rules page covers every role, every win condition, and every edge case.
+- **Guided night resolution** — the app walks the host through each role's action in order, resolves Doctor saves, handles the Whore's blocking of night abilities, tracks the Veteran's one-shot save and strike, and produces a human-readable summary.
 - **Day & vote phases** — built-in timer and vote tracker.
 - **Three languages** — Russian, Ukrainian, English; auto-detected, switchable from the header.
 - **Light & dark themes** — a cream-paper noir palette and its nocturnal counterpart.

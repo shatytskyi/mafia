@@ -1,7 +1,7 @@
 # Mafia Game-Master — Game Rules & Edge Cases
 
-Exhaustive reference of the behaviours encoded in `index.html` as of commit `b9c5942`.
-Written while preparing an architecture refactor — do not let the code and this doc drift apart.
+Exhaustive reference of the behaviours encoded in `src/` as of the 2026-04-19 refactor.
+Do not let the code and this doc drift apart.
 
 ## 1. Player count & role distribution
 
@@ -13,12 +13,14 @@ Written while preparing an architecture refactor — do not let the code and thi
 - **Doctor** is 1 iff user opts in.
 - **Maniac** is 1 iff user opts in **and** `n ≥ 8`.
 - **Whore (Путана)** is 1 iff user opts in **and** `n ≥ 8`.
-- Civilians fill the remainder, guaranteed `≥ MIN_CIVILIANS = 2` — the balancer strips optional roles in this priority until satisfied: **whore → maniac → doctor → don → mafia down to 1**.
+- **Veteran** is 1 iff user opts in **and** `n ≥ 6`.
+- Civilians fill the remainder, guaranteed `≥ MIN_CIVILIANS = 2` — the balancer strips optional roles in this priority until satisfied: **whore → maniac → veteran → doctor → don → mafia down to 1**. (Doctor outranks Veteran because the Doctor acts every night while the Veteran only twice.)
 
 ### Toggle validation
 - `canEnableRole('don') ⇔ n ≥ 6`
 - `canEnableRole('maniac') ⇔ n ≥ 8`
 - `canEnableRole('whore') ⇔ n ≥ 8`
+- `canEnableRole('veteran') ⇔ n ≥ 6`
 - `canEnableRole('doctor') ⇔ true` (always)
 - `validateRoles()` runs on every player-count change and clears flags for roles whose gate failed.
 - `isRoleEffective(roleId)` — the role is toggled on but the civilian-floor balancer ate it. UI shows a "⚠ Не поместится" warning.
@@ -78,12 +80,17 @@ Order within a night:
    nights; closes Don alone on first night.
 6. Doctor alive: pickTarget or blockedAction.
 7. Sheriff alive: pickTarget or blockedAction. Sheriff result uses the
-   `sheriffSeesManiac` option (see §4).
-8. Maniac alive: pickTarget or blockedAction. **Maniac acts on the first
+   `sheriffSeesManiac` option (see §4). The Veteran is always seen as
+   `notMafia`.
+8. Veteran alive and at least one latch unused: `veteranAction` step
+   (`save` / `kill` / `skip`), followed by a pickTarget or blockedAction.
+   Positioned between Sheriff and Maniac so a `kill` on the Maniac
+   preempts the Maniac step.
+9. Maniac alive: pickTarget or blockedAction. **Maniac acts on the first
    night too** — confirmed by every external source (see
    `docs/external-rules/README.md`) and implemented in `resolveNight`
    (no `isFirstNight` gate).
-9. "Рассвет" — merged resolve + city-wake. Renders the summary card, runs
+10. "Рассвет" — merged resolve + city-wake. Renders the summary card, runs
    `resolveNight` at render-time (if not cached), applies kills on `#nextStep`
    via `applyNightResolution`.
 
@@ -149,6 +156,7 @@ Whore's target drives blocks. Edge cases baked in:
   - `'never'` — always `notMafia`.
   - `'afterMafia'` (default) — `mafia` only when the entire mafia team is dead.
   - `'always'` — always `mafia`.
+- Veteran always reads as `'notMafia'` (light-side role).
 - If whore blocked sheriff, no result.
 
 ### Don check
@@ -164,8 +172,23 @@ Whore's target drives blocks. Edge cases baked in:
 - If mafia AND maniac target the same alive player and doctor heals ⇒ one save, the player lives.
 - If they target different players, both can die in the same night.
 
+### Veteran action
+- `state.night.veteranAction ∈ {null, 'save', 'kill', 'skip'}` with an optional
+  `veteranTarget` index. `skip` means the host deliberately passed — neither
+  latch burns.
+- `canVeteranAct` blocks `save` if `state.veteranHealUsed` is already set,
+  and `kill` if `state.veteranKillUsed` is already set or the target is the
+  Veteran himself.
+- If whore visits the Veteran, `veteranBlocked` is set — the action does not
+  resolve, but the chosen latch (`save` or `kill`) still burns on
+  `applyNightResolution`. `skip` never burns.
+- A successful `kill` on an alive Maniac sets `maniacBlocked` for the night.
+  This pre-empt latches even if the Doctor later heals the Maniac.
+- Doctor heals stack with Veteran save: either one keeps the target alive.
+  If both apply to the same index, `savedByDoctor` is the one reported.
+
 ### Applying
-`applyNightResolution` writes kills, pushes `doctorTarget` and `whoreTarget` to their histories (indexes or `null` if skipped), and sets `doctorSelfUsed` once the doctor heals himself.
+`applyNightResolution` writes kills, pushes `doctorTarget` and `whoreTarget` to their histories (indexes or `null` if skipped), sets `doctorSelfUsed` once the doctor heals himself, and sets `veteranHealUsed` / `veteranKillUsed` when the Veteran's action latch fires (including when whore blocks the attempt).
 
 ## 5. Per-role nightly constraints
 
@@ -184,6 +207,13 @@ Whore's target drives blocks. Edge cases baked in:
 ### Maniac
 - No historical constraints.
 
+### Veteran (`canVeteranAct`)
+- Two game-long latches: `state.veteranHealUsed`, `state.veteranKillUsed`.
+- `save` requires `!veteranHealUsed`; `kill` requires `!veteranKillUsed`.
+- `kill` cannot target the Veteran himself; `save` on self is allowed.
+- Targets have no night-to-night history (each latch fires at most once).
+- `skip` is always valid and does not burn a latch.
+
 ### Don / Sheriff
 - No constraints, can repeat targets; checks happen nightly.
 
@@ -191,7 +221,7 @@ Whore's target drives blocks. Edge cases baked in:
 
 Teams:
 - **Mafia** = `role ∈ {mafia, don}`.
-- **Civilians** = `role ∉ {mafia, don, maniac}` (includes sheriff, doctor, whore).
+- **Civilians** = `role ∉ {mafia, don, maniac}` (includes sheriff, doctor, whore, veteran).
 - **Maniac** = `role === 'maniac'`.
 
 Rules, evaluated in order:
@@ -216,7 +246,7 @@ Storage keys:
 - `mafia.game.v1` — host-phase snapshot, TTL `SAVE_TTL_MS = 6h`, debounced 300ms.
 - `mafia.theme` — `'light' | 'dark'`.
 
-Snapshot fields: `ts, playerCount, optionalRoles, gameOptions, players, day, phase, stepIndex, night, doctorHistory, doctorSelfUsed, whoreHistory, dayVoteKilled, winner`.
+Snapshot fields: `ts, playerCount, optionalRoles, gameOptions, players, day, phase, stepIndex, night, doctorHistory, doctorSelfUsed, whoreHistory, veteranHealUsed, veteranKillUsed, nightLog, dayVoteKilled, winner`.
 
 Restore:
 - `gameOptions` merged onto defaults (older saves may lack them).
@@ -270,3 +300,4 @@ These are the ones I noted while reading — not bugs in the strict sense, but t
 | `don` | Дон Мафии | Тёмная | ♛ | Mafia leader; also looks for the sheriff. |
 | `maniac` | Маньяк | Одиночка | ☠ | Solo killer; wins when only one civilian remains. |
 | `whore` | Путана | Светлая | ❀ | Blocks a target's night action; caught at the mafia risks dying. |
+| `veteran` | Ветеран | Светлая | ⛨ | One save and one kill across the whole game; pre-empts Maniac if killed before his turn. |
