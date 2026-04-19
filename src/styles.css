@@ -1638,7 +1638,6 @@
   }
   .role-icon.mafia,
   .role-icon.don { color: var(--blood-bright); }
-  .role-icon.don { text-shadow: 0 0 6px rgba(139, 26, 26, 0.5); }
   .role-icon.sheriff,
   .role-icon.doctor,
   .role-icon.whore,
