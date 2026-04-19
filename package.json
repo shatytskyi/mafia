@@ -1,0 +1,10 @@
+{
+  "name": "mafia-game-master",
+  "version": "1.0.0",
+  "description": "Mafia party-game helper for the host",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "node --test 'tests/**/*.test.js'"
+  }
+}
