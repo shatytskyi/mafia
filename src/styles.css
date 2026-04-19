@@ -141,6 +141,22 @@
     color: var(--bg);
   }
 
+  /* Deployed version indicator */
+  .version-footer {
+    position: fixed;
+    bottom: 6px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.4px;
+    color: var(--text-dim);
+    opacity: 0.45;
+    pointer-events: none;
+    z-index: 50;
+  }
+
   /* Анимация появления — только opacity, без translate, чтобы не создавать эффект «прыжка».
      Класс навешивается только при СМЕНЕ ЭКРАНА, а не на каждый рендер. */
   .screen-enter {

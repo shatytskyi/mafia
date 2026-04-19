@@ -4,6 +4,7 @@ import {
 } from './state/persistence.js';
 import { createRender, registerScreen } from './ui/render.js';
 import { applyTheme, bindThemeToggle, onThemeChange } from './ui/theme.js';
+import { initVersionFooter } from './ui/version.js';
 import { renderHome } from './ui/screens/home.js';
 import { renderNames } from './ui/screens/names.js';
 import { renderDeal } from './ui/screens/deal.js';
@@ -45,4 +46,5 @@ loadTheme();
 applyTheme();
 onThemeChange(render);
 bindThemeToggle({ saveTheme });
+initVersionFooter();
 render();
