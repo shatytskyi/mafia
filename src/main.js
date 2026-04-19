@@ -4,75 +4,12 @@ import { calcRoleDistribution, canEnableRole, isRoleEffective, dealRoles } from 
 import { resolveNight, applyNightResolution, canDoctorHeal, canWhoreGo, getWhoreBlocks } from './core/night.js';
 import { checkWinCondition } from './core/win.js';
 import { getNightSteps, getDaySteps, getVoteSteps, getCurrentSteps } from './core/steps.js';
+import { state, resetNightSelections } from './state/state.js';
 
 // ============================================================
 // STATE
 // ============================================================
-const state = {
-  screen: 'home',
-  playerCount: 8,
-  optionalRoles: { don: true, doctor: true, maniac: false, whore: false },
-  // Варианты правил, которые можно переключить (не сами роли, а их поведение).
-  // Эти опции привязаны к конкретным ролям и показываются в их карточке
-  // на главном экране, когда роль включена.
-  gameOptions: {
-    // Маньяк: когда Шериф видит его как «мафию»:
-    //   'never'       — никогда; Шериф всегда видит Маньяка как «не мафию»
-    //   'afterMafia'  — только после гибели всей мафии (классическая городская мафия)
-    //   'always'      — Шериф всегда видит Маньяка как мафию (упрощённая версия)
-    sheriffSeesManiac: 'afterMafia',
-    // Путана: умирает ли, придя к мафии:
-    //   true  — умирает (жёсткая классика)
-    //   false — остаётся жива, но блокирует голос этого мафиози (мягкая версия)
-    whoreDiesAtMafia: false
-  },
-  players: [],         // [{name, role, alive}]
-  dealIndex: 0,        // current player getting role
-  dealPhase: 'await',  // 'await' | 'shown'
-  // host state
-  day: 1,
-  phase: 'night',      // 'night' | 'day' | 'vote'
-  stepIndex: 0,
-  timer: { seconds: 60, running: false, interval: null },
-  theme: 'light',      // 'light' | 'dark'
-
-  // ==== Выборы на ТЕКУЩЕЙ ночи ====
-  // null — ещё не выбрано, -1 — «пропустить/никого», число — индекс игрока в state.players
-  night: {
-    mafiaTarget: null,
-    donCheck: null,
-    whoreTarget: null,
-    doctorTarget: null,
-    sheriffCheck: null,
-    maniacTarget: null,
-    // Результат резолва (заполняется на шаге «Итог ночи»)
-    resolved: null
-  },
-
-  // ==== История для проверки ограничений ====
-  doctorHistory: [],   // массив индексов целей доктора по ночам (для «не два раза подряд»)
-  doctorSelfUsed: false, // уже лечил ли себя
-  whoreHistory: [],    // история Путаны (для «не два раза подряд»)
-
-  // ==== Результаты дня ====
-  // Казнённый этим днём (для голосования). null — никто, число — индекс.
-  dayVoteKilled: null
-};
-
-// Создаёт чистый объект ночи (вызывается при переходе на новую ночь).
-function resetNightSelections() {
-  state.night = {
-    mafiaTarget: null,
-    donCheck: null,
-    whoreTarget: null,
-    doctorTarget: null,
-    sheriffCheck: null,
-    maniacTarget: null,
-    resolved: null,
-    applied: false
-  };
-  state.dayVoteKilled = null;
-}
+// State and resetNightSelections are imported from './state/state.js'
 
 // Применяет тему (CSS-атрибут на <html>).
 function applyTheme() {
