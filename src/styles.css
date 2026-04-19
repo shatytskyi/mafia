@@ -1047,14 +1047,13 @@
     align-items: center;
     text-align: center;
     user-select: none;
-    /* Textured lattice + central vignette — draws eye to the middle
-       and reads as a patterned card back, not an emblem. */
+    /* Textured diagonal lattice only — no central burgundy vignette,
+       so the card back reads as patterned, not pink-glowing. */
     background-image:
-      radial-gradient(ellipse 80% 65% at center, rgba(155, 45, 45, 0.22), transparent 75%),
       repeating-linear-gradient(45deg,
-        rgba(155, 45, 45, 0.10) 0 1px, transparent 1px 12px),
+        rgba(0, 0, 0, 0.14) 0 1px, transparent 1px 12px),
       repeating-linear-gradient(-45deg,
-        rgba(155, 45, 45, 0.10) 0 1px, transparent 1px 12px),
+        rgba(0, 0, 0, 0.14) 0 1px, transparent 1px 12px),
       linear-gradient(to bottom, var(--card-bg-start), var(--card-bg-end));
   }
 
@@ -1085,8 +1084,8 @@
   }
 
   @keyframes backFramePulse {
-    0%, 100% { opacity: 0.3;  box-shadow: 0 0 0 transparent; }
-    50%      { opacity: 0.55; box-shadow: 0 0 18px rgba(155, 45, 45, 0.35); }
+    0%, 100% { opacity: 0.3;  }
+    50%      { opacity: 0.6;  }
   }
 
   /* --- Back face content --- */
@@ -1157,7 +1156,9 @@
     transition: opacity 0.4s ease,
                 max-height 0.5s ease,
                 margin 0.5s ease;
-    max-height: 120px;
+    /* Generous cap — needs to fit the two-line handoff title
+       ("Передай телефон<br>ведущему") plus Oswald's font metrics. */
+    max-height: 200px;
   }
   .deal-screen.revealed .player-num,
   .deal-screen.revealed .player-name-big,
