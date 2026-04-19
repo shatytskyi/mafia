@@ -11,12 +11,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Vanilla JavaScript ES modules, no bundler.** Tests via `node --test`.
 - **Run locally:** `python3 -m http.server 8000` (native modules need HTTP, not `file://`).
 - **Run tests:** `npm test`.
-- **Deploy:** GitHub Pages from `main` branch (root folder). Push to `main` → Pages picks it up within ~1 min.
+- **Deploy:** GitHub Pages via `.github/workflows/deploy.yml`. Pushes to `main` only publish when `package.json`'s `version` field differs from the previous commit — docs/CI/chore commits skip deploy. Manual `workflow_dispatch` always deploys. Pages source must be set to "GitHub Actions" in repo settings.
 - **Dependencies:** none. Fonts are fetched from Google Fonts at runtime.
 
 ## Context
 
-Small side project — a helper for playing Mafia with friends. No CI, no test gate before deploy — every push to `main` is live. Keep paths relative (they are today: `./src/main.js`) so subpath hosting keeps working.
+Small side project — a helper for playing Mafia with friends. No test gate before deploy; the Pages workflow gates on a version bump instead (see Stack & Commands). Keep paths relative (they are today: `./src/main.js`) so subpath hosting keeps working.
 
 ## Architecture
 
