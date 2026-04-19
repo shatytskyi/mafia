@@ -66,34 +66,32 @@ export function renderHome({ render, loadGame, clearSavedGame, restoreGame }) {
             <div class="txt"><div class="role-name">Мафия</div></div>
             <div class="role-count">×${dist.mafia}</div>
           </div>
-          ${dist.don ? `
-          <div class="cell">
+          ${state.playerCount >= 6 ? `
+          <div class="cell ${dist.don ? '' : 'muted'}">
             <div class="dot don"></div>
             <div class="txt"><div class="role-name">Дон</div></div>
-            <div class="role-count">×${dist.don}</div>
+            <div class="role-count">${dist.don ? `×${dist.don}` : '—'}</div>
           </div>` : ''}
           <div class="cell">
             <div class="dot sheriff"></div>
             <div class="txt"><div class="role-name">Шериф</div></div>
             <div class="role-count">×${dist.sheriff}</div>
           </div>
-          ${dist.doctor ? `
-          <div class="cell">
+          <div class="cell ${dist.doctor ? '' : 'muted'}">
             <div class="dot doctor"></div>
             <div class="txt"><div class="role-name">Доктор</div></div>
-            <div class="role-count">×${dist.doctor}</div>
-          </div>` : ''}
-          ${dist.maniac ? `
-          <div class="cell">
+            <div class="role-count">${dist.doctor ? `×${dist.doctor}` : '—'}</div>
+          </div>
+          ${state.playerCount >= 8 ? `
+          <div class="cell ${dist.maniac ? '' : 'muted'}">
             <div class="dot maniac"></div>
             <div class="txt"><div class="role-name">Маньяк</div></div>
-            <div class="role-count">×${dist.maniac}</div>
-          </div>` : ''}
-          ${dist.whore ? `
-          <div class="cell">
+            <div class="role-count">${dist.maniac ? `×${dist.maniac}` : '—'}</div>
+          </div>
+          <div class="cell ${dist.whore ? '' : 'muted'}">
             <div class="dot whore"></div>
             <div class="txt"><div class="role-name">Путана</div></div>
-            <div class="role-count">×${dist.whore}</div>
+            <div class="role-count">${dist.whore ? `×${dist.whore}` : '—'}</div>
           </div>` : ''}
           <div class="cell">
             <div class="dot civilian"></div>

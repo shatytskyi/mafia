@@ -386,6 +386,14 @@
     gap: 12px;
   }
 
+  .role-dist .cell.muted {
+    opacity: 0.28;
+  }
+
+  .role-dist .cell.muted .role-count {
+    color: var(--text-dim);
+  }
+
   .role-dist .dot {
     width: 10px;
     height: 10px;
@@ -427,7 +435,6 @@
     padding: 0;
     background: var(--bg-2);
     border: 1px solid transparent;
-    transition: all 0.2s ease;
     margin-bottom: 8px;
     position: relative;
     overflow: hidden;
