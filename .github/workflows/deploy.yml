@@ -1,0 +1,89 @@
+name: Deploy to GitHub Pages
+
+# Publish the static site to GitHub Pages, but only when package.json's
+# "version" field changes between the previous commit and the new HEAD.
+# This keeps docs-only / chore commits from triggering a fresh deploy.
+# Manual runs via "Run workflow" always deploy regardless of the version.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  check-version:
+    name: Detect version bump
+    runs-on: ubuntu-latest
+    outputs:
+      should_deploy: ${{ steps.diff.outputs.should_deploy }}
+      version: ${{ steps.diff.outputs.version }}
+    steps:
+      - name: Checkout (with parent commit)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Compare package.json version
+        id: diff
+        shell: bash
+        run: |
+          set -euo pipefail
+          current=$(node -p "require('./package.json').version")
+          echo "version=$current" >> "$GITHUB_OUTPUT"
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "Manual dispatch — deploy will run."
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          previous=""
+          if git rev-parse HEAD~1 >/dev/null 2>&1; then
+            previous=$(git show HEAD~1:package.json 2>/dev/null \
+              | node -e "let d=''; process.stdin.on('data',c=>d+=c).on('end',()=>{try{console.log(JSON.parse(d).version)}catch(_){}})" \
+              || true)
+          fi
+
+          echo "Previous version: ${previous:-<none>}"
+          echo "Current  version: $current"
+
+          if [ -z "$previous" ] || [ "$previous" != "$current" ]; then
+            echo "Version changed — deploy will run."
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Version unchanged — skipping deploy."
+            echo "should_deploy=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy:
+    name: Deploy to Pages
+    needs: check-version
+    if: needs.check-version.outputs.should_deploy == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload site artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
