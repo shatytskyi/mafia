@@ -90,6 +90,8 @@ export function buildSnapshot(state) {
     doctorHistory: state.doctorHistory,
     doctorSelfUsed: state.doctorSelfUsed,
     whoreHistory: state.whoreHistory,
+    veteranHealUsed: !!state.veteranHealUsed,
+    veteranKillUsed: !!state.veteranKillUsed,
     nightLog: state.nightLog,
     dayVoteKilled: state.dayVoteKilled,
     winner: state.winner || null
@@ -112,6 +114,8 @@ export function applySnapshotToState(state, data) {
   state.doctorHistory = data.doctorHistory || [];
   state.doctorSelfUsed = !!data.doctorSelfUsed;
   state.whoreHistory = data.whoreHistory || [];
+  state.veteranHealUsed = !!data.veteranHealUsed;
+  state.veteranKillUsed = !!data.veteranKillUsed;
   state.nightLog = data.nightLog || [];
   state.dayVoteKilled = data.dayVoteKilled != null ? data.dayVoteKilled : null;
   state.winner = data.winner || null;

@@ -8,7 +8,7 @@ function stateWith(overrides = {}) {
     phase: 'night',
     stepIndex: 0,
     playerCount: 8,
-    optionalRoles: { don: true, doctor: true, maniac: false, whore: false },
+    optionalRoles: { don: true, doctor: true, maniac: false, whore: false, veteran: false },
     gameOptions: { sheriffSeesManiac: 'afterMafia', whoreDiesAtMafia: false },
     players: [
       { name: 'A', role: 'mafia',    alive: true },
@@ -21,11 +21,14 @@ function stateWith(overrides = {}) {
     night: {
       mafiaTarget: null, donCheck: null, whoreTarget: null,
       doctorTarget: null, sheriffCheck: null, maniacTarget: null,
+      veteranTarget: null, veteranAction: null,
       resolved: null, applied: false,
     },
     doctorHistory: [],
     doctorSelfUsed: false,
     whoreHistory: [],
+    veteranHealUsed: false,
+    veteranKillUsed: false,
     nightLog: [],
     dayVoteKilled: null,
     winner: null,
@@ -136,4 +139,86 @@ test('getCurrentSteps dispatches by phase', () => {
   });
   assert.ok(getCurrentSteps(dayState).length >= 1);
   assert.equal(getCurrentSteps(stateWith({ phase: 'vote' }))[0].action.type, 'pickKilled');
+});
+
+// ---------------------------------------------------------------------------
+// Veteran step (§6–7 of the 2026-04-19 spec)
+// ---------------------------------------------------------------------------
+
+function stateWithVeteran(overrides = {}) {
+  return stateWith({
+    playerCount: 10,
+    optionalRoles: { don: true, doctor: true, maniac: true, whore: false, veteran: true },
+    players: [
+      { name: 'A', role: 'mafia',    alive: true },
+      { name: 'B', role: 'don',      alive: true },
+      { name: 'C', role: 'sheriff',  alive: true },
+      { name: 'D', role: 'doctor',   alive: true },
+      { name: 'E', role: 'maniac',   alive: true },
+      { name: 'F', role: 'veteran',  alive: true },
+      { name: 'G', role: 'civilian', alive: true },
+      { name: 'H', role: 'civilian', alive: true },
+      { name: 'I', role: 'civilian', alive: true },
+      { name: 'J', role: 'civilian', alive: true },
+    ],
+    ...overrides,
+  });
+}
+
+test('veteran step sits between sheriff and maniac', () => {
+  const s = stateWithVeteran();
+  const steps = getNightSteps(s);
+  const sheriffIdx = steps.findIndex(st => st.action?.field === 'sheriffCheck');
+  const veteranIdx = steps.findIndex(st => st.action?.type === 'pickVeteran');
+  const maniacIdx = steps.findIndex(st => st.action?.field === 'maniacTarget');
+  assert.ok(sheriffIdx >= 0, 'sheriff step present');
+  assert.ok(veteranIdx >= 0, 'veteran step present');
+  assert.ok(maniacIdx >= 0, 'maniac step present');
+  assert.ok(veteranIdx > sheriffIdx, 'veteran after sheriff');
+  assert.ok(veteranIdx < maniacIdx, 'veteran before maniac');
+});
+
+test('dead veteran removes the step', () => {
+  const s = stateWithVeteran();
+  s.players.find(p => p.role === 'veteran').alive = false;
+  const steps = getNightSteps(s);
+  assert.equal(steps.filter(st => st.action?.type === 'pickVeteran').length, 0);
+});
+
+test('veteran toggle off removes the step', () => {
+  const s = stateWithVeteran({
+    optionalRoles: { don: true, doctor: true, maniac: true, whore: false, veteran: false },
+  });
+  const steps = getNightSteps(s);
+  assert.equal(steps.filter(st => st.action?.type === 'pickVeteran').length, 0);
+});
+
+test('whore blocking veteran renders a blockedAction, no timer', () => {
+  const s = stateWithVeteran({
+    optionalRoles: { don: true, doctor: true, maniac: false, whore: true, veteran: true },
+    players: [
+      { name: 'A', role: 'mafia',    alive: true },
+      { name: 'B', role: 'don',      alive: true },
+      { name: 'C', role: 'sheriff',  alive: true },
+      { name: 'D', role: 'doctor',   alive: true },
+      { name: 'E', role: 'whore',    alive: true },
+      { name: 'F', role: 'veteran',  alive: true },
+      { name: 'G', role: 'civilian', alive: true },
+      { name: 'H', role: 'civilian', alive: true },
+      { name: 'I', role: 'civilian', alive: true },
+      { name: 'J', role: 'civilian', alive: true },
+    ],
+    night: {
+      mafiaTarget: null, donCheck: null,
+      whoreTarget: 5,          // whore visits veteran
+      doctorTarget: null, sheriffCheck: null, maniacTarget: null,
+      veteranTarget: null, veteranAction: null,
+      resolved: null, applied: false,
+    },
+  });
+  const steps = getNightSteps(s);
+  const vet = steps.find(st => st.action?.field === 'veteranTarget');
+  assert.ok(vet, 'veteran step present under blockedAction too');
+  assert.equal(vet.action.type, 'blockedAction');
+  assert.ok(!vet.timerSeconds);
 });

@@ -41,3 +41,19 @@ test('mafia + maniac + no civilians → mafia', () => {
 test('fresh game with everyone alive → continue', () => {
   assert.equal(checkWinCondition(s('mafia:alive,don:alive,sheriff:alive,doctor:alive,civilian:alive,civilian:alive')), null);
 });
+
+test('veteran counts as civilian for mafia-parity check', () => {
+  // mafia (2) vs non-mafia-non-maniac (veteran + civilian = 2) → mafia wins
+  assert.equal(checkWinCondition(s('mafia:alive,don:alive,veteran:alive,civilian:alive')), 'mafia');
+});
+
+test('veteran-only survivors → city wins', () => {
+  assert.equal(checkWinCondition(s('veteran:alive,sheriff:alive,mafia:dead,don:dead')), 'city');
+});
+
+test('veteran + maniac + 1 civilian → maniac wins', () => {
+  // mafia=0, maniac=1, civilians=2 (veteran + civilian) — 2 civilians → not maniac yet, continue
+  assert.equal(checkWinCondition(s('maniac:alive,veteran:alive,civilian:alive')), null);
+  // Drop the plain civilian: mafia=0, maniac=1, civilians=1 (just veteran) → maniac wins
+  assert.equal(checkWinCondition(s('maniac:alive,veteran:alive,civilian:dead')), 'maniac');
+});

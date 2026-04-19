@@ -67,6 +67,7 @@ export function renderHome({ render, loadGame, clearSavedGame, restoreGame }) {
           ${state.playerCount >= 6 ? distCell('don', t('roles.don.nameShort'), dist.don) : ''}
           ${distCell('sheriff', t('roles.sheriff.name'), dist.sheriff)}
           ${distCell('doctor', t('roles.doctor.name'), dist.doctor)}
+          ${state.playerCount >= 6 ? distCell('veteran', t('roles.veteran.name'), dist.veteran) : ''}
           ${state.playerCount >= 8 ? distCell('maniac', t('roles.maniac.name'), dist.maniac) : ''}
           ${state.playerCount >= 8 ? distCell('whore', t('roles.whore.name'), dist.whore) : ''}
           ${distCell('civilian', t('roles.civilian.nameLabel'), dist.civilian)}
@@ -79,10 +80,11 @@ export function renderHome({ render, loadGame, clearSavedGame, restoreGame }) {
           <span class="label">${t('home.sectionExtra')}</span>
           <span class="line"></span>
         </div>
-        ${renderRoleToggle('don',    t('roles.don.name'),    t('home.roleDesc.don'))}
-        ${renderRoleToggle('doctor', t('roles.doctor.name'), t('home.roleDesc.doctor'))}
-        ${renderRoleToggle('maniac', t('roles.maniac.name'), t('home.roleDesc.maniac'))}
-        ${renderRoleToggle('whore',  t('roles.whore.name'),  t('home.roleDesc.whore'))}
+        ${renderRoleToggle('don',     t('roles.don.name'),     t('home.roleDesc.don'))}
+        ${renderRoleToggle('doctor',  t('roles.doctor.name'),  t('home.roleDesc.doctor'))}
+        ${renderRoleToggle('veteran', t('roles.veteran.name'), t('home.roleDesc.veteran'))}
+        ${renderRoleToggle('maniac',  t('roles.maniac.name'),  t('home.roleDesc.maniac'))}
+        ${renderRoleToggle('whore',   t('roles.whore.name'),   t('home.roleDesc.whore'))}
       </div>
 
       <button class="btn-primary" id="startBtn">${t('home.startBtn')}</button>
@@ -119,7 +121,7 @@ export function renderHome({ render, loadGame, clearSavedGame, restoreGame }) {
     };
   }
 
-  ['don','doctor','maniac','whore'].forEach(id => {
+  ['don','doctor','veteran','maniac','whore'].forEach(id => {
     const el = document.getElementById(`toggle-${id}`);
     if (!el) return;
     const head = el.querySelector('.role-toggle-head');
@@ -196,7 +198,7 @@ function renderRoleToggle(id, name, desc) {
     }
   }
 
-  const minPlayers = id === 'don' ? 6 : 8;
+  const minPlayers = (id === 'don' || id === 'veteran') ? 6 : 8;
 
   return `
     <div class="role-toggle ${active ? 'active' : ''} ${!allowed ? 'disabled' : ''}" id="toggle-${id}">

@@ -10,6 +10,8 @@ export function emptyNight() {
     doctorTarget: null,
     sheriffCheck: null,
     maniacTarget: null,
+    veteranTarget: null,
+    veteranAction: null,
     resolved: null,
     applied: false
   };
@@ -19,7 +21,7 @@ export function emptyNight() {
 export const state = {
   screen: 'home',
   playerCount: 8,
-  optionalRoles: { don: true, doctor: true, maniac: false, whore: false },
+  optionalRoles: { don: true, doctor: true, maniac: false, whore: false, veteran: false },
   gameOptions: {
     sheriffSeesManiac: 'afterMafia',
     whoreDiesAtMafia: false
@@ -36,6 +38,8 @@ export const state = {
   doctorHistory: [],
   doctorSelfUsed: false,
   whoreHistory: [],
+  veteranHealUsed: false,
+  veteranKillUsed: false,
   nightLog: [],
   dayVoteKilled: null,
   winner: null

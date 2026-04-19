@@ -15,14 +15,33 @@ export function isNextDisabled(step) {
     }
     return false;
   }
+  if (a.type === 'pickVeteran') {
+    // Veteran must resolve to one of: skip, save-with-target, kill-with-target.
+    const mode = state.night.veteranAction;
+    const target = state.night.veteranTarget;
+    if (mode == null && target === -1) return false;    // skip confirmed
+    if (mode == null) return true;                      // mode unchosen
+    if (target == null || target < 0) return true;      // target unchosen
+    if (a.validate) {
+      const v = a.validate(target);
+      if (!v.ok) return true;
+    }
+    return false;
+  }
   if (a.type === 'blockedAction') {
     return state.night[a.field] !== -1;
+  }
+  if (a.type === 'pickKilled') {
+    // Force host to explicitly pick a victim or confirm "no one killed" before
+    // advancing to night — prevents accidental skips and ambiguous vote state.
+    return state.dayVoteKilled == null;
   }
   return false;
 }
 
 export function renderAction(action) {
   if (action.type === 'pickTarget') return renderPickTarget(action);
+  if (action.type === 'pickVeteran') return renderPickVeteran(action);
   if (action.type === 'pickKilled') return renderPickKilled(action);
   if (action.type === 'resolveNight') return renderResolveNight();
   if (action.type === 'blockedAction') return renderBlockedAction(action);
@@ -88,6 +107,75 @@ function renderPickTarget(action) {
         </button>
       ` : ''}
       ${resultHtml}
+      ${warnHtml}
+    </div>
+  `;
+}
+
+function renderPickVeteran(action) {
+  const mode = state.night.veteranAction;          // 'save' | 'kill' | null
+  const selected = state.night.veteranTarget;      // index | -1 | null
+  const saveUsed = !!action.saveUsed;
+  const killUsed = !!action.killUsed;
+  const showGrid = mode === 'save' || mode === 'kill';
+  const veteranIdx = state.players.findIndex(p => p.role === 'veteran');
+
+  const gridLabel = mode === 'kill'
+    ? t('steps.veteran.labelKill')
+    : t('steps.veteran.labelSave');
+
+  let warnHtml = '';
+  if (showGrid && action.validate && selected != null && selected >= 0) {
+    const v = action.validate(selected);
+    if (!v.ok) warnHtml = `<div class="action-warn">⚠ ${escapeHtml(v.reason)}</div>`;
+  }
+
+  const modeBtn = (key, label, used) => {
+    const active = mode === key;
+    const disabled = used ? 'disabled' : '';
+    return `
+      <button type="button"
+              class="veteran-mode-btn ${active ? 'active' : ''}"
+              data-veteran-mode="${key}"
+              ${disabled}
+              aria-pressed="${active ? 'true' : 'false'}">
+        <div class="veteran-mode-label">${label}</div>
+        ${used ? `<div class="veteran-mode-used">${key === 'save' ? t('steps.veteran.usedSave') : t('steps.veteran.usedKill')}</div>` : ''}
+      </button>
+    `;
+  };
+
+  return `
+    <div class="step-card action-card veteran-action-card">
+      <div class="step-title">${action.label}</div>
+      <div class="veteran-mode-row" role="group" aria-label="${escapeHtml(action.label)}">
+        ${modeBtn('save', t('steps.veteran.modeSave'), saveUsed)}
+        ${modeBtn('kill', t('steps.veteran.modeKill'), killUsed)}
+      </div>
+      <button type="button"
+              class="target-skip veteran-mode-skip ${selected === -1 && mode == null ? 'selected' : ''}"
+              data-veteran-skip
+              aria-pressed="${selected === -1 && mode == null ? 'true' : 'false'}">
+        ${t('steps.veteran.modeSkip')}
+      </button>
+      ${showGrid ? `
+        <div class="veteran-grid-label">${gridLabel}</div>
+        <div class="target-grid" role="group" aria-label="${escapeHtml(gridLabel)}">
+          ${state.players.map((p, i) => {
+            if (!p.alive) return '';
+            // Save may target self; kill may not.
+            if (mode === 'kill' && i === veteranIdx) return '';
+            const isSelected = selected === i;
+            return `
+              <button type="button" class="target-chip ${isSelected ? 'selected' : ''}"
+                      data-veteran-target="${i}"
+                      aria-pressed="${isSelected ? 'true' : 'false'}">
+                ${escapeHtml(p.name)}
+              </button>
+            `;
+          }).join('')}
+        </div>
+      ` : ''}
       ${warnHtml}
     </div>
   `;
@@ -162,11 +250,24 @@ function renderResolveNight() {
     html += `<div class="resolve-line resolve-info">${t('actions.resolveDon', { name, verdict })}</div>`;
   }
 
+  if (r.veteranSaved != null) {
+    const name = escapeHtml(state.players[r.veteranSaved].name);
+    html += `<div class="resolve-line resolve-saved">${t('actions.resolveVeteranSave', { name })}</div>`;
+  }
+  if (r.veteranKill != null) {
+    const name = escapeHtml(state.players[r.veteranKill].name);
+    html += `<div class="resolve-line resolve-death">${t('actions.resolveVeteranKill', { name })}</div>`;
+    if (state.players[r.veteranKill]?.role === 'maniac') {
+      html += `<div class="resolve-line resolve-note">${t('actions.resolveVeteranPreempt')}</div>`;
+    }
+  }
+
   const blocked = [];
   if (r.blocked.mafia) blocked.push(t('roles.mafia.name'));
   if (r.blocked.maniac) blocked.push(t('roles.maniac.name'));
   if (r.blocked.doctor) blocked.push(t('roles.doctor.name'));
   if (r.blocked.sheriff) blocked.push(t('roles.sheriff.name'));
+  if (r.blocked.veteran) blocked.push(t('roles.veteran.name'));
   if (blocked.length > 0) {
     html += `<div class="resolve-line resolve-note">${t('actions.resolveBlocked', { list: blocked.join(', ') })}</div>`;
   }
@@ -224,4 +325,34 @@ export function bindActionHandlers(step, render) {
       render();
     };
   });
+
+  document.querySelectorAll('[data-veteran-mode]').forEach(el => {
+    el.onclick = () => {
+      if (el.disabled) return;
+      const mode = el.dataset.veteranMode;
+      if (state.night.veteranAction === mode) {
+        // Tapping the active mode again clears the selection.
+        state.night.veteranAction = null;
+        state.night.veteranTarget = null;
+      } else {
+        state.night.veteranAction = mode;
+        state.night.veteranTarget = null;
+      }
+      render();
+    };
+  });
+  document.querySelectorAll('[data-veteran-target]').forEach(el => {
+    el.onclick = () => {
+      state.night.veteranTarget = parseInt(el.dataset.veteranTarget);
+      render();
+    };
+  });
+  const veteranSkip = document.querySelector('[data-veteran-skip]');
+  if (veteranSkip) {
+    veteranSkip.onclick = () => {
+      state.night.veteranAction = null;
+      state.night.veteranTarget = -1;
+      render();
+    };
+  }
 }

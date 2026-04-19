@@ -4,13 +4,14 @@ import { t } from '../i18n/index.js';
 // via the helpers below — always resolve at call time so locale switches
 // propagate without reloading the module.
 export const ROLES = {
-  mafia:    { id: 'mafia',    emblem: '⚜',      color: 'mafia' },
-  civilian: { id: 'civilian', emblem: '♟',      color: 'civilian' },
-  sheriff:  { id: 'sheriff',  emblem: '✦',      color: 'sheriff' },
-  doctor:   { id: 'doctor',   emblem: '✚',      color: 'doctor' },
-  don:      { id: 'don',      emblem: '♛',      color: 'don' },
+  mafia:    { id: 'mafia',    emblem: '⚜',       color: 'mafia' },
+  civilian: { id: 'civilian', emblem: '♟',       color: 'civilian' },
+  sheriff:  { id: 'sheriff',  emblem: '✦',       color: 'sheriff' },
+  doctor:   { id: 'doctor',   emblem: '✚',       color: 'doctor' },
+  don:      { id: 'don',      emblem: '♛',       color: 'don' },
   maniac:   { id: 'maniac',   emblem: '☠\uFE0E', color: 'maniac' },
-  whore:    { id: 'whore',    emblem: '❀',      color: 'whore' },
+  whore:    { id: 'whore',    emblem: '❀',       color: 'whore' },
+  veteran:  { id: 'veteran',  emblem: '⛨\uFE0E', color: 'veteran' },
 };
 
 const SIDE_KEY = {
@@ -20,6 +21,7 @@ const SIDE_KEY = {
   sheriff: 'sides.light',
   doctor: 'sides.light',
   whore: 'sides.light',
+  veteran: 'sides.light',
   maniac: 'sides.solo',
 };
 

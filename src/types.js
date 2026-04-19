@@ -1,5 +1,5 @@
 /**
- * @typedef {'mafia'|'civilian'|'sheriff'|'doctor'|'don'|'maniac'|'whore'} RoleId
+ * @typedef {'mafia'|'civilian'|'sheriff'|'doctor'|'don'|'maniac'|'whore'|'veteran'} RoleId
  */
 
 /**
@@ -15,6 +15,7 @@
  * @property {boolean} [doctor]
  * @property {boolean} [maniac]
  * @property {boolean} [whore]
+ * @property {boolean} [veteran]
  */
 
 /**
@@ -35,6 +36,8 @@
  * @property {number|null} doctorTarget
  * @property {number|null} sheriffCheck
  * @property {number|null} maniacTarget
+ * @property {number|null} veteranTarget
+ * @property {'save'|'kill'|null} veteranAction
  * @property {NightResult|null} [resolved]
  * @property {boolean} [applied]
  */
@@ -43,12 +46,14 @@
  * @typedef {object} NightResult
  * @property {number[]} killed
  * @property {number|null} savedByDoctor
- * @property {{mafia?: boolean, maniac?: boolean, doctor?: boolean, sheriff?: boolean}} blocked
+ * @property {{mafia?: boolean, maniac?: boolean, doctor?: boolean, sheriff?: boolean, veteran?: boolean}} blocked
  * @property {'mafia'|'notMafia'|null} sheriffResult
  * @property {'sheriff'|'notSheriff'|null} donResult
  * @property {boolean} whoreDied
  * @property {boolean} [whoreAtMafia]
  * @property {boolean} [whoreSavedByDoctor]
+ * @property {number|null} [veteranSaved]
+ * @property {number|null} [veteranKill]
  */
 
 /**
@@ -77,6 +82,8 @@
  * @property {(number|null)[]} doctorHistory
  * @property {boolean} doctorSelfUsed
  * @property {(number|null)[]} whoreHistory
+ * @property {boolean} veteranHealUsed
+ * @property {boolean} veteranKillUsed
  * @property {number|null} dayVoteKilled
  * @property {'city'|'mafia'|'maniac'|'draw'|null} winner
  */

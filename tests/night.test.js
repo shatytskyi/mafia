@@ -1,20 +1,24 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { resolveNight, applyNightResolution, canDoctorHeal, canWhoreGo, getWhoreBlocks } from '../src/core/night.js';
+import { resolveNight, applyNightResolution, canDoctorHeal, canWhoreGo, canVeteranAct, getWhoreBlocks } from '../src/core/night.js';
 
-function stateWith({ players, day = 2, night = {}, gameOptions = {} }) {
+function stateWith({ players, day = 2, night = {}, gameOptions = {}, root = {} }) {
   return {
     players,
     day,
     night: {
       mafiaTarget: null, donCheck: null, whoreTarget: null,
       doctorTarget: null, sheriffCheck: null, maniacTarget: null,
+      veteranTarget: null, veteranAction: null,
       ...night
     },
     gameOptions: { sheriffSeesManiac: 'afterMafia', whoreDiesAtMafia: false, ...gameOptions },
     doctorHistory: [],
     whoreHistory: [],
-    doctorSelfUsed: false
+    doctorSelfUsed: false,
+    veteranHealUsed: false,
+    veteranKillUsed: false,
+    ...root
   };
 }
 
@@ -192,4 +196,195 @@ test('applyNightResolution is idempotent', () => {
   applyNightResolution(s);
   assert.equal(s.doctorHistory.length, 1);
   assert.equal(s.whoreHistory.length, 1);
+});
+
+// ---------------------------------------------------------------------------
+// Veteran role (§8 of the 2026-04-19 spec)
+// ---------------------------------------------------------------------------
+
+// Index layout:
+// 0 mafia · 1 don · 2 sheriff · 3 doctor · 4 maniac · 5 whore
+// 6 veteran · 7 civilian · 8 civilian
+const playersV = () => [
+  { name: 'A', role: 'mafia',    alive: true },
+  { name: 'B', role: 'don',      alive: true },
+  { name: 'C', role: 'sheriff',  alive: true },
+  { name: 'D', role: 'doctor',   alive: true },
+  { name: 'E', role: 'maniac',   alive: true },
+  { name: 'F', role: 'whore',    alive: true },
+  { name: 'G', role: 'veteran',  alive: true },
+  { name: 'H', role: 'civilian', alive: true },
+  { name: 'I', role: 'civilian', alive: true },
+];
+
+test('veteran save cancels mafia kill on the same target', () => {
+  const s = stateWith({
+    players: playersV(),
+    night: { mafiaTarget: 7, veteranAction: 'save', veteranTarget: 7 },
+  });
+  const r = resolveNight(s);
+  assert.deepEqual(r.killed, []);
+  assert.equal(r.veteranSaved, 7);
+});
+
+test('veteran save cancels maniac kill on the same target', () => {
+  const s = stateWith({
+    players: playersV(),
+    night: { maniacTarget: 7, veteranAction: 'save', veteranTarget: 7 },
+  });
+  const r = resolveNight(s);
+  assert.deepEqual(r.killed, []);
+  assert.equal(r.veteranSaved, 7);
+});
+
+test('veteran can save himself from the mafia', () => {
+  const s = stateWith({
+    players: playersV(),
+    night: { mafiaTarget: 6, veteranAction: 'save', veteranTarget: 6 },
+  });
+  const r = resolveNight(s);
+  assert.deepEqual(r.killed, []);
+  assert.equal(r.veteranSaved, 6);
+});
+
+test('veteran kill lands on a plain civilian', () => {
+  const s = stateWith({
+    players: playersV(),
+    night: { veteranAction: 'kill', veteranTarget: 7 },
+  });
+  const r = resolveNight(s);
+  assert.deepEqual(r.killed, [7]);
+  assert.equal(r.veteranKill, 7);
+});
+
+test('doctor heals veteran kill target', () => {
+  const s = stateWith({
+    players: playersV(),
+    night: { veteranAction: 'kill', veteranTarget: 7, doctorTarget: 7 },
+  });
+  const r = resolveNight(s);
+  assert.deepEqual(r.killed, []);
+  assert.equal(r.savedByDoctor, 7);
+});
+
+test('veteran kill pre-empts maniac: maniac dies, maniac action nullified', () => {
+  const s = stateWith({
+    players: playersV(),
+    night: { veteranAction: 'kill', veteranTarget: 4, maniacTarget: 7 },
+  });
+  const r = resolveNight(s);
+  assert.deepEqual(r.killed, [4]);
+  assert.equal(r.blocked.maniac, true);
+  assert.ok(!r.killed.includes(7), 'maniac target must not die');
+});
+
+test('veteran pre-empts maniac + doctor heals maniac: maniac lives but still no action', () => {
+  const s = stateWith({
+    players: playersV(),
+    night: { veteranAction: 'kill', veteranTarget: 4, maniacTarget: 7, doctorTarget: 4 },
+  });
+  const r = resolveNight(s);
+  assert.deepEqual(r.killed, []);
+  assert.equal(r.blocked.maniac, true);
+  assert.equal(r.savedByDoctor, 4);
+});
+
+test('whore visiting veteran blocks save and leaves target exposed', () => {
+  const s = stateWith({
+    players: playersV(),
+    night: {
+      whoreTarget: 6, veteranAction: 'save', veteranTarget: 7, mafiaTarget: 7,
+    },
+  });
+  const r = resolveNight(s);
+  assert.deepEqual(r.killed, [7]);
+  assert.equal(r.blocked.veteran, true);
+  assert.equal(r.veteranSaved, null);
+});
+
+test('whore visiting veteran blocks the kill too', () => {
+  const s = stateWith({
+    players: playersV(),
+    night: { whoreTarget: 6, veteranAction: 'kill', veteranTarget: 7 },
+  });
+  const r = resolveNight(s);
+  assert.deepEqual(r.killed, []);
+  assert.equal(r.blocked.veteran, true);
+  assert.equal(r.veteranKill, null);
+});
+
+test('canVeteranAct: self-kill rejected', () => {
+  const p = playersV();
+  const res = canVeteranAct(p, 'kill', 6, false, false);
+  assert.equal(res.ok, false);
+});
+
+test('canVeteranAct: save self is allowed', () => {
+  const p = playersV();
+  const res = canVeteranAct(p, 'save', 6, false, false);
+  assert.equal(res.ok, true);
+});
+
+test('canVeteranAct: save already used blocks further save', () => {
+  const p = playersV();
+  const res = canVeteranAct(p, 'save', 7, true, false);
+  assert.equal(res.ok, false);
+});
+
+test('canVeteranAct: kill already used blocks further kill', () => {
+  const p = playersV();
+  const res = canVeteranAct(p, 'kill', 7, false, true);
+  assert.equal(res.ok, false);
+});
+
+test('applyNightResolution: successful save latches veteranHealUsed', () => {
+  const s = stateWith({
+    players: playersV(),
+    night: { veteranAction: 'save', veteranTarget: 7 },
+  });
+  s.night.resolved = resolveNight(s);
+  applyNightResolution(s);
+  assert.equal(s.veteranHealUsed, true);
+  assert.equal(s.veteranKillUsed, false);
+});
+
+test('applyNightResolution: successful kill latches veteranKillUsed', () => {
+  const s = stateWith({
+    players: playersV(),
+    night: { veteranAction: 'kill', veteranTarget: 7 },
+  });
+  s.night.resolved = resolveNight(s);
+  applyNightResolution(s);
+  assert.equal(s.veteranHealUsed, false);
+  assert.equal(s.veteranKillUsed, true);
+});
+
+test('applyNightResolution: whore-blocked attempt still burns the latch', () => {
+  const s = stateWith({
+    players: playersV(),
+    night: { whoreTarget: 6, veteranAction: 'kill', veteranTarget: 7 },
+  });
+  s.night.resolved = resolveNight(s);
+  applyNightResolution(s);
+  assert.equal(s.veteranKillUsed, true);
+});
+
+test('applyNightResolution: skip does not burn any latch', () => {
+  const s = stateWith({
+    players: playersV(),
+    night: { veteranAction: null, veteranTarget: -1 },
+  });
+  s.night.resolved = resolveNight(s);
+  applyNightResolution(s);
+  assert.equal(s.veteranHealUsed, false);
+  assert.equal(s.veteranKillUsed, false);
+});
+
+test('getWhoreBlocks flags veteran when whore visits him', () => {
+  const s = stateWith({
+    players: playersV(),
+    night: { whoreTarget: 6 },
+  });
+  const blocks = getWhoreBlocks(s.players, s.night, s.gameOptions);
+  assert.equal(blocks.veteran, true);
 });

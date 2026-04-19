@@ -29,6 +29,8 @@ export function renderDeal({ render }) {
       state.doctorHistory = [];
       state.doctorSelfUsed = false;
       state.whoreHistory = [];
+      state.veteranHealUsed = false;
+      state.veteranKillUsed = false;
       resetNightSelections();
       render();
     };

@@ -1,5 +1,5 @@
 import { isMafiaRole, getRole } from './roles.js';
-import { getWhoreBlocks, canDoctorHeal, canWhoreGo } from './night.js';
+import { getWhoreBlocks, canDoctorHeal, canWhoreGo, canVeteranAct } from './night.js';
 import { t } from '../i18n/index.js';
 
 /**
@@ -235,6 +235,48 @@ export function getNightSteps(state) {
             }
             return looksLikeMafia ? t('steps.sheriff.resultMafia') : t('steps.sheriff.resultNotMafia');
           }
+        }
+      });
+    }
+  }
+
+  // Veteran — sits between Sheriff and Maniac so his kill can pre-empt the
+  // Maniac's action this night. Whore-block is rendered as a blockedAction;
+  // the attempt burns the underlying latch regardless.
+  if (state.optionalRoles.veteran && hasAlive('veteran')) {
+    if (blocks.veteran) {
+      steps.push({
+        title: t('steps.veteran.title'),
+        cls: 'veteran-action',
+        say: t('steps.veteran.sayBlocked'),
+        hint: t('steps.veteran.hintBlocked'),
+        action: {
+          type: 'blockedAction',
+          field: 'veteranTarget',
+          label: t('steps.veteran.blockedLabel'),
+          confirmLabel: t('steps.veteran.blockedConfirm'),
+        }
+      });
+    } else {
+      steps.push({
+        title: t('steps.veteran.title'),
+        cls: 'veteran-action',
+        say: t('steps.veteran.say'),
+        hint: t('steps.veteran.hint'),
+        action: {
+          type: 'pickVeteran',
+          field: 'veteranTarget',
+          role: 'veteran',
+          label: t('steps.veteran.modeLabel'),
+          saveUsed: !!state.veteranHealUsed,
+          killUsed: !!state.veteranKillUsed,
+          validate: (idx) => canVeteranAct(
+            state.players,
+            state.night.veteranAction,
+            idx,
+            !!state.veteranHealUsed,
+            !!state.veteranKillUsed
+          ),
         }
       });
     }

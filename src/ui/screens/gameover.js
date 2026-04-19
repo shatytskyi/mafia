@@ -51,6 +51,8 @@ export function renderGameOver({ render, clearSavedGame }) {
     state.doctorHistory = [];
     state.doctorSelfUsed = false;
     state.whoreHistory = [];
+    state.veteranHealUsed = false;
+    state.veteranKillUsed = false;
     state.nightLog = [];
     resetNightSelections();
     render();
@@ -101,11 +103,24 @@ function renderHistorySection() {
         lines.push(t('gameover.history.whoreDied'));
       }
     }
+    if (entry.veteran) {
+      if (entry.veteran.blocked) {
+        lines.push(t('gameover.history.veteranBlocked'));
+      } else if (entry.veteran.action === 'save' && entry.veteran.target != null) {
+        lines.push(t('gameover.history.veteranSave', { name: nameOf(entry.veteran.target) }));
+      } else if (entry.veteran.action === 'kill' && entry.veteran.target != null) {
+        lines.push(t('gameover.history.veteranKill', { name: nameOf(entry.veteran.target) }));
+        if (entry.veteran.preemptedManiac) {
+          lines.push(t('gameover.history.veteranPreempt'));
+        }
+      }
+    }
     const blocked = [];
     if (entry.blocked?.mafia) blocked.push(t('roles.mafia.name'));
     if (entry.blocked?.maniac) blocked.push(t('roles.maniac.name'));
     if (entry.blocked?.doctor) blocked.push(t('roles.doctor.name'));
     if (entry.blocked?.sheriff) blocked.push(t('roles.sheriff.name'));
+    if (entry.blocked?.veteran) blocked.push(t('roles.veteran.name'));
     if (blocked.length > 0) {
       lines.push(t('gameover.history.blocked', { list: blocked.join(', ') }));
     }

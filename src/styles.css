@@ -1088,6 +1088,7 @@
   .step-card.doctor-action { border-left-color: #5a9b8e; }
   .step-card.maniac-action { border-left-color: #8e5a9b; }
   .step-card.whore-action { border-left-color: #c77d9e; }
+  .step-card.veteran-action { border-left-color: #5a7aa0; }
 
   .step-card .step-num {
     font-family: 'JetBrains Mono', monospace;
@@ -1308,6 +1309,72 @@
 
   .target-revote:hover { color: var(--gold); border-color: var(--gold); }
   .target-revote:active { transform: scale(0.98); }
+
+  /* Veteran action card: mode-picker + target grid. */
+  .veteran-mode-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .veteran-mode-btn {
+    appearance: none;
+    background: transparent;
+    border: 1px solid var(--border-softer);
+    color: var(--text);
+    padding: 12px 10px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: center;
+    font-family: 'Oswald', sans-serif;
+  }
+
+  .veteran-mode-btn:hover:not(:disabled) {
+    border-color: #5a7aa0;
+    color: #5a7aa0;
+  }
+
+  .veteran-mode-btn.active {
+    border-color: #5a7aa0;
+    background: rgba(90, 122, 160, 0.12);
+    color: #5a7aa0;
+  }
+
+  .veteran-mode-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .veteran-mode-label {
+    font-size: 14px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .veteran-mode-used {
+    font-family: var(--font-italic);
+    font-style: italic;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 4px;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  .veteran-mode-skip {
+    width: 100%;
+    margin-bottom: 12px;
+  }
+
+  .veteran-grid-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #5a7aa0;
+    margin-bottom: 8px;
+  }
 
   /* Заблокированный Путаной шаг — пустышечный, с крупной кнопкой подтверждения */
   .blocked-card {
@@ -1573,6 +1640,7 @@
   .role-icon.whore,
   .role-icon.civilian { color: #7ba87b; }
   .role-icon.maniac { color: #8e5a9b; }
+  .role-icon.veteran { color: #5a7aa0; }
 
   .roster-row .role-icon {
     font-size: 14px;

@@ -5,7 +5,7 @@ export const MIN_CIVILIANS = 2;
 /**
  * @typedef {object} DistributionInput
  * @property {number} playerCount
- * @property {{don?: boolean, doctor?: boolean, maniac?: boolean, whore?: boolean}} optionalRoles
+ * @property {{don?: boolean, doctor?: boolean, maniac?: boolean, whore?: boolean, veteran?: boolean}} optionalRoles
  */
 
 /**
@@ -16,6 +16,7 @@ export const MIN_CIVILIANS = 2;
  * @property {number} doctor
  * @property {number} maniac
  * @property {number} whore
+ * @property {number} veteran
  * @property {number} civilian
  * @property {number} totalMafiaSide
  */
@@ -35,13 +36,18 @@ export function calcRoleDistribution({ playerCount: n, optionalRoles }) {
   let doctorCount = optionalRoles.doctor ? 1 : 0;
   let maniacCount = (optionalRoles.maniac && n >= 8) ? 1 : 0;
   let whoreCount = (optionalRoles.whore && n >= 8) ? 1 : 0;
+  let veteranCount = (optionalRoles.veteran && n >= 6) ? 1 : 0;
 
   const checkCivilians = () =>
-    n - (mafiaCount + donCount + sheriffCount + doctorCount + maniacCount + whoreCount);
+    n - (mafiaCount + donCount + sheriffCount + doctorCount + maniacCount + whoreCount + veteranCount);
 
+  // Stripping priority (first to drop → last to drop):
+  // whore → maniac → veteran → doctor → don → mafia (down to 1).
+  // Doctor survives Veteran because Doctor acts every night; Veteran only twice.
   while (checkCivilians() < MIN_CIVILIANS) {
     if (whoreCount > 0) { whoreCount = 0; continue; }
     if (maniacCount > 0) { maniacCount = 0; continue; }
+    if (veteranCount > 0) { veteranCount = 0; continue; }
     if (doctorCount > 0) { doctorCount = 0; continue; }
     if (donCount > 0) { donCount = 0; mafiaCount = totalMafiaSide; continue; }
     if (mafiaCount > 1) { mafiaCount--; continue; }
@@ -57,6 +63,7 @@ export function calcRoleDistribution({ playerCount: n, optionalRoles }) {
     doctor: doctorCount,
     maniac: maniacCount,
     whore: whoreCount,
+    veteran: veteranCount,
     civilian: civilianCount,
     totalMafiaSide: mafiaCount + donCount
   };
@@ -71,6 +78,7 @@ export function canEnableRole(roleId, playerCount) {
   if (roleId === 'don') return playerCount >= 6;
   if (roleId === 'maniac') return playerCount >= 8;
   if (roleId === 'whore') return playerCount >= 8;
+  if (roleId === 'veteran') return playerCount >= 6;
   return true;
 }
 
@@ -84,7 +92,7 @@ export function canEnableRole(roleId, playerCount) {
  * @returns {{don?: boolean, doctor?: boolean, maniac?: boolean, whore?: boolean}}
  */
 export function validateOptionalRoles(optionalRoles, playerCount) {
-  for (const id of ['don', 'maniac', 'whore']) {
+  for (const id of ['don', 'maniac', 'whore', 'veteran']) {
     if (!canEnableRole(id, playerCount)) optionalRoles[id] = false;
   }
   return optionalRoles;
@@ -117,6 +125,7 @@ export function dealRoles(players, input, rng) {
   for (let i = 0; i < dist.doctor; i++) pool.push('doctor');
   for (let i = 0; i < dist.maniac; i++) pool.push('maniac');
   for (let i = 0; i < dist.whore; i++) pool.push('whore');
+  for (let i = 0; i < dist.veteran; i++) pool.push('veteran');
   for (let i = 0; i < dist.civilian; i++) pool.push('civilian');
 
   const shuffled = shuffle(pool, rng);
