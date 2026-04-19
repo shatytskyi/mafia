@@ -40,12 +40,23 @@ function loadGame() { return persistence.loadSnapshot(); }
 function clearSavedGame() { persistence.clearSnapshot(); }
 function restoreGame(data) { applySnapshotToState(state, data); }
 
+function saveRoster(roster) { persistence.saveRoster(roster); }
+function loadRoster() { return persistence.loadRoster(); }
+function clearRoster() { persistence.clearRoster(); }
+
+function applySavedRosterOnBootstrap() {
+  const roster = persistence.loadRoster();
+  if (!roster) return;
+  state.playerCount = roster.playerCount;
+  state.players = roster.names.map(name => ({ name, role: null, alive: true }));
+}
+
 const render = createRender({
   beforeRender: saveGame
 });
 
 registerScreen('home',     () => renderHome({ render, loadGame, clearSavedGame, restoreGame }));
-registerScreen('names',    () => renderNames({ render }));
+registerScreen('names',    () => renderNames({ render, loadRoster, saveRoster, clearRoster }));
 registerScreen('deal',     () => renderDeal({ render }));
 registerScreen('host',     () => renderHost({ render, clearSavedGame }));
 registerScreen('gameover', () => renderGameOver({ render, clearSavedGame }));
@@ -53,6 +64,7 @@ registerScreen('rules',    () => renderRules({ render }));
 
 loadTheme();
 loadLocale();
+applySavedRosterOnBootstrap();
 applyTheme();
 onThemeChange(render);
 onLocaleToggle(render);

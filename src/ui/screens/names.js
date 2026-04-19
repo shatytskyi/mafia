@@ -3,12 +3,14 @@ import { dealRoles } from '../../core/distribution.js';
 import { escapeHtml } from '../html.js';
 import { t } from '../../i18n/index.js';
 
-export function renderNames({ render }) {
+export function renderNames({ render, loadRoster, saveRoster, clearRoster }) {
   const app = document.getElementById('app');
+  const savedRoster = loadRoster ? loadRoster() : null;
 
   if (state.players.length !== state.playerCount) {
-    state.players = Array.from({length: state.playerCount}, () => ({
-      name: '', role: null, alive: true
+    const savedNames = savedRoster ? savedRoster.names : [];
+    state.players = Array.from({length: state.playerCount}, (_, i) => ({
+      name: savedNames[i] || '', role: null, alive: true
     }));
   }
 
@@ -30,6 +32,10 @@ export function renderNames({ render }) {
     `;
   }
 
+  const clearLink = savedRoster
+    ? `<div class="roster-clear-row"><button type="button" class="roster-clear-link" id="clearRosterBtn">${t('names.clearRoster')}</button></div>`
+    : '';
+
   app.innerHTML = `
     <div class="screen">
       <div class="home-header">
@@ -39,6 +45,8 @@ export function renderNames({ render }) {
         </div>
         <p class="subtitle t-center mt-16">${t('names.subtitle')}</p>
       </div>
+
+      ${clearLink}
 
       <div class="name-inputs">
         ${inputsHtml}
@@ -74,6 +82,12 @@ export function renderNames({ render }) {
     state.players.forEach((p, i) => {
       if (!p.name.trim()) p.name = t('names.defaultName', { n: i + 1 });
     });
+    if (saveRoster) {
+      saveRoster({
+        playerCount: state.playerCount,
+        names: state.players.map(p => p.name)
+      });
+    }
     state.players = dealRoles(state.players, {
       playerCount: state.playerCount,
       optionalRoles: state.optionalRoles
@@ -88,4 +102,15 @@ export function renderNames({ render }) {
     state.screen = 'home';
     render();
   };
+
+  const clearBtn = document.getElementById('clearRosterBtn');
+  if (clearBtn) {
+    clearBtn.onclick = () => {
+      if (clearRoster) clearRoster();
+      state.players = Array.from({length: state.playerCount}, () => ({
+        name: '', role: null, alive: true
+      }));
+      render();
+    };
+  }
 }

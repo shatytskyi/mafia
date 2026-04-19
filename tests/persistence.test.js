@@ -89,3 +89,50 @@ test('formatSavedAgo human-readable', () => {
   assert.equal(formatSavedAgo(now - 30 * 60 * 1000), '30 мин назад');
   assert.equal(formatSavedAgo(now - (2 * 60 + 15) * 60 * 1000), '2 ч 15 мин назад');
 });
+
+test('roster round-trip preserves playerCount and names', () => {
+  const p = createPersistence(memStorage());
+  assert.equal(p.loadRoster(), null);
+  p.saveRoster({ playerCount: 4, names: ['Alice', 'Bob', 'Carol', 'Dan'] });
+  assert.deepEqual(p.loadRoster(), { playerCount: 4, names: ['Alice', 'Bob', 'Carol', 'Dan'] });
+});
+
+test('roster ignores payload with mismatched length', () => {
+  const p = createPersistence(memStorage());
+  p.saveRoster({ playerCount: 4, names: ['Alice', 'Bob'] });
+  assert.equal(p.loadRoster(), null);
+});
+
+test('roster rejects out-of-range playerCount', () => {
+  const p = createPersistence(memStorage());
+  p.saveRoster({ playerCount: 3, names: ['A', 'B', 'C'] });
+  assert.equal(p.loadRoster(), null);
+  p.saveRoster({ playerCount: 21, names: new Array(21).fill('X') });
+  assert.equal(p.loadRoster(), null);
+});
+
+test('roster clearRoster removes stored value', () => {
+  const p = createPersistence(memStorage());
+  p.saveRoster({ playerCount: 4, names: ['A', 'B', 'C', 'D'] });
+  assert.ok(p.loadRoster());
+  p.clearRoster();
+  assert.equal(p.loadRoster(), null);
+});
+
+test('roster has no TTL', () => {
+  const st = memStorage();
+  const p = createPersistence(st);
+  p.saveRoster({ playerCount: 4, names: ['A', 'B', 'C', 'D'] });
+  const raw = st.getItem('mafia.roster.v1');
+  const parsed = JSON.parse(raw);
+  assert.equal(parsed.ts, undefined);
+  assert.deepEqual(p.loadRoster(), { playerCount: 4, names: ['A', 'B', 'C', 'D'] });
+});
+
+test('roster rejects malformed JSON and clears key', () => {
+  const st = memStorage();
+  st.setItem('mafia.roster.v1', '{bad');
+  const p = createPersistence(st);
+  assert.equal(p.loadRoster(), null);
+  assert.equal(st.getItem('mafia.roster.v1'), null);
+});

@@ -249,6 +249,7 @@ export const ru = {
     placeholder: 'Игрок {n}',
     defaultName: 'Игрок {n}',
     confirmBtn: 'Раздать карты →',
+    clearRoster: 'Очистить список',
   },
 
   deal: {

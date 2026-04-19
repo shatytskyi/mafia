@@ -249,6 +249,7 @@ export const en = {
     placeholder: 'Player {n}',
     defaultName: 'Player {n}',
     confirmBtn: 'Deal cards →',
+    clearRoster: 'Clear list',
   },
 
   deal: {

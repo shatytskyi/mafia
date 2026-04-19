@@ -249,6 +249,7 @@ export const uk = {
     placeholder: 'Гравець {n}',
     defaultName: 'Гравець {n}',
     confirmBtn: 'Роздати карти →',
+    clearRoster: 'Очистити список',
   },
 
   deal: {

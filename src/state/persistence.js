@@ -2,9 +2,12 @@ import { t } from '../i18n/index.js';
 import { emptyNight } from './state.js';
 
 const STORAGE_KEY_GAME = 'mafia.game.v1';
+const STORAGE_KEY_ROSTER = 'mafia.roster.v1';
 const STORAGE_KEY_THEME = 'mafia.theme';
 const STORAGE_KEY_LOCALE = 'mafia.locale';
 const SAVE_TTL_MS = 24 * 60 * 60 * 1000;
+const ROSTER_MIN_COUNT = 4;
+const ROSTER_MAX_COUNT = 20;
 
 /**
  * @param {Storage} [storage]
@@ -66,8 +69,48 @@ export function createPersistence(storage) {
 
     clearSnapshot() { st.remove(STORAGE_KEY_GAME); },
 
+    saveRoster(roster) {
+      if (!isValidRoster(roster)) return;
+      const payload = {
+        playerCount: roster.playerCount,
+        names: roster.names.map(n => String(n))
+      };
+      try { st.set(STORAGE_KEY_ROSTER, JSON.stringify(payload)); }
+      catch (e) { /* ignore */ }
+    },
+
+    loadRoster() {
+      const raw = st.get(STORAGE_KEY_ROSTER);
+      if (!raw) return null;
+      try {
+        const data = JSON.parse(raw);
+        if (!isValidRoster(data)) {
+          st.remove(STORAGE_KEY_ROSTER);
+          return null;
+        }
+        return {
+          playerCount: data.playerCount,
+          names: data.names.map(n => String(n))
+        };
+      } catch (e) {
+        st.remove(STORAGE_KEY_ROSTER);
+        return null;
+      }
+    },
+
+    clearRoster() { st.remove(STORAGE_KEY_ROSTER); },
+
     SAVE_TTL_MS
   };
+}
+
+function isValidRoster(data) {
+  if (!data || typeof data !== 'object') return false;
+  const count = data.playerCount;
+  if (typeof count !== 'number' || !Number.isInteger(count)) return false;
+  if (count < ROSTER_MIN_COUNT || count > ROSTER_MAX_COUNT) return false;
+  if (!Array.isArray(data.names) || data.names.length !== count) return false;
+  return data.names.every(n => typeof n === 'string');
 }
 
 /**

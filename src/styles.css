@@ -1763,6 +1763,34 @@
   }
 
   /* === NAME INPUT === */
+  .roster-clear-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 8px;
+  }
+
+  .roster-clear-link {
+    background: none;
+    border: none;
+    padding: 6px 2px;
+    color: var(--ash);
+    font-family: var(--font-italic);
+    font-style: italic;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-color: var(--border-softer);
+    text-underline-offset: 3px;
+  }
+
+  .roster-clear-link:hover,
+  .roster-clear-link:focus-visible {
+    color: var(--gold);
+    text-decoration-color: var(--gold);
+    outline: none;
+  }
+
   .name-inputs {
     display: grid;
     gap: 8px;
