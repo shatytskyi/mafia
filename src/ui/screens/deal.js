@@ -78,11 +78,12 @@ export function renderDeal({ render }) {
         </div>
       </div>
 
-      <p class="instruction">${t('deal.instruction')}</p>
-
-      <button class="btn-primary" id="doneBtn" style="max-width: 380px;">
-        ${state.dealIndex < state.playerCount - 1 ? t('deal.nextBtn') : t('deal.lastBtn')}
-      </button>
+      <div class="deal-action-slot">
+        <p class="instruction">${t('deal.instruction')}</p>
+        <button class="btn-primary" id="doneBtn">
+          ${state.dealIndex < state.playerCount - 1 ? t('deal.nextBtn') : t('deal.lastBtn')}
+        </button>
+      </div>
     </div>
   `;
 

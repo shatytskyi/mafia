@@ -29,7 +29,7 @@ export const en = {
     },
     doctor: {
       name: 'Doctor',
-      desc: 'Each night you heal one player. If the mafia picks them, they survive. You can heal yourself only once per game.',
+      desc: 'Each night you heal one player — they survive any night attack (mafia, the Maniac, or the Veteran\u2019s strike). You cannot heal the same player two nights in a row. You can heal yourself only once per game.',
     },
     don: {
       name: 'Mafia Don',
@@ -38,16 +38,16 @@ export const en = {
     },
     maniac: {
       name: 'Maniac',
-      desc: 'You play for yourself. Each night you kill one player. You win if you end up one-on-one with a single civilian.',
+      desc: 'You play for yourself. Every night, including the first, you kill one player. You win when the mafia is gone and at most one civilian remains.',
     },
     whore: {
       name: 'Whore',
-      desc: 'Each night you pick a player — they "sleep over" and cannot use their night ability. If you visit the mafia you get an alibi, but the mafia is blocked only if that was their last living member.',
-      descDies: 'Each night you pick a player — they "sleep over" and cannot use their night ability. Careful: if you visit the mafia, you die together with them.',
+      desc: 'Each night you pick a player — they "sleep over" and cannot use their night ability. You cannot visit yourself, and cannot visit the same player two nights in a row. If you visit the mafia you get an alibi, but the mafia is blocked only if that was their last living member.',
+      descDies: 'Each night you pick a player — they "sleep over" and cannot use their night ability. You cannot visit yourself, and cannot visit the same player two nights in a row. Careful: if you visit the mafia, you die together with them.',
     },
     veteran: {
       name: 'Veteran',
-      desc: 'A former agent of the force, long retired — but the past never lets go. Once per game, at night, you can save any player from death; once per game, you can kill anyone (but not yourself). Counts as civilian: the Sheriff reads you as one of his own.',
+      desc: 'A former agent of the force, long retired — but the past never lets go. Once per game, at night, you can save any player from death; once per game, you can kill anyone (but not yourself). If you strike the Maniac before his turn, the Maniac does not act that night. Counts as civilian: the Sheriff reads you as one of his own.',
     },
   },
 
@@ -78,7 +78,7 @@ export const en = {
       say: 'Whore, open your eyes. Who are you visiting tonight?',
       hintDies: 'If she visits a mafioso — the Whore dies together with them.',
       hintAlive: 'If she visits a mafioso — the Whore has an alibi; the mafia is blocked only if that was their last living member.',
-      hint: 'Their night ability will fail. {atMafia} She cannot visit the same player two nights in a row. After the pick — "Whore, close your eyes."',
+      hint: 'Her target\u2019s night action will not fire tonight. {atMafia} She cannot visit herself, and cannot visit the same player two nights in a row. After the pick — "Whore, close your eyes."',
       label: 'Whom the Whore visits',
     },
     mafiaKill: {
@@ -140,7 +140,8 @@ export const en = {
       sayBlocked: 'Maniac, open your eyes. Tonight you kill no one.',
       say: 'Maniac, open your eyes. Whom are you killing?',
       hintBlocked: 'The Whore blocked the Maniac. Hold the pause. Then — "Maniac, close your eyes."',
-      hint: 'The Maniac acts on the first night too. The Doctor can save a target from the Maniac. After the pick — "Maniac, close your eyes."',
+      hint: 'The Doctor can save a target from the Maniac. After the pick — "Maniac, close your eyes."',
+      hintFirst: 'The Maniac acts on the first night too. The Doctor can save a target from the Maniac. After the pick — "Maniac, close your eyes."',
       blockedLabel: 'Maniac does not kill tonight',
       blockedConfirm: 'Maniac kills no one',
       label: 'Maniac victim',
@@ -190,7 +191,7 @@ export const en = {
     nominationTimerLabel: '30 seconds per candidate',
     voteTitle: 'Vote and execution',
     voteSay: 'We vote. Raise your hand for the player you believe is mafia.',
-    voteHint: 'Name candidates one by one. Each votes once, not for themselves. Count aloud. On a tie, decide yourself: no one leaves or all leaders leave (agree before the game). Pick the executed player below or "No one leaves" — they get 30 seconds for last words.',
+    voteHint: 'Name candidates one by one. Each votes once, not for themselves. Count aloud. On a tie, tap "Another round" and revote between the leaders; if still tied — no one leaves or all leaders leave (agree before the game). Pick the executed player below or "No one leaves" — they get 30 seconds for last words.',
     voteTimerLabel: "Executed player's last words",
     voteLabel: 'Whom the town executed',
     voteSkipLabel: 'No one leaves',
@@ -221,7 +222,7 @@ export const en = {
       veteran: 'Saves once, strikes once. Minimum 6 players.',
     },
     warnMinPlayers: 'Requires at least {n} players',
-    warnSqueezed: '⚠ Will not fit the current spread — another role takes priority',
+    warnSqueezed: '⚠ Will not fit — no slot in the current spread',
     suboption: {
       sheriffSeesManiac: 'Sheriff sees the Maniac as mafia',
       never: 'Never',
@@ -277,7 +278,7 @@ export const en = {
     endConfirm: 'End the game and return to the menu?',
     nextPhaseNight: 'To day →',
     nextPhaseDay: 'To vote →',
-    nextPhaseVote: 'Night {day} →',
+    nextPhaseVote: 'To night {day} →',
   },
 
   actions: {
@@ -320,7 +321,8 @@ export const en = {
       title: 'Night log',
       nightHeader: 'Night {day}',
       peaceful: '☾ A quiet night',
-      killed: '✖ Dead: {names}',
+      killedOne: '✖ Dead: {names}',
+      killedMany: '✖ Dead: {names}',
       savedByDoctor: '✚ Doctor saved: {name}',
       sheriffCheck: '✦ Sheriff → {name}: {verdict}',
       donCheck: '♛ Don → {name}: {verdict}',

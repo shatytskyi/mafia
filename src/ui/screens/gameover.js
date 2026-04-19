@@ -72,7 +72,8 @@ function renderHistorySection() {
       lines.push(t('gameover.history.peaceful'));
     } else {
       const names = entry.killed.map(nameOf).join(', ');
-      lines.push(t('gameover.history.killed', { names }));
+      const key = entry.killed.length > 1 ? 'gameover.history.killedMany' : 'gameover.history.killedOne';
+      lines.push(t(key, { names }));
     }
     if (entry.savedByDoctor != null) {
       lines.push(t('gameover.history.savedByDoctor', { name: nameOf(entry.savedByDoctor) }));

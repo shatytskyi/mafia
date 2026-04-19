@@ -340,7 +340,7 @@ export function getNightSteps(state) {
         title: t('steps.maniac.title'),
         cls: 'maniac-action',
         say: t('steps.maniac.say'),
-        hint: t('steps.maniac.hint'),
+        hint: t(isFirstNight ? 'steps.maniac.hintFirst' : 'steps.maniac.hint'),
         action: {
           type: 'pickTarget',
           field: 'maniacTarget',

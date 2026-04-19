@@ -151,7 +151,9 @@
     align-items: center;
     gap: 12px;
     position: relative;
-    z-index: 1;
+    /* Must sit above .app (also z-index: 1) so that transformed screens
+       cannot overlap and steal clicks from the theme/language toggles. */
+    z-index: 2;
   }
 
   .top-bar-actions {
@@ -853,6 +855,22 @@
     text-align: center;
     padding: 20px;
     position: relative;
+    /* After the header collapses on reveal, justify-content: center re-centres
+       the shorter content column — which leaves a large empty band above the
+       card. Shift the whole screen upward with a transform so the card and
+       button sit closer to the top of the viewport. */
+    transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .deal-screen.revealed {
+    /* Shift upward only on taller viewports where justify-content: center
+       leaves too much empty space above the card after the header collapses.
+       On short viewports (≤ ~700px) no shift — the card is already close to
+       the top-bar and would collide with the theme/language toggles. */
+    transform: translate3d(0, clamp(-120px, calc((700px - 100vh) / 2), 0px), 0);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .deal-screen { transition: none !important; }
   }
 
   .player-num {
@@ -868,9 +886,25 @@
     font-style: italic;
     font-size: 20px;
     color: var(--text-dim);
-    margin-bottom: 40px;
+    margin: 0;
     line-height: 1.5;
     max-width: 360px;
+    justify-self: center;
+    align-self: center;
+  }
+
+  /* Instruction and the continue button share one grid cell so the button
+     fades in exactly where the instruction text was — no extra empty space. */
+  .deal-action-slot {
+    display: grid;
+    width: 100%;
+    max-width: 380px;
+  }
+  .deal-action-slot > * {
+    grid-area: 1 / 1;
+  }
+  .deal-action-slot .btn-primary {
+    align-self: center;
   }
 
   .player-name-big {
@@ -1113,12 +1147,31 @@
   .deal-screen .instruction {
     transition: opacity 0.4s ease;
   }
+  /* Above-card elements also collapse their vertical footprint on reveal
+     so the card and button visually move toward the screen centre instead
+     of leaving a large empty band on top. */
+  .deal-screen .player-num,
+  .deal-screen .player-name-big,
+  .deal-screen .passing-hint {
+    overflow: hidden;
+    transition: opacity 0.4s ease,
+                max-height 0.5s ease,
+                margin 0.5s ease;
+    max-height: 120px;
+  }
   .deal-screen.revealed .player-num,
   .deal-screen.revealed .player-name-big,
   .deal-screen.revealed .passing-hint,
   .deal-screen.revealed .instruction {
     opacity: 0;
     pointer-events: none;
+  }
+  .deal-screen.revealed .player-num,
+  .deal-screen.revealed .player-name-big,
+  .deal-screen.revealed .passing-hint {
+    max-height: 0;
+    margin-top: 0;
+    margin-bottom: 0;
   }
 
   .deal-screen #doneBtn {
