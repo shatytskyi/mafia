@@ -209,6 +209,14 @@ export const en = {
     },
   },
 
+  install: {
+    title: 'Install the app',
+    promptBody: 'Add Mafia to your home screen — works offline and launches as a standalone app.',
+    iosHint: 'Tap the Share icon, then "Add to Home Screen" to install the app.',
+    accept: 'Install',
+    dismissAria: 'Dismiss',
+  },
+
   names: {
     ornament: 'D R A M A T I S · P E R S O N A E',
     title: 'Names',

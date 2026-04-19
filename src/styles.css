@@ -220,6 +220,115 @@
 
   .locale-btn:active { transform: scale(0.92); }
 
+  /* === INSTALL BANNER (PWA add-to-home-screen prompt) ===
+     Fixed at the top of the viewport, slides in on first reveal and out on
+     dismiss. Sits above the floating locale / theme / fullscreen toggles so
+     they stay tappable underneath its translucent background. */
+  .install-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 120;
+    padding:
+      calc(10px + env(safe-area-inset-top))
+      calc(12px + env(safe-area-inset-right))
+      10px
+      calc(12px + env(safe-area-inset-left));
+    background: var(--bg-2);
+    border-bottom: 1px solid var(--gold);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transform: translateY(-110%);
+    transition: transform 0.28s ease;
+    pointer-events: none;
+  }
+
+  .install-banner.visible {
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .install-content {
+    max-width: 520px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .install-text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .install-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 4px;
+  }
+
+  .install-desc {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 14px;
+    line-height: 1.35;
+    color: var(--text);
+  }
+
+  .install-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .install-btn {
+    padding: 10px 14px;
+    background: var(--blood);
+    color: var(--button-text);
+    border: none;
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.15s ease;
+  }
+
+  .install-btn:active {
+    background: var(--blood-bright);
+    transform: scale(0.97);
+  }
+
+  .install-dismiss {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: transparent;
+    border: 1px solid var(--border-soft);
+    color: var(--text-dim);
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .install-dismiss:active {
+    color: var(--paper);
+    border-color: var(--gold);
+  }
+
+  @media (max-width: 380px) {
+    .install-desc { font-size: 13px; }
+    .install-btn { padding: 9px 12px; letter-spacing: 0.15em; }
+  }
+
   /* Version indicator — flows at the end of the page (not sticky). */
   .version-footer {
     padding: 48px 20px 20px;
