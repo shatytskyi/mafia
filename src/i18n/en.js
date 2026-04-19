@@ -43,7 +43,7 @@ export const en = {
     whore: {
       name: 'Whore',
       desc: 'Each night you pick a player — they "sleep over" and cannot use their night ability. No visits to yourself; no same target two nights in a row. At the mafia you do not die, but you block them only if that was their last living member.',
-      descDies: 'Each night you pick a player — they "sleep over" and cannot use their night ability. No visits to yourself; no same target two nights in a row. Careful: visit the mafia and you die together with them.',
+      descDies: 'Each night you pick a player — they "sleep over" and cannot use their night ability. No visits to yourself; no same target two nights in a row. Careful: visit the mafia and you die — but the mafia kills no one that night.',
     },
     veteran: {
       name: 'Veteran',
@@ -76,7 +76,7 @@ export const en = {
     whore: {
       title: 'Whore',
       say: 'Whore, open your eyes. Who are you visiting tonight?',
-      hintDies: 'If she visits a mafioso — the Whore dies together with them.',
+      hintDies: 'If she visits a mafioso — the Whore dies, and the mafia kills no one that night.',
       hintAlive: 'If she visits a mafioso — the Whore has an alibi; the mafia is blocked only if that was their last living member.',
       hint: 'Her target\u2019s night action will not fire tonight. {atMafia} She cannot visit herself, and cannot visit the same player two nights in a row. After the pick — "Whore, close your eyes."',
       label: 'Whom the Whore visits',
