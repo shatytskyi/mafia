@@ -8,8 +8,11 @@ let onChange = null;
 export function onThemeChange(cb) { onChange = cb; }
 
 // Keep system UI (status bar in standalone PWA, Android Chrome tab bar)
-// in sync with the active theme.
-const THEME_COLORS = { light: '#f2ead5', dark: '#0a0807' };
+// in sync with the active theme. Light value is slightly darker than --bg
+// (#f2ead5) because the page sits under a grain + vignette overlay that
+// visibly tints the rendered top edge; matching --bg exactly would make
+// the status bar look lighter than the actual page background.
+const THEME_COLORS = { light: '#ebe2c9', dark: '#0a0807' };
 
 function syncThemeColorMeta() {
   const meta = document.getElementById('themeColorMeta');

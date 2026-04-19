@@ -1636,14 +1636,25 @@
     flex-shrink: 0;
     font-feature-settings: normal;
   }
+  /* Team-unified colors + matching soft glow. Icons on the same side share
+     the same hue so they never read as a different role just from color. */
   .role-icon.mafia,
-  .role-icon.don { color: var(--blood-bright); }
+  .role-icon.don {
+    color: var(--blood-bright);
+    text-shadow: 0 0 6px rgba(198, 40, 40, 0.45);
+  }
   .role-icon.sheriff,
   .role-icon.doctor,
   .role-icon.whore,
-  .role-icon.civilian { color: #7ba87b; }
-  .role-icon.maniac { color: #8e5a9b; }
-  .role-icon.veteran { color: #5a7aa0; }
+  .role-icon.civilian,
+  .role-icon.veteran {
+    color: #7ba87b;
+    text-shadow: 0 0 6px rgba(123, 168, 123, 0.45);
+  }
+  .role-icon.maniac {
+    color: #8e5a9b;
+    text-shadow: 0 0 6px rgba(142, 90, 155, 0.45);
+  }
 
   .roster-row .role-icon {
     font-size: 14px;
