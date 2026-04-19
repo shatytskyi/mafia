@@ -14,21 +14,25 @@
 <link rel="apple-touch-icon" href="./favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Oswald:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Lora:ital,wght@1,400;1,500&family=Oswald:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./src/styles.css">
 </head>
 <body>
-<div class="locale-toggle" id="localeToggle" role="group" aria-label="Language">
-  <button class="locale-btn" data-locale="uk" title="Українська" aria-label="Українська">🇺🇦</button>
-  <button class="locale-btn" data-locale="en" title="English" aria-label="English">🇬🇧</button>
-  <button class="locale-btn" data-locale="ru" title="Русский" aria-label="Русский">🇷🇺</button>
+<div class="top-bar">
+  <div class="locale-toggle" id="localeToggle" role="group" aria-label="Language">
+    <button class="locale-btn" data-locale="uk" title="Українська" aria-label="Українська">🇺🇦</button>
+    <button class="locale-btn" data-locale="en" title="English" aria-label="English">🇬🇧</button>
+    <button class="locale-btn" data-locale="ru" title="Русский" aria-label="Русский">🇷🇺</button>
+  </div>
+  <div class="top-bar-actions">
+    <button class="fullscreen-toggle" id="fullscreenToggle" aria-label="Fullscreen" title="Fullscreen">
+      <span id="fullscreenIcon">⛶</span>
+    </button>
+    <button class="theme-toggle" id="themeToggle" aria-label="Theme" title="Theme">
+      <span id="themeIcon">☾</span>
+    </button>
+  </div>
 </div>
-<button class="theme-toggle" id="themeToggle" aria-label="Theme" title="Theme">
-  <span id="themeIcon">☾</span>
-</button>
-<button class="fullscreen-toggle" id="fullscreenToggle" aria-label="Fullscreen" title="Fullscreen">
-  <span id="fullscreenIcon">⛶</span>
-</button>
 <div class="app" id="app"></div>
 
 <script type="module" src="./src/main.js"></script>

@@ -31,6 +31,10 @@
     --reveal-grad-start: #f4ecd8;
     --reveal-grad-end: #e0d3b0;
     --reveal-shadow: 0 0 30px rgba(138, 106, 31, 0.2), inset 0 0 20px rgba(138, 106, 31, 0.15);
+
+    /* Italic body copy (hints, captions, quoted lines) — Lora has open apertures
+       and wider counters, far more legible at 14–20px than Cormorant's italic. */
+    --font-italic: 'Lora', 'Cormorant Garamond', Georgia, serif;
   }
 
   /* === ТЁМНАЯ ТЕМА === */
@@ -110,7 +114,7 @@
     max-width: 520px;
     margin: 0 auto;
     padding:
-      calc(24px + env(safe-area-inset-top))
+      8px
       calc(20px + env(safe-area-inset-right))
       calc(40px + env(safe-area-inset-bottom))
       calc(20px + env(safe-area-inset-left));
@@ -120,12 +124,32 @@
     z-index: 1;
   }
 
-  /* Floating theme toggle */
+  /* Top bar — flows with the page and matches the .app column width so on wide
+     desktop viewports the toggles sit at the edges of the centered content,
+     not the edges of the window. */
+  .top-bar {
+    max-width: 520px;
+    margin: 0 auto;
+    padding:
+      calc(16px + env(safe-area-inset-top))
+      calc(20px + env(safe-area-inset-right))
+      0
+      calc(20px + env(safe-area-inset-left));
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .top-bar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
   .theme-toggle {
-    position: fixed;
-    top: calc(16px + env(safe-area-inset-top));
-    right: calc(16px + env(safe-area-inset-right));
-    z-index: 50;
     width: 40px;
     height: 40px;
     border-radius: 50%;
@@ -148,12 +172,7 @@
     color: var(--bg);
   }
 
-  /* Fullscreen toggle — sits to the left of the theme toggle */
   .fullscreen-toggle {
-    position: fixed;
-    top: calc(16px + env(safe-area-inset-top));
-    right: calc(64px + env(safe-area-inset-right));
-    z-index: 50;
     width: 40px;
     height: 40px;
     border-radius: 50%;
@@ -177,12 +196,7 @@
     color: var(--bg);
   }
 
-  /* Floating locale toggle — mirrors theme-toggle on the opposite corner */
   .locale-toggle {
-    position: fixed;
-    top: calc(16px + env(safe-area-inset-top));
-    left: calc(16px + env(safe-area-inset-left));
-    z-index: 50;
     display: flex;
     gap: 4px;
     padding: 4px;
@@ -222,8 +236,8 @@
 
   /* === INSTALL BANNER (PWA add-to-home-screen prompt) ===
      Fixed at the top of the viewport, slides in on first reveal and out on
-     dismiss. Sits above the floating locale / theme / fullscreen toggles so
-     they stay tappable underneath its translucent background. */
+     dismiss. Overlays the in-flow top-bar while visible; dismissing restores
+     access to the toggles underneath. */
   .install-banner {
     position: fixed;
     top: 0;
@@ -274,8 +288,8 @@
 
   .install-desc {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 14px;
-    line-height: 1.35;
+    font-size: 15px;
+    line-height: 1.45;
     color: var(--text);
   }
 
@@ -325,7 +339,7 @@
   }
 
   @media (max-width: 380px) {
-    .install-desc { font-size: 13px; }
+    .install-desc { font-size: 14px; }
     .install-btn { padding: 9px 12px; letter-spacing: 0.15em; }
   }
 
@@ -383,7 +397,7 @@
   }
 
   .hero em {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-italic);
     font-style: italic;
     font-weight: 400;
     color: var(--blood-bright);
@@ -393,7 +407,7 @@
   }
 
   .subtitle {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-italic);
     font-style: italic;
     font-size: 18px;
     color: var(--text-dim);
@@ -674,16 +688,17 @@
 
   .role-toggle .name {
     font-family: 'Oswald', sans-serif;
-    font-size: 15px;
+    font-size: 16px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--paper);
-    margin-bottom: 4px;
+    margin-bottom: 6px;
   }
 
   .role-toggle .desc {
-    font-size: 15px;
-    line-height: 1.4;
+    font-family: var(--font-italic);
+    font-size: 16px;
+    line-height: 1.5;
     color: var(--text-dim);
     font-style: italic;
   }
@@ -834,12 +849,12 @@
   }
 
   .deal-screen .instruction {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-italic);
     font-style: italic;
     font-size: 20px;
     color: var(--text-dim);
     margin-bottom: 40px;
-    line-height: 1.4;
+    line-height: 1.5;
     max-width: 360px;
   }
 
@@ -855,7 +870,7 @@
   }
 
   .passing-hint {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-italic);
     font-style: italic;
     color: var(--gold-dim);
     font-size: 16px;
@@ -970,7 +985,7 @@
   }
 
   .role-card .role-side {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-italic);
     font-style: italic;
     font-size: 16px;
     text-align: center;
@@ -1086,7 +1101,7 @@
   }
 
   .step-card .step-say {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-italic);
     font-style: italic;
     font-size: 17px;
     line-height: 1.5;
@@ -1109,8 +1124,8 @@
   }
 
   .step-card .step-hint {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 15px;
+    font-family: var(--font-italic);
+    font-size: 16px;
     line-height: 1.5;
     color: var(--text-dim);
     font-style: italic;
@@ -1269,11 +1284,11 @@
     padding: 14px;
     background: var(--quote-bg);
     border-left: 3px solid #c77d9e;
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-italic);
     font-style: italic;
     font-size: 16px;
     color: var(--text);
-    line-height: 1.4;
+    line-height: 1.5;
   }
 
   .blocked-confirm {
@@ -1307,7 +1322,7 @@
     padding: 10px;
     border-left: 3px solid var(--blood-bright);
     background: var(--quote-bg);
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-italic);
     font-style: italic;
     color: var(--blood-bright);
   }
@@ -1325,6 +1340,7 @@
   .resolve-card .resolve-line:last-of-type { border-bottom: none; }
 
   .resolve-peaceful {
+    font-family: var(--font-italic);
     color: var(--text-dim) !important;
     font-style: italic;
   }
@@ -1342,6 +1358,7 @@
   }
 
   .resolve-note {
+    font-family: var(--font-italic);
     color: var(--text-dim) !important;
     font-style: italic;
   }
@@ -1354,10 +1371,11 @@
     margin-top: 14px;
     padding-top: 14px;
     border-top: 1px dashed var(--border-soft);
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-italic);
     font-style: italic;
     color: var(--text-dim);
-    font-size: 14px;
+    font-size: 15px;
+    line-height: 1.5;
   }
 
   /* === SUMMARY & ALIVE COUNTER === */
@@ -1365,7 +1383,7 @@
     margin-top: 8px;
     font-family: 'Cormorant Garamond', serif;
     font-size: 18px;
-    line-height: 1.4;
+    line-height: 1.5;
     color: var(--text);
   }
 
@@ -1421,7 +1439,7 @@
   }
 
   .resume-desc {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-italic);
     font-style: italic;
     font-size: 17px;
     color: var(--text);
@@ -1576,6 +1594,7 @@
   }
 
   .name-input-row input::placeholder {
+    font-family: var(--font-italic);
     color: var(--ash);
     font-style: italic;
     font-weight: 400;
@@ -1666,7 +1685,7 @@
   .game-over .verdict.city-wins { color: var(--gold); }
 
   .game-over .verdict-sub {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-italic);
     font-style: italic;
     font-size: 20px;
     color: var(--text-dim);
@@ -1731,10 +1750,10 @@
 
   .rules-content li {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 16px;
-    line-height: 1.5;
-    color: var(--text-dim);
-    margin-bottom: 6px;
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--text);
+    margin-bottom: 8px;
   }
 
   /* === TIMER === */
