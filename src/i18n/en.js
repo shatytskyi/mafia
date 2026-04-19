@@ -25,7 +25,7 @@ export const en = {
     },
     sheriff: {
       name: 'Sheriff',
-      desc: 'Each night you check one player — the host will show whether they are mafia. If the mafia outs you, you are dead.',
+      desc: 'Each night you check one player — the host shows whether they are mafia. Beware: once the mafia knows you, you become their top target.',
     },
     doctor: {
       name: 'Doctor',
@@ -42,12 +42,12 @@ export const en = {
     },
     whore: {
       name: 'Whore',
-      desc: 'Each night you pick a player — they "sleep over" and cannot use their night ability. You cannot visit yourself, and cannot visit the same player two nights in a row. If you visit the mafia you get an alibi, but the mafia is blocked only if that was their last living member.',
-      descDies: 'Each night you pick a player — they "sleep over" and cannot use their night ability. You cannot visit yourself, and cannot visit the same player two nights in a row. Careful: if you visit the mafia, you die together with them.',
+      desc: 'Each night you pick a player — they "sleep over" and cannot use their night ability. No visits to yourself; no same target two nights in a row. At the mafia you do not die, but you block them only if that was their last living member.',
+      descDies: 'Each night you pick a player — they "sleep over" and cannot use their night ability. No visits to yourself; no same target two nights in a row. Careful: visit the mafia and you die together with them.',
     },
     veteran: {
       name: 'Veteran',
-      desc: 'A former agent of the force, long retired — but the past never lets go. Once per game, at night, you can save any player from death; once per game, you can kill anyone (but not yourself). If you strike the Maniac before his turn, the Maniac does not act that night. Counts as civilian: the Sheriff reads you as one of his own.',
+      desc: 'Once per game, at night, you save any player from death; once per game — you kill anyone (not yourself). Strike the Maniac before his turn — he does not kill that night. Reads as civilian to the Sheriff.',
     },
   },
 
