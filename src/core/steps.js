@@ -103,6 +103,8 @@ export function getNightSteps(state) {
         cls: 'mafia-action',
         say: t('steps.mafiaKill.say'),
         hint: t('steps.mafiaKill.hint', { closing }),
+        timerSeconds: 10,
+        timerLabel: t('steps.mafiaKill.timerLabel'),
         action: {
           type: 'pickTarget',
           field: 'mafiaTarget',
@@ -368,6 +370,8 @@ export function getVoteSteps() {
         label: t('steps.voteLabel'),
         allowSkip: true,
         skipLabel: t('steps.voteSkipLabel'),
+        allowRevote: true,
+        revoteLabel: t('steps.voteRevoteLabel'),
       }
     }
   ];

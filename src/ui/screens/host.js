@@ -41,6 +41,12 @@ export function renderHost({ render, clearSavedGame }) {
       </div>
     `;
   }
+  // Compute night resolution once before rendering so the render path stays
+  // side-effect free. Subsequent renders (after Next → applyNightResolution)
+  // reuse the already-populated `state.night.resolved`.
+  if (step.action && step.action.type === 'resolveNight' && !state.night.resolved) {
+    state.night.resolved = resolveNight(state);
+  }
   if (step.action) actionHtml = renderAction(step.action);
 
   const isVeryFirstStep = state.stepIndex === 0 && state.phase === 'night' && state.day === 1;
@@ -49,7 +55,7 @@ export function renderHost({ render, clearSavedGame }) {
     <div class="screen">
       <div class="host-header">
         <div class="phase-badge ${phaseCls}">
-          ${state.phase === 'night' ? '🌙' : state.phase === 'day' ? '☀' : '⚖'}
+          <span aria-hidden="true">${state.phase === 'night' ? '🌙' : state.phase === 'day' ? '☀' : '⚖'}</span>
           ${t('host.phaseDay', { day: state.day, phase: phaseLabel })}
         </div>
         <div class="phase-title">${step.title}</div>

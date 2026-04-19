@@ -241,4 +241,52 @@ export function applyNightResolution(state) {
   } else {
     state.whoreHistory.push(null);
   }
+
+  appendNightLog(state);
+}
+
+/**
+ * Append a structured entry to state.nightLog summarising the night that was
+ * just applied. Safe on pre-existing saves with no nightLog field (guarded).
+ *
+ * @param {import('../types.js').AppState} state
+ */
+function appendNightLog(state) {
+  if (!Array.isArray(state.nightLog)) state.nightLog = [];
+  const n = state.night;
+  const r = n.resolved;
+  if (!r) return;
+
+  const sheriff = r.sheriffResult && n.sheriffCheck != null && n.sheriffCheck >= 0
+    ? { target: n.sheriffCheck, result: r.sheriffResult }
+    : null;
+  const don = r.donResult && n.donCheck != null && n.donCheck >= 0
+    ? { target: n.donCheck, result: r.donResult }
+    : null;
+  const mafia = (n.mafiaTarget != null && n.mafiaTarget >= 0 && !r.blocked.mafia && state.day > 1)
+    ? { target: n.mafiaTarget }
+    : null;
+  const maniac = (n.maniacTarget != null && n.maniacTarget >= 0 && !r.blocked.maniac)
+    ? { target: n.maniacTarget }
+    : null;
+  const whore = (n.whoreTarget != null && n.whoreTarget >= 0)
+    ? {
+        target: n.whoreTarget,
+        died: !!r.whoreDied && !r.whoreSavedByDoctor,
+        savedByDoctor: !!r.whoreSavedByDoctor,
+        atMafia: !!r.whoreAtMafia || !!r.whoreDied,
+      }
+    : null;
+
+  state.nightLog.push({
+    day: state.day,
+    killed: [...r.killed],
+    savedByDoctor: r.savedByDoctor != null ? r.savedByDoctor : null,
+    sheriff,
+    don,
+    mafia,
+    maniac,
+    whore,
+    blocked: { ...r.blocked },
+  });
 }

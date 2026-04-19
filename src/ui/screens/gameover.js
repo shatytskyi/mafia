@@ -35,6 +35,8 @@ export function renderGameOver({ render, clearSavedGame }) {
         </div>
       </div>
 
+      ${renderHistorySection()}
+
       <button class="btn-primary" id="newGame">${t('gameover.newGame')}</button>
     </div>
   `;
@@ -49,7 +51,83 @@ export function renderGameOver({ render, clearSavedGame }) {
     state.doctorHistory = [];
     state.doctorSelfUsed = false;
     state.whoreHistory = [];
+    state.nightLog = [];
     resetNightSelections();
     render();
   };
+}
+
+function renderHistorySection() {
+  const log = Array.isArray(state.nightLog) ? state.nightLog : [];
+  if (log.length === 0) return '';
+
+  const nameOf = (idx) => escapeHtml(state.players[idx]?.name || '?');
+
+  const nightsHtml = log.map(entry => {
+    const lines = [];
+
+    if (entry.killed.length === 0) {
+      lines.push(t('gameover.history.peaceful'));
+    } else {
+      const names = entry.killed.map(nameOf).join(', ');
+      lines.push(t('gameover.history.killed', { names }));
+    }
+    if (entry.savedByDoctor != null) {
+      lines.push(t('gameover.history.savedByDoctor', { name: nameOf(entry.savedByDoctor) }));
+    }
+    if (entry.mafia) {
+      lines.push(t('gameover.history.mafiaPick', { name: nameOf(entry.mafia.target) }));
+    }
+    if (entry.maniac) {
+      lines.push(t('gameover.history.maniacPick', { name: nameOf(entry.maniac.target) }));
+    }
+    if (entry.sheriff) {
+      const verdict = entry.sheriff.result === 'mafia'
+        ? t('gameover.history.sheriffSawMafia')
+        : t('gameover.history.sheriffSawNotMafia');
+      lines.push(t('gameover.history.sheriffCheck', { name: nameOf(entry.sheriff.target), verdict }));
+    }
+    if (entry.don) {
+      const verdict = entry.don.result === 'sheriff'
+        ? t('gameover.history.donSawSheriff')
+        : t('gameover.history.donSawNotSheriff');
+      lines.push(t('gameover.history.donCheck', { name: nameOf(entry.don.target), verdict }));
+    }
+    if (entry.whore) {
+      lines.push(t('gameover.history.whoreVisit', { name: nameOf(entry.whore.target) }));
+      if (entry.whore.savedByDoctor) {
+        lines.push(t('gameover.history.whoreSaved'));
+      } else if (entry.whore.died) {
+        lines.push(t('gameover.history.whoreDied'));
+      }
+    }
+    const blocked = [];
+    if (entry.blocked?.mafia) blocked.push(t('roles.mafia.name'));
+    if (entry.blocked?.maniac) blocked.push(t('roles.maniac.name'));
+    if (entry.blocked?.doctor) blocked.push(t('roles.doctor.name'));
+    if (entry.blocked?.sheriff) blocked.push(t('roles.sheriff.name'));
+    if (blocked.length > 0) {
+      lines.push(t('gameover.history.blocked', { list: blocked.join(', ') }));
+    }
+
+    return `
+      <div class="night-entry">
+        <div class="night-entry-head">${t('gameover.history.nightHeader', { day: entry.day })}</div>
+        <ul class="night-entry-lines">
+          ${lines.map(line => `<li>${line}</li>`).join('')}
+        </ul>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="section">
+      <div class="section-head">
+        <span class="num">✦</span>
+        <span class="label">${t('gameover.history.title')}</span>
+        <span class="line"></span>
+      </div>
+      <div class="night-log">${nightsHtml}</div>
+    </div>
+  `;
 }

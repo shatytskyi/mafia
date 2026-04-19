@@ -1,7 +1,7 @@
 import { state } from '../../state/state.js';
-import { resolveNight } from '../../core/night.js';
 import { escapeHtml } from '../html.js';
 import { t } from '../../i18n/index.js';
+import { stopTimer } from './timer.js';
 
 export function isNextDisabled(step) {
   if (!step.action) return false;
@@ -36,7 +36,9 @@ function renderBlockedAction(action) {
     <div class="step-card action-card blocked-card">
       <div class="step-title">${action.label}</div>
       <div class="blocked-note">${t('actions.blockedNote')}</div>
-      <button class="target-skip blocked-confirm ${confirmed ? 'selected' : ''}" data-blocked-confirm data-field="${action.field}">
+      <button type="button" class="target-skip blocked-confirm ${confirmed ? 'selected' : ''}"
+              data-blocked-confirm data-field="${action.field}"
+              aria-pressed="${confirmed ? 'true' : 'false'}">
         ${confirmed ? t('actions.blockedConfirmed') : (action.confirmLabel || t('actions.blockedConfirm'))}
       </button>
     </div>
@@ -64,20 +66,24 @@ function renderPickTarget(action) {
   return `
     <div class="step-card action-card">
       <div class="step-title">${action.label}</div>
-      <div class="target-grid">
+      <div class="target-grid" role="group" aria-label="${escapeHtml(action.label)}">
         ${state.players.map((p, i) => {
           if (!p.alive) return '';
           if (i === selfIdx) return '';
           const isSelected = selected === i;
           return `
-            <div class="target-chip ${isSelected ? 'selected' : ''}" data-target-idx="${i}" data-field="${action.field}">
+            <button type="button" class="target-chip ${isSelected ? 'selected' : ''}"
+                    data-target-idx="${i}" data-field="${action.field}"
+                    aria-pressed="${isSelected ? 'true' : 'false'}">
               ${escapeHtml(p.name)}
-            </div>
+            </button>
           `;
         }).join('')}
       </div>
       ${action.allowSkip ? `
-        <button class="target-skip ${selected === -1 ? 'selected' : ''}" data-skip data-field="${action.field}">
+        <button type="button" class="target-skip ${selected === -1 ? 'selected' : ''}"
+                data-skip data-field="${action.field}"
+                aria-pressed="${selected === -1 ? 'true' : 'false'}">
           ${action.skipLabel || t('actions.skipDefault')}
         </button>
       ` : ''}
@@ -89,32 +95,37 @@ function renderPickTarget(action) {
 
 function renderPickKilled(action) {
   const selected = state.dayVoteKilled;
+  const revoteBtn = action.allowRevote
+    ? `<button class="target-revote" data-revote type="button">${action.revoteLabel || t('steps.voteRevoteLabel')}</button>`
+    : '';
   return `
     <div class="step-card action-card">
       <div class="step-title">${action.label}</div>
-      <div class="target-grid">
+      <div class="target-grid" role="group" aria-label="${escapeHtml(action.label)}">
         ${state.players.map((p, i) => {
           if (!p.alive) return '';
           const isSelected = selected === i;
           return `
-            <div class="target-chip ${isSelected ? 'selected' : ''}" data-killed-idx="${i}">
+            <button type="button" class="target-chip ${isSelected ? 'selected' : ''}"
+                    data-killed-idx="${i}"
+                    aria-pressed="${isSelected ? 'true' : 'false'}">
               ${escapeHtml(p.name)}
-            </div>
+            </button>
           `;
         }).join('')}
       </div>
-      <button class="target-skip ${selected === -1 ? 'selected' : ''}" data-killed-skip>
+      <button type="button" class="target-skip ${selected === -1 ? 'selected' : ''}"
+              data-killed-skip aria-pressed="${selected === -1 ? 'true' : 'false'}">
         ${action.skipLabel || t('steps.voteSkipLabel')}
       </button>
+      ${revoteBtn}
     </div>
   `;
 }
 
 function renderResolveNight() {
-  if (!state.night.applied || !state.night.resolved) {
-    state.night.resolved = resolveNight(state);
-  }
   const r = state.night.resolved;
+  if (!r) return '';
 
   let html = `<div class="step-card action-card resolve-card"><div class="step-title">${t('actions.resolveTitle')}</div>`;
 
@@ -193,6 +204,16 @@ export function bindActionHandlers(step, render) {
   if (skipKilled) {
     skipKilled.onclick = () => {
       state.dayVoteKilled = -1;
+      render();
+    };
+  }
+
+  const revoteBtn = document.querySelector('[data-revote]');
+  if (revoteBtn) {
+    revoteBtn.onclick = () => {
+      stopTimer();
+      state.dayVoteKilled = null;
+      if (state.timer.preset) state.timer.seconds = state.timer.preset;
       render();
     };
   }

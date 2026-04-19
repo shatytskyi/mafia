@@ -1235,8 +1235,10 @@
 
   .target-chip {
     padding: 14px 10px;
+    width: 100%;
     background: var(--bg-3);
     border: 1px solid var(--border-softer);
+    border-radius: 0;
     font-family: 'Oswald', sans-serif;
     font-size: 13px;
     letter-spacing: 0.08em;
@@ -1248,6 +1250,13 @@
   }
 
   .target-chip:active { transform: scale(0.97); }
+  .target-chip:focus-visible,
+  .target-skip:focus-visible,
+  .target-revote:focus-visible,
+  .blocked-confirm:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
 
   .target-chip.selected {
     background: var(--blood);
@@ -1280,6 +1289,25 @@
     border-color: var(--gold);
     border-style: solid;
   }
+
+  .target-revote {
+    display: block;
+    width: 100%;
+    margin-top: 8px;
+    padding: 10px;
+    background: transparent;
+    border: 1px solid var(--border-softer);
+    color: var(--text-dim);
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .target-revote:hover { color: var(--gold); border-color: var(--gold); }
+  .target-revote:active { transform: scale(0.98); }
 
   /* Заблокированный Путаной шаг — пустышечный, с крупной кнопкой подтверждения */
   .blocked-card {
@@ -1729,6 +1757,41 @@
   .final-item.dead .name-col {
     text-decoration: line-through;
     color: var(--ash);
+  }
+
+  .night-log {
+    text-align: left;
+    margin-bottom: 32px;
+  }
+
+  .night-entry {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border-softest);
+  }
+
+  .night-entry:last-child { border-bottom: none; }
+
+  .night-entry-head {
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+
+  .night-entry-lines {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .night-entry-lines li {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--text);
+    padding: 2px 0;
   }
 
   /* === RULES PAGE === */

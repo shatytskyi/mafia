@@ -1,7 +1,7 @@
 import { state } from '../../state/state.js';
 import { html, escapeHtml } from '../html.js';
 import { ROLES } from '../../core/roles.js';
-import { calcRoleDistribution, canEnableRole, isRoleEffective } from '../../core/distribution.js';
+import { calcRoleDistribution, canEnableRole, isRoleEffective, validateOptionalRoles } from '../../core/distribution.js';
 import { formatSavedAgo, savedGameDescription } from '../../state/persistence.js';
 import { t } from '../../i18n/index.js';
 
@@ -215,7 +215,5 @@ function renderRoleToggle(id, name, desc) {
 }
 
 export function validateRoles() {
-  if (!canEnableRole('don', state.playerCount)) state.optionalRoles.don = false;
-  if (!canEnableRole('maniac', state.playerCount)) state.optionalRoles.maniac = false;
-  if (!canEnableRole('whore', state.playerCount)) state.optionalRoles.whore = false;
+  validateOptionalRoles(state.optionalRoles, state.playerCount);
 }

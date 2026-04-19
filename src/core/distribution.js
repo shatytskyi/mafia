@@ -75,6 +75,22 @@ export function canEnableRole(roleId, playerCount) {
 }
 
 /**
+ * Force-disable optional roles that are not allowed at the current player
+ * count. Mutates the passed optionalRoles object in place. Returns the same
+ * object for chaining.
+ *
+ * @param {{don?: boolean, doctor?: boolean, maniac?: boolean, whore?: boolean}} optionalRoles
+ * @param {number} playerCount
+ * @returns {{don?: boolean, doctor?: boolean, maniac?: boolean, whore?: boolean}}
+ */
+export function validateOptionalRoles(optionalRoles, playerCount) {
+  for (const id of ['don', 'maniac', 'whore']) {
+    if (!canEnableRole(id, playerCount)) optionalRoles[id] = false;
+  }
+  return optionalRoles;
+}
+
+/**
  * @param {string} roleId
  * @param {DistributionInput} input
  * @returns {boolean}

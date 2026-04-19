@@ -23,9 +23,16 @@ test('save/load round-trip preserves snapshot', () => {
 
 test('snapshot expires past TTL', () => {
   const p = createPersistence(memStorage());
-  const snap = { ts: Date.now() - (7 * 60 * 60 * 1000), players: [], phase: 'night', day: 1 };
+  const snap = { ts: Date.now() - (25 * 60 * 60 * 1000), players: [], phase: 'night', day: 1 };
   p.saveSnapshot(snap);
   assert.equal(p.loadSnapshot(), null);
+});
+
+test('snapshot within 24h is still valid', () => {
+  const p = createPersistence(memStorage());
+  const snap = { ts: Date.now() - (20 * 60 * 60 * 1000), players: [], phase: 'night', day: 1 };
+  p.saveSnapshot(snap);
+  assert.deepEqual(p.loadSnapshot(), snap);
 });
 
 test('malformed JSON returns null and clears', () => {

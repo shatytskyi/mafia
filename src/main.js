@@ -32,7 +32,7 @@ function saveLocale(locale) { persistence.saveLocale(locale); }
 
 let _saveTimer = null;
 function saveGame() {
-  if (state.screen !== 'host') return;
+  if (state.screen !== 'host' && state.screen !== 'deal') return;
   if (_saveTimer) clearTimeout(_saveTimer);
   _saveTimer = setTimeout(() => persistence.saveSnapshot(buildSnapshot(state)), 300);
 }

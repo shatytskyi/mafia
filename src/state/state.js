@@ -1,3 +1,20 @@
+/**
+ * Factory for the blank night-selections object. Reused by initial state,
+ * resetNightSelections, and persistence fallback to keep the shape in sync.
+ */
+export function emptyNight() {
+  return {
+    mafiaTarget: null,
+    donCheck: null,
+    whoreTarget: null,
+    doctorTarget: null,
+    sheriffCheck: null,
+    maniacTarget: null,
+    resolved: null,
+    applied: false
+  };
+}
+
 /** @type {import('../types.js').AppState} */
 export const state = {
   screen: 'home',
@@ -15,33 +32,16 @@ export const state = {
   stepIndex: 0,
   timer: { seconds: 60, running: false, interval: null },
   theme: 'light',
-  night: {
-    mafiaTarget: null,
-    donCheck: null,
-    whoreTarget: null,
-    doctorTarget: null,
-    sheriffCheck: null,
-    maniacTarget: null,
-    resolved: null,
-    applied: false
-  },
+  night: emptyNight(),
   doctorHistory: [],
   doctorSelfUsed: false,
   whoreHistory: [],
+  nightLog: [],
   dayVoteKilled: null,
   winner: null
 };
 
 export function resetNightSelections() {
-  state.night = {
-    mafiaTarget: null,
-    donCheck: null,
-    whoreTarget: null,
-    doctorTarget: null,
-    sheriffCheck: null,
-    maniacTarget: null,
-    resolved: null,
-    applied: false
-  };
+  state.night = emptyNight();
   state.dayVoteKilled = null;
 }

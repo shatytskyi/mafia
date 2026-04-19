@@ -86,6 +86,7 @@ export const en = {
       blockedConfirm: 'Mafia kills no one',
       label: 'Mafia victim',
       skipLabel: 'Mafia failed to agree',
+      timerLabel: 'Mafia has to pick',
     },
     don: {
       title: 'The Don looks for the Sheriff',
@@ -172,6 +173,7 @@ export const en = {
     voteTimerLabel: "Executed player's last words",
     voteLabel: 'Whom the town executed',
     voteSkipLabel: 'No one leaves',
+    voteRevoteLabel: 'Another round',
   },
 
   home: {
@@ -289,6 +291,25 @@ export const en = {
     finalKicker: 'Finale',
     allParticipants: 'All participants',
     newGame: 'New game',
+    history: {
+      title: 'Night log',
+      nightHeader: 'Night {day}',
+      peaceful: '☾ A quiet night',
+      killed: '✖ Dead: {names}',
+      savedByDoctor: '✚ Doctor saved: {name}',
+      sheriffCheck: '✦ Sheriff → {name}: {verdict}',
+      donCheck: '♛ Don → {name}: {verdict}',
+      mafiaPick: '⚜ Mafia picked: {name}',
+      maniacPick: '☠ Maniac picked: {name}',
+      whoreVisit: '❀ Whore → {name}',
+      whoreDied: '❀ The Whore died at the mafia',
+      whoreSaved: '❀ The Doctor saved the Whore',
+      blocked: '❀ Whore blocked: {list}',
+      sheriffSawMafia: 'mafia',
+      sheriffSawNotMafia: 'not mafia',
+      donSawSheriff: 'Sheriff',
+      donSawNotSheriff: 'not Sheriff',
+    },
     verdict: {
       cityText: 'Town<br>wins',
       citySub: 'The mafia has been cleansed from the town. Justice has prevailed.',
@@ -342,6 +363,7 @@ export const en = {
     minAgo: '{n} min ago',
     hourMinAgo: '{h} h {m} min ago',
     description: '{phase} · Day {day} · Alive {alive}/{total}',
+    descriptionDeal: 'Dealing cards · {current}/{total}',
   },
 
   theme: {

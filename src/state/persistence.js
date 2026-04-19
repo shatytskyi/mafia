@@ -1,9 +1,10 @@
 import { t } from '../i18n/index.js';
+import { emptyNight } from './state.js';
 
 const STORAGE_KEY_GAME = 'mafia.game.v1';
 const STORAGE_KEY_THEME = 'mafia.theme';
 const STORAGE_KEY_LOCALE = 'mafia.locale';
-const SAVE_TTL_MS = 6 * 60 * 60 * 1000;
+const SAVE_TTL_MS = 24 * 60 * 60 * 1000;
 
 /**
  * @param {Storage} [storage]
@@ -75,10 +76,13 @@ export function createPersistence(storage) {
 export function buildSnapshot(state) {
   return {
     ts: Date.now(),
+    screen: state.screen,
     playerCount: state.playerCount,
     optionalRoles: state.optionalRoles,
     gameOptions: state.gameOptions,
     players: state.players,
+    dealIndex: state.dealIndex,
+    dealPhase: state.dealPhase,
     day: state.day,
     phase: state.phase,
     stepIndex: state.stepIndex,
@@ -86,6 +90,7 @@ export function buildSnapshot(state) {
     doctorHistory: state.doctorHistory,
     doctorSelfUsed: state.doctorSelfUsed,
     whoreHistory: state.whoreHistory,
+    nightLog: state.nightLog,
     dayVoteKilled: state.dayVoteKilled,
     winner: state.winner || null
   };
@@ -98,20 +103,25 @@ export function applySnapshotToState(state, data) {
     state.gameOptions = Object.assign({}, state.gameOptions, data.gameOptions);
   }
   state.players = data.players;
+  state.dealIndex = data.dealIndex != null ? data.dealIndex : 0;
+  state.dealPhase = data.dealPhase || 'await';
   state.day = data.day;
   state.phase = data.phase;
   state.stepIndex = data.stepIndex;
-  state.night = data.night || {
-    mafiaTarget: null, donCheck: null, whoreTarget: null,
-    doctorTarget: null, sheriffCheck: null, maniacTarget: null,
-    resolved: null, applied: false
-  };
+  state.night = data.night || emptyNight();
   state.doctorHistory = data.doctorHistory || [];
   state.doctorSelfUsed = !!data.doctorSelfUsed;
   state.whoreHistory = data.whoreHistory || [];
+  state.nightLog = data.nightLog || [];
   state.dayVoteKilled = data.dayVoteKilled != null ? data.dayVoteKilled : null;
   state.winner = data.winner || null;
-  state.screen = state.winner ? 'gameover' : 'host';
+  if (state.winner) {
+    state.screen = 'gameover';
+  } else if (data.screen === 'deal') {
+    state.screen = 'deal';
+  } else {
+    state.screen = 'host';
+  }
 }
 
 export function formatSavedAgo(ts) {
@@ -125,6 +135,12 @@ export function formatSavedAgo(ts) {
 }
 
 export function savedGameDescription(data) {
+  if (data.screen === 'deal') {
+    return t('resume.descriptionDeal', {
+      current: (data.dealIndex || 0) + 1,
+      total: data.players.length
+    });
+  }
   const alive = data.players.filter(p => p.alive).length;
   const phase = t(`phases.${data.phase}`) || '';
   return t('resume.description', { phase, day: data.day, alive, total: data.players.length });

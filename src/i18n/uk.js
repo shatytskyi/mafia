@@ -86,6 +86,7 @@ export const uk = {
       blockedConfirm: 'Мафія нікого не вбиває',
       label: 'Жертва мафії',
       skipLabel: 'Мафія не домовилася',
+      timerLabel: 'Мафії на вибір жертви',
     },
     don: {
       title: 'Дон шукає Шерифа',
@@ -172,6 +173,7 @@ export const uk = {
     voteTimerLabel: 'Останнє слово страченого',
     voteLabel: 'Кого стратило місто',
     voteSkipLabel: 'Ніхто не йде',
+    voteRevoteLabel: 'Ще тур голосування',
   },
 
   home: {
@@ -289,6 +291,25 @@ export const uk = {
     finalKicker: 'Фінал',
     allParticipants: 'Усі учасники',
     newGame: 'Нова гра',
+    history: {
+      title: 'Історія ночей',
+      nightHeader: 'Ніч {day}',
+      peaceful: '☾ Ніч минула спокійно',
+      killed: '✖ Загинули: {names}',
+      savedByDoctor: '✚ Лікар урятував: {name}',
+      sheriffCheck: '✦ Шериф → {name}: {verdict}',
+      donCheck: '♛ Дон → {name}: {verdict}',
+      mafiaPick: '⚜ Мафія обирала: {name}',
+      maniacPick: '☠ Маніяк обирав: {name}',
+      whoreVisit: '❀ Путана → {name}',
+      whoreDied: '❀ Путана загинула в мафії',
+      whoreSaved: '❀ Путану врятував Лікар',
+      blocked: '❀ Путана заблокувала: {list}',
+      sheriffSawMafia: 'мафія',
+      sheriffSawNotMafia: 'не мафія',
+      donSawSheriff: 'Шериф',
+      donSawNotSheriff: 'не Шериф',
+    },
     verdict: {
       cityText: 'Місто<br>перемогло',
       citySub: 'Мафію вичищено з міста. Справедливість перемогла.',
@@ -342,6 +363,7 @@ export const uk = {
     minAgo: '{n} хв тому',
     hourMinAgo: '{h} год {m} хв тому',
     description: '{phase} · День {day} · Живих {alive}/{total}',
+    descriptionDeal: 'Роздача карт · {current}/{total}',
   },
 
   theme: {
