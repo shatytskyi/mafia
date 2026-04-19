@@ -1,5 +1,8 @@
   /* === СВЕТЛАЯ ТЕМА (по умолчанию) === */
   :root {
+    /* Signal to the browser which schemes we support — affects system
+       chrome like the Android nav bar when running as a PWA. */
+    color-scheme: light;
     --bg: #f2ead5;            /* кремовая бумага */
     --bg-2: #e8dec5;          /* чуть темнее для карточек */
     --bg-3: #dccfb0;          /* рамки, разделители */
@@ -43,6 +46,7 @@
 
   /* === ТЁМНАЯ ТЕМА === */
   :root[data-theme="dark"] {
+    color-scheme: dark;
     --bg: #0a0807;
     --bg-2: #141110;
     --bg-3: #1e1a17;
