@@ -260,6 +260,8 @@ export const uk = {
     playerKicker: 'Гравець · {num} / {total}',
     passHint: 'передай телефон цьому гравцю',
     revealBtn: 'Показати<br>роль',
+    backKicker: 'Твоя роль',
+    backHint: 'натисни, щоб відкрити',
     instruction: 'Переконайся, що ніхто<br>не заглядає тобі через&nbsp;плече',
     teamLabel: 'Твої поплічники',
     nextBtn: 'Запам’ятав, передаю далі →',

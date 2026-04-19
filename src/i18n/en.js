@@ -260,6 +260,8 @@ export const en = {
     playerKicker: 'Player · {num} / {total}',
     passHint: 'hand the phone to this player',
     revealBtn: 'Reveal<br>role',
+    backKicker: 'Your role',
+    backHint: 'tap to reveal',
     instruction: 'Make sure no one<br>is looking over&nbsp;your shoulder',
     teamLabel: 'Your accomplices',
     nextBtn: 'Got it, passing on →',

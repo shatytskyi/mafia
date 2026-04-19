@@ -37,62 +37,79 @@ export function renderDeal({ render }) {
     return;
   }
 
-  if (state.dealPhase === 'await') {
-    app.innerHTML = `
-      <div class="deal-screen screen">
-        <div class="player-num">${t('deal.playerKicker', { num, total })}</div>
-        <div class="player-name-big">${escapeHtml(player.name)}</div>
-        <div class="passing-hint">${t('deal.passHint')}</div>
-
-        <button class="reveal-btn" id="revealBtn">
-          <span>${t('deal.revealBtn')}</span>
-        </button>
-
-        <p class="instruction">${t('deal.instruction')}</p>
+  // Both await + shown render the same flip-card layout so the flip animation
+  // can play in place without a re-render. Phase decides whether the flipper
+  // starts face-down (await) or already face-up (shown — e.g. after refresh).
+  const role = ROLES[player.role];
+  const isMafiaTeam = player.role === 'mafia' || player.role === 'don';
+  const mafiaTeamHtml = isMafiaTeam && getMafiaNames(state.players).length > 1
+    ? `
+      <div class="team-list">
+        <div class="t-label">${t('deal.teamLabel')}</div>
+        <div class="team-names">${getMafiaNames(state.players).filter(n => n !== player.name).map(escapeHtml).join(' · ')}</div>
       </div>
-    `;
-    document.getElementById('revealBtn').onclick = () => {
+    ` : '';
+
+  const alreadyFlipped = state.dealPhase === 'shown';
+
+  app.innerHTML = `
+    <div class="deal-screen screen${alreadyFlipped ? ' revealed' : ''}">
+      <div class="player-num">${t('deal.playerKicker', { num, total })}</div>
+      <div class="player-name-big">${escapeHtml(player.name)}</div>
+      <div class="passing-hint">${t('deal.passHint')}</div>
+
+      <div class="role-card-stage">
+        <div class="role-card-flipper${alreadyFlipped ? ' flipped' : ''}" id="cardFlipper"
+             role="button" tabindex="0" aria-label="${t('deal.backHint')}">
+          <div class="role-card role-card-front">
+            <div class="kicker">${escapeHtml(player.name)}</div>
+            <div class="role-emblem">${role.emblem}</div>
+            <div class="role-title">${getRoleName(player.role)}</div>
+            <div class="role-side">${getRoleSide(player.role)}</div>
+            <div class="divider"></div>
+            <div class="role-desc">${getRoleDesc(player.role, state.gameOptions)}</div>
+            ${mafiaTeamHtml}
+          </div>
+          <div class="role-card-back" aria-hidden="true">
+            <div class="card-back-kicker">${t('deal.backKicker')}</div>
+            <div class="card-back-divider"></div>
+            <div class="card-back-hint">${t('deal.backHint')}</div>
+          </div>
+        </div>
+      </div>
+
+      <p class="instruction">${t('deal.instruction')}</p>
+
+      <button class="btn-primary" id="doneBtn" style="max-width: 380px;">
+        ${state.dealIndex < state.playerCount - 1 ? t('deal.nextBtn') : t('deal.lastBtn')}
+      </button>
+    </div>
+  `;
+
+  const screen = document.querySelector('.deal-screen');
+  const flipper = document.getElementById('cardFlipper');
+
+  if (!alreadyFlipped) {
+    const flip = () => {
+      if (flipper.classList.contains('flipped')) return;
       state.dealPhase = 'shown';
-      render();
+      flipper.classList.add('flipped');
+      screen.classList.add('revealed');
     };
-  } else {
-    const role = ROLES[player.role];
-    const isMafiaTeam = player.role === 'mafia' || player.role === 'don';
-    const mafiaTeamHtml = isMafiaTeam && getMafiaNames(state.players).length > 1
-      ? `
-        <div class="team-list">
-          <div class="t-label">${t('deal.teamLabel')}</div>
-          <div class="team-names">${getMafiaNames(state.players).filter(n => n !== player.name).map(escapeHtml).join(' · ')}</div>
-        </div>
-      ` : '';
-
-    app.innerHTML = `
-      <div class="deal-screen screen">
-        <div class="role-card">
-          <div class="kicker">${escapeHtml(player.name)}</div>
-          <div class="role-emblem">${role.emblem}</div>
-          <div class="role-title">${getRoleName(player.role)}</div>
-          <div class="role-side">${getRoleSide(player.role)}</div>
-          <div class="divider"></div>
-          <div class="role-desc">${getRoleDesc(player.role, state.gameOptions)}</div>
-          ${mafiaTeamHtml}
-        </div>
-
-        <button class="btn-primary" id="doneBtn" style="max-width: 380px;">
-          ${state.dealIndex < state.playerCount - 1 ? t('deal.nextBtn') : t('deal.lastBtn')}
-        </button>
-      </div>
-    `;
-
-    document.getElementById('doneBtn').onclick = () => {
-      if (state.dealIndex < state.playerCount - 1) {
-        state.dealIndex++;
-        state.dealPhase = 'await';
-        render();
-      } else {
-        state.dealPhase = 'handoff';
-        render();
-      }
-    };
+    flipper.addEventListener('click', flip);
+    flipper.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); flip(); }
+    });
   }
+
+  document.getElementById('doneBtn').onclick = () => {
+    if (state.dealIndex < state.playerCount - 1) {
+      state.dealIndex++;
+      state.dealPhase = 'await';
+      render();
+    } else {
+      state.dealPhase = 'handoff';
+      render();
+    }
+  };
 }

@@ -937,90 +937,94 @@
   }
 
   /* === ROLE REVEAL ===
-     All team accents share a single burgundy glow (--team-glow).
-     Animations avoid animated filter() and letter-spacing — only
-     opacity + transform run per frame, promoted to GPU layers. */
-  .role-card {
+     The card lives in a 3D flip stage. Back is shown initially; tapping
+     it flips the flipper to expose the front. Staggered child reveals
+     are bound to `.flipped` so they only run in sync with the flip
+     (not on initial mount). All team accents share a single burgundy
+     --team-glow. Only opacity + transform animate per frame. */
+
+  .role-card-stage {
     --team-glow: #9b2d2d;
     --team-glow-soft: rgba(155, 45, 45, 0.28);
-    animation: cardReveal 0.85s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    --card-drop: 0 20px 60px rgba(0,0,0,0.4), 0 0 120px var(--team-glow-soft);
+    position: relative;
     width: 100%;
-    max-width: 380px;
+    max-width: 320px;
+    margin-bottom: 28px;
+    perspective: 1400px;
+    perspective-origin: center 40%;
+    animation: stageEnter 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  @keyframes stageEnter {
+    from { opacity: 0; transform: translate3d(0, 14px, 0) scale(0.97); }
+    to   { opacity: 1; transform: translate3d(0, 0, 0)    scale(1); }
+  }
+
+  .role-card-flipper {
+    position: relative;
+    width: 100%;
+    transform-style: preserve-3d;
+    transform: rotateY(180deg);
+    transition: transform 0.8s cubic-bezier(0.4, 0.05, 0.2, 1);
+    will-change: transform;
+    cursor: pointer;
+  }
+
+  .role-card-flipper.flipped {
+    transform: rotateY(0);
+    cursor: default;
+  }
+
+  /* Both faces share the panel shell (background gradient, padding,
+     position) so the flip swaps like-for-like. Only the front uses
+     aspect-ratio so it seeds the flipper's height to a poker-card
+     proportion (5:7, a touch narrower than a real poker card).
+     Drop-shadow lives on the faces (not the stage) so it rotates with
+     the card during the flip — otherwise the stage leaves a visible
+     rectangular halo "cut out" of the page when the card is edge-on. */
+  .role-card,
+  .role-card-back {
     background: linear-gradient(to bottom, var(--card-bg-start), var(--card-bg-end));
     color: var(--card-text);
-    padding: 40px 32px;
+    padding: 36px 28px;
     position: relative;
-    margin-bottom: 32px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 120px var(--team-glow-soft);
-    transform-origin: center center;
-    transform: translateZ(0);
     backface-visibility: hidden;
-    will-change: transform, opacity;
+    -webkit-backface-visibility: hidden;
+    box-shadow: var(--card-drop);
+  }
+
+  .role-card {
+    aspect-ratio: 5 / 7;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transform: translateZ(0);
     contain: layout paint;
   }
 
-  @keyframes cardReveal {
-    0%   { opacity: 0; transform: perspective(900px) rotateX(14deg) translate3d(0, 14px, 0) scale(0.94); }
-    60%  { opacity: 1; }
-    100% { opacity: 1; transform: perspective(900px) rotateX(0) translate3d(0, 0, 0) scale(1); }
+  .role-card-back {
+    position: absolute;
+    inset: 0;
+    transform: rotateY(180deg);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    user-select: none;
+    /* Textured lattice + central vignette — draws eye to the middle
+       and reads as a patterned card back, not an emblem. */
+    background-image:
+      radial-gradient(ellipse 80% 65% at center, rgba(155, 45, 45, 0.22), transparent 75%),
+      repeating-linear-gradient(45deg,
+        rgba(155, 45, 45, 0.10) 0 1px, transparent 1px 12px),
+      repeating-linear-gradient(-45deg,
+        rgba(155, 45, 45, 0.10) 0 1px, transparent 1px 12px),
+      linear-gradient(to bottom, var(--card-bg-start), var(--card-bg-end));
   }
 
-  /* Staggered child reveal — theatrical, total ~3s */
-  .role-card > * {
-    animation: roleChildFade 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-    will-change: transform, opacity;
-  }
-  .role-card .kicker     { animation-delay: 0.55s; }
-  .role-card .role-side  { animation-delay: 1.9s; }
-  .role-card .role-desc  { animation-delay: 2.35s; }
-  .role-card .team-list  { animation-delay: 2.65s; }
-
-  .role-card .role-emblem {
-    animation: emblemBurst 1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.85s both;
-  }
-  .role-card .role-title {
-    animation: titleReveal 0.75s cubic-bezier(0.2, 0.8, 0.2, 1) 1.35s both;
-  }
-  .role-card .divider {
-    animation: dividerExpand 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) 2.05s both;
-    transform-origin: center;
-  }
-
-  @keyframes roleChildFade {
-    from { opacity: 0; transform: translate3d(0, 6px, 0); }
-    to   { opacity: 1; transform: translate3d(0, 0, 0); }
-  }
-
-  /* Emblem: only opacity + transform animate; the glow filter is static
-     on the element so the browser can cache the painted layer. */
-  @keyframes emblemBurst {
-    0%   { opacity: 0; transform: translate3d(0,0,0) scale(0.45); }
-    55%  { opacity: 1; transform: translate3d(0,0,0) scale(1.25); }
-    78%  { transform: translate3d(0,0,0) scale(0.96); }
-    100% { opacity: 1; transform: translate3d(0,0,0) scale(1); }
-  }
-
-  @keyframes titleReveal {
-    0%   { opacity: 0; transform: translate3d(0, 6px, 0) scale(0.94); }
-    100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
-  }
-
-  @keyframes dividerExpand {
-    from { transform: scaleX(0); opacity: 0; }
-    to   { transform: scaleX(1); opacity: 0.3; }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .role-card,
-    .role-card > *,
-    .role-card .role-emblem,
-    .role-card .role-title,
-    .role-card .divider {
-      animation: none !important;
-      will-change: auto;
-    }
-  }
-
+  /* Front: L-bracket corner marks (existing look) */
   .role-card::before, .role-card::after {
     content: '';
     position: absolute;
@@ -1029,7 +1033,120 @@
     border: 2px solid var(--card-accent);
   }
   .role-card::before { top: 12px; left: 12px; border-right: none; border-bottom: none; }
-  .role-card::after { bottom: 12px; right: 12px; border-left: none; border-top: none; }
+  .role-card::after  { bottom: 12px; right: 12px; border-left: none; border-top: none; }
+
+  /* Back: nested rectangular frames — inner frame pulses as the tap cue */
+  .role-card-back::before,
+  .role-card-back::after {
+    content: '';
+    position: absolute;
+    border: 1px solid var(--card-accent);
+    pointer-events: none;
+  }
+  .role-card-back::after  { inset: 10px; opacity: 0.18; }
+  .role-card-back::before {
+    inset: 18px;
+    opacity: 0.4;
+    animation: backFramePulse 2.2s ease-in-out infinite;
+  }
+
+  @keyframes backFramePulse {
+    0%, 100% { opacity: 0.3;  box-shadow: 0 0 0 transparent; }
+    50%      { opacity: 0.55; box-shadow: 0 0 18px rgba(155, 45, 45, 0.35); }
+  }
+
+  /* --- Back face content --- */
+  .card-back-kicker {
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    color: var(--card-accent);
+    margin-bottom: 4px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .card-back-divider {
+    width: 120px;
+    height: 1px;
+    background: linear-gradient(to right,
+      transparent 0%, var(--card-accent) 18%,
+      var(--card-accent) 82%, transparent 100%);
+    opacity: 0.55;
+    margin: 14px 0 18px;
+    position: relative;
+    z-index: 1;
+  }
+  .card-back-divider::before,
+  .card-back-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 5px;
+    height: 5px;
+    background: var(--card-accent);
+    transform: translateY(-50%) rotate(45deg);
+  }
+  .card-back-divider::before { left: -2px; }
+  .card-back-divider::after  { right: -2px; }
+
+  .card-back-hint {
+    font-family: var(--font-italic);
+    font-style: italic;
+    color: var(--card-accent);
+    font-size: 14px;
+    letter-spacing: 0.04em;
+    opacity: 0.85;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* --- Deal-screen orchestration around the flip ---
+     Front-side content is just there — no staggered reveal. The flip's
+     backface-visibility hides the front until it rotates into view,
+     then everything is simply visible. Above-card hints fade on reveal;
+     the continue button fades in once the flip completes. */
+  .deal-screen .player-num,
+  .deal-screen .player-name-big,
+  .deal-screen .passing-hint,
+  .deal-screen .instruction {
+    transition: opacity 0.4s ease;
+  }
+  .deal-screen.revealed .player-num,
+  .deal-screen.revealed .player-name-big,
+  .deal-screen.revealed .passing-hint,
+  .deal-screen.revealed .instruction {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .deal-screen #doneBtn {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+  }
+  .deal-screen.revealed #doneBtn {
+    opacity: 1;
+    pointer-events: auto;
+    transition-delay: 0.85s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .role-card-stage,
+    .role-card-back::before {
+      animation: none !important;
+      will-change: auto;
+    }
+    .role-card-flipper { transition: none !important; }
+    .deal-screen .player-num,
+    .deal-screen .player-name-big,
+    .deal-screen .passing-hint,
+    .deal-screen .instruction,
+    .deal-screen #doneBtn {
+      transition: none !important;
+    }
+  }
 
   .role-card .kicker {
     font-family: 'Oswald', sans-serif;
