@@ -31,15 +31,14 @@ function clearSavedGame() { persistence.clearSnapshot(); }
 function restoreGame(data) { applySnapshotToState(state, data); }
 
 const render = createRender({
-  beforeRender: saveGame,
-  afterRender: () => { if (state.screen === 'home') clearSavedGame(); }
+  beforeRender: saveGame
 });
 
 registerScreen('home',     () => renderHome({ render, loadGame, clearSavedGame, restoreGame }));
 registerScreen('names',    () => renderNames({ render }));
 registerScreen('deal',     () => renderDeal({ render }));
 registerScreen('host',     () => renderHost({ render, clearSavedGame }));
-registerScreen('gameover', () => renderGameOver({ render }));
+registerScreen('gameover', () => renderGameOver({ render, clearSavedGame }));
 registerScreen('rules',    () => renderRules({ render }));
 
 loadTheme();

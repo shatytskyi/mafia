@@ -2,7 +2,7 @@ import { state, resetNightSelections } from '../../state/state.js';
 import { ROLES } from '../../core/roles.js';
 import { escapeHtml } from '../html.js';
 
-export function renderGameOver({ render }) {
+export function renderGameOver({ render, clearSavedGame }) {
   const app = document.getElementById('app');
 
   const verdict = {
@@ -39,6 +39,7 @@ export function renderGameOver({ render }) {
   `;
 
   document.getElementById('newGame').onclick = () => {
+    if (clearSavedGame) clearSavedGame();
     state.screen = 'home';
     state.day = 1;
     state.phase = 'night';
