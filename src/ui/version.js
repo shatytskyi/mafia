@@ -1,6 +1,6 @@
 // Semantic version shown at the very bottom of the page.
 // Bump in lockstep with package.json: PATCH = fix, MINOR = feature, MAJOR = breaking.
-export const APP_VERSION = '1.9.0';
+export const APP_VERSION = '1.9.1';
 
 export function initVersionFooter() {
   const el = document.createElement('div');
