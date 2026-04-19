@@ -1,5 +1,6 @@
 import { shuffle } from './core/shuffle.js';
 import { ROLES, isMafiaRole, getRole, getMafiaNames } from './core/roles.js';
+import { calcRoleDistribution, canEnableRole, isRoleEffective, dealRoles } from './core/distribution.js';
 
 // ============================================================
 // STATE
@@ -209,91 +210,6 @@ function savedGameDescription(data) {
 // HELPERS
 // ============================================================
 
-// Минимум мирных, который мы гарантируем.
-// Игра должна быть интересной — нужно минимум 2 мирных, чтобы было за кого говорить.
-const MIN_CIVILIANS = 2;
-
-function calcRoleDistribution() {
-  const n = state.playerCount;
-
-  // Классика: мафия ≈ 1/3 от стола, округлено вниз, минимум 1.
-  // При 4 — 1, при 5–7 — 2 (но минимум 1 из формулы даст 1-2, так что корректируем).
-  let totalMafiaSide = Math.max(1, Math.floor(n / 3));
-  // При 4-5 игроках — только 1 мафия, иначе слишком жёстко.
-  if (n <= 5) totalMafiaSide = 1;
-
-  // Don — один из рядов мафии (не добавочный). Только если в мафии ≥ 2 человек.
-  let donCount = (state.optionalRoles.don && totalMafiaSide >= 2) ? 1 : 0;
-  let mafiaCount = totalMafiaSide - donCount;
-
-  const sheriffCount = 1;
-  let doctorCount = state.optionalRoles.doctor ? 1 : 0;
-  let maniacCount = (state.optionalRoles.maniac && n >= 8) ? 1 : 0;
-  let whoreCount = (state.optionalRoles.whore && n >= 8) ? 1 : 0;
-
-  // Проверяем, что мирных останется хотя бы MIN_CIVILIANS.
-  // Если не хватает — последовательно срезаем опциональные роли.
-  // Приоритет сохранения: Дон > Доктор > Маньяк > Путана.
-  const checkCivilians = () => n - (mafiaCount + donCount + sheriffCount + doctorCount + maniacCount + whoreCount);
-  while (checkCivilians() < MIN_CIVILIANS) {
-    if (whoreCount > 0) { whoreCount = 0; continue; }
-    if (maniacCount > 0) { maniacCount = 0; continue; }
-    if (doctorCount > 0) { doctorCount = 0; continue; }
-    if (donCount > 0) { donCount = 0; mafiaCount = totalMafiaSide; continue; }
-    // Если даже без опциональных ролей мирных не хватает — уменьшаем мафию до 1.
-    if (mafiaCount > 1) { mafiaCount--; continue; }
-    break; // крайний случай — что есть, то есть
-  }
-
-  const civilianCount = Math.max(0, checkCivilians());
-
-  return {
-    mafia: mafiaCount,
-    don: donCount,
-    sheriff: sheriffCount,
-    doctor: doctorCount,
-    maniac: maniacCount,
-    whore: whoreCount,
-    civilian: civilianCount,
-    totalMafiaSide: mafiaCount + donCount
-  };
-}
-
-// Проверяет, можно ли включить опциональную роль при текущих настройках
-// (учитывая не только число игроков, но и другие выбранные роли).
-function canEnableRole(roleId) {
-  const n = state.playerCount;
-  if (roleId === 'don') return n >= 6;
-  if (roleId === 'maniac') return n >= 8;
-  if (roleId === 'whore') return n >= 8;
-  return true;
-}
-
-// Проверяет, будет ли роль реально выдана при текущих настройках —
-// т.е. её не вытеснит балансировщик.
-function isRoleEffective(roleId) {
-  const dist = calcRoleDistribution();
-  return dist[roleId] > 0;
-}
-
-function dealRoles() {
-  const dist = calcRoleDistribution();
-  const pool = [];
-  for (let i = 0; i < dist.mafia; i++) pool.push('mafia');
-  for (let i = 0; i < dist.don; i++) pool.push('don');
-  for (let i = 0; i < dist.sheriff; i++) pool.push('sheriff');
-  for (let i = 0; i < dist.doctor; i++) pool.push('doctor');
-  for (let i = 0; i < dist.maniac; i++) pool.push('maniac');
-  for (let i = 0; i < dist.whore; i++) pool.push('whore');
-  for (let i = 0; i < dist.civilian; i++) pool.push('civilian');
-
-  const shuffled = shuffle(pool);
-  state.players = state.players.map((p, i) => ({
-    ...p,
-    role: shuffled[i],
-    alive: true
-  }));
-}
 
 let _lastScreen = null;
 let _lastDealKey = null;
@@ -341,7 +257,7 @@ function updateThemeIcon() {
 // HOME SCREEN
 // ============================================================
 function renderHome() {
-  const dist = calcRoleDistribution();
+  const dist = calcRoleDistribution({ playerCount: state.playerCount, optionalRoles: state.optionalRoles });
   const app = document.getElementById('app');
   const saved = loadGame();
 
@@ -500,7 +416,7 @@ function renderHome() {
     const head = el.querySelector('.role-toggle-head');
     if (head) {
       head.onclick = () => {
-        if (!canEnableRole(id)) return;
+        if (!canEnableRole(id, state.playerCount)) return;
         state.optionalRoles[id] = !state.optionalRoles[id];
         render();
       };
@@ -532,9 +448,9 @@ function renderHome() {
 
 function renderRoleToggle(id, name, desc) {
   const active = state.optionalRoles[id];
-  const allowed = canEnableRole(id);
+  const allowed = canEnableRole(id, state.playerCount);
   // Роль включена пользователем, но балансировщик её срезал (мало места для мирных)
-  const squeezed = active && allowed && !isRoleEffective(id);
+  const squeezed = active && allowed && !isRoleEffective(id, { playerCount: state.playerCount, optionalRoles: state.optionalRoles });
 
   // Подопции для роли (показываются когда роль активна)
   let subOptions = '';
@@ -583,9 +499,9 @@ function renderRoleToggle(id, name, desc) {
 
 // Автоматически выключает роли, которые нельзя применить при текущем числе игроков.
 function validateRoles() {
-  if (!canEnableRole('don')) state.optionalRoles.don = false;
-  if (!canEnableRole('maniac')) state.optionalRoles.maniac = false;
-  if (!canEnableRole('whore')) state.optionalRoles.whore = false;
+  if (!canEnableRole('don', state.playerCount)) state.optionalRoles.don = false;
+  if (!canEnableRole('maniac', state.playerCount)) state.optionalRoles.maniac = false;
+  if (!canEnableRole('whore', state.playerCount)) state.optionalRoles.whore = false;
 }
 
 // ============================================================
@@ -644,7 +560,10 @@ function renderNames() {
     state.players.forEach((p, i) => {
       if (!p.name.trim()) p.name = `Игрок ${i+1}`;
     });
-    dealRoles();
+    state.players = dealRoles(state.players, {
+      playerCount: state.playerCount,
+      optionalRoles: state.optionalRoles
+    });
     state.dealIndex = 0;
     state.dealPhase = 'await';
     state.screen = 'deal';
