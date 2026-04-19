@@ -12,6 +12,7 @@ import { applyTheme, bindThemeToggle, onThemeChange, updateThemeIcon } from './u
 import { createRender, registerScreen } from './ui/render.js';
 import { renderHome } from './ui/screens/home.js';
 import { renderNames } from './ui/screens/names.js';
+import { renderDeal } from './ui/screens/deal.js';
 
 const persistence = createPersistence();
 
@@ -54,93 +55,10 @@ const render = createRender({
 
 registerScreen('home', () => renderHome({ render, loadGame, clearSavedGame, restoreGame }));
 registerScreen('names', () => renderNames({ render }));
-registerScreen('deal', renderDeal);
+registerScreen('deal', () => renderDeal({ render }));
 registerScreen('host', renderHost);
 registerScreen('gameover', renderGameOver);
 registerScreen('rules', renderRules);
-
-// ============================================================
-// ROLE DEAL SCREEN
-// ============================================================
-function renderDeal() {
-  const app = document.getElementById('app');
-  const player = state.players[state.dealIndex];
-  const num = String(state.dealIndex + 1).padStart(2, '0');
-  const total = String(state.playerCount).padStart(2, '0');
-
-  if (state.dealPhase === 'await') {
-    app.innerHTML = `
-      <div class="deal-screen screen">
-        <div class="player-num">Игрок · ${num} / ${total}</div>
-        <div class="player-name-big">${player.name}</div>
-        <div class="passing-hint">передай телефон этому игроку</div>
-
-        <button class="reveal-btn" id="revealBtn">
-          <span>Показать<br>роль</span>
-        </button>
-
-        <p class="instruction">
-          Убедись, что никто<br>
-          не подглядывает за&nbsp;твоим плечом
-        </p>
-      </div>
-    `;
-
-    document.getElementById('revealBtn').onclick = () => {
-      state.dealPhase = 'shown';
-      render();
-    };
-  } else {
-    // Shown phase - display the role
-    const role = ROLES[player.role];
-    const isMafiaTeam = player.role === 'mafia' || player.role === 'don';
-    const mafiaTeamHtml = isMafiaTeam && getMafiaNames(state.players).length > 1
-      ? `
-        <div class="team-list">
-          <div class="t-label">Твои подельники</div>
-          <div class="team-names">${getMafiaNames(state.players).filter(n => n !== player.name).join(' · ')}</div>
-        </div>
-      ` : '';
-
-    app.innerHTML = `
-      <div class="deal-screen screen">
-        <div class="role-card">
-          <div class="kicker">${player.name}</div>
-          <div class="role-emblem">${role.emblem}</div>
-          <div class="role-title">${role.name}</div>
-          <div class="role-side">${role.side}</div>
-          <div class="divider"></div>
-          <div class="role-desc">${role.desc}</div>
-          ${mafiaTeamHtml}
-        </div>
-
-        <button class="btn-primary" id="doneBtn" style="max-width: 380px;">
-          ${state.dealIndex < state.playerCount - 1 ? 'Запомнил, передаю дальше →' : 'Начать игру →'}
-        </button>
-      </div>
-    `;
-
-    document.getElementById('doneBtn').onclick = () => {
-      if (state.dealIndex < state.playerCount - 1) {
-        state.dealIndex++;
-        state.dealPhase = 'await';
-        render();
-      } else {
-        // All dealt — go to host screen
-        state.screen = 'host';
-        state.day = 1;
-        state.phase = 'night';
-        state.stepIndex = 0;
-        // Сбрасываем историю и ночные выборы
-        state.doctorHistory = [];
-        state.doctorSelfUsed = false;
-        state.whoreHistory = [];
-        resetNightSelections();
-        render();
-      }
-    };
-  }
-}
 
 // ============================================================
 // HOST SCREEN
