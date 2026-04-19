@@ -211,54 +211,55 @@ function renderPickKilled(action) {
   `;
 }
 
+/**
+ * Private debrief card rendered below the dawn "host says" block. Only
+ * host-eyes-only information lives here (doctor save target, sheriff/don
+ * verdicts, veteran action details, whore fate annotations, whore blocks).
+ * The publicly-announceable part (who died / peaceful) is baked into the
+ * dawn step's `say` by `buildDawnSay`. If there is nothing private to show,
+ * the card is omitted entirely.
+ */
 function renderResolveNight() {
   const r = state.night.resolved;
   if (!r) return '';
 
-  let html = `<div class="step-card action-card resolve-card"><div class="step-title">${t('actions.resolveTitle')}</div>`;
-
-  if (r.killed.length === 0) {
-    html += `<div class="resolve-line resolve-peaceful">${t('actions.resolvePeaceful')}</div>`;
-  } else {
-    const names = r.killed.map(i => escapeHtml(state.players[i].name)).join(', ');
-    html += `<div class="resolve-line resolve-death">${t('actions.resolveDeaths', { names })}</div>`;
-  }
+  const lines = [];
 
   if (r.savedByDoctor != null) {
     const name = escapeHtml(state.players[r.savedByDoctor].name);
-    html += `<div class="resolve-line resolve-saved">${t('actions.resolveSaved', { name })}</div>`;
+    lines.push(`<div class="resolve-line resolve-saved">${t('actions.resolveSaved', { name })}</div>`);
   }
 
   if (r.whoreDied) {
     if (r.whoreSavedByDoctor) {
-      html += `<div class="resolve-line resolve-saved">${t('actions.resolveWhoreSaved')}</div>`;
+      lines.push(`<div class="resolve-line resolve-saved">${t('actions.resolveWhoreSaved')}</div>`);
     } else {
-      html += `<div class="resolve-line resolve-note">${t('actions.resolveWhoreDied')}</div>`;
+      lines.push(`<div class="resolve-line resolve-note">${t('actions.resolveWhoreDied')}</div>`);
     }
   } else if (r.whoreAtMafia) {
-    html += `<div class="resolve-line resolve-note">${t('actions.resolveWhoreAtMafia')}</div>`;
+    lines.push(`<div class="resolve-line resolve-note">${t('actions.resolveWhoreAtMafia')}</div>`);
   }
 
   if (r.sheriffResult) {
     const name = escapeHtml(state.players[state.night.sheriffCheck].name);
     const verdict = r.sheriffResult === 'mafia' ? t('actions.sheriffSawMafia') : t('actions.sheriffSawNotMafia');
-    html += `<div class="resolve-line resolve-info">${t('actions.resolveSheriff', { name, verdict })}</div>`;
+    lines.push(`<div class="resolve-line resolve-info">${t('actions.resolveSheriff', { name, verdict })}</div>`);
   }
   if (r.donResult) {
     const name = escapeHtml(state.players[state.night.donCheck].name);
     const verdict = r.donResult === 'sheriff' ? t('actions.donSawSheriff') : t('actions.donSawNotSheriff');
-    html += `<div class="resolve-line resolve-info">${t('actions.resolveDon', { name, verdict })}</div>`;
+    lines.push(`<div class="resolve-line resolve-info">${t('actions.resolveDon', { name, verdict })}</div>`);
   }
 
   if (r.veteranSaved != null) {
     const name = escapeHtml(state.players[r.veteranSaved].name);
-    html += `<div class="resolve-line resolve-saved">${t('actions.resolveVeteranSave', { name })}</div>`;
+    lines.push(`<div class="resolve-line resolve-saved">${t('actions.resolveVeteranSave', { name })}</div>`);
   }
   if (r.veteranKill != null) {
     const name = escapeHtml(state.players[r.veteranKill].name);
-    html += `<div class="resolve-line resolve-death">${t('actions.resolveVeteranKill', { name })}</div>`;
+    lines.push(`<div class="resolve-line resolve-death">${t('actions.resolveVeteranKill', { name })}</div>`);
     if (state.players[r.veteranKill]?.role === 'maniac') {
-      html += `<div class="resolve-line resolve-note">${t('actions.resolveVeteranPreempt')}</div>`;
+      lines.push(`<div class="resolve-line resolve-note">${t('actions.resolveVeteranPreempt')}</div>`);
     }
   }
 
@@ -269,12 +270,18 @@ function renderResolveNight() {
   if (r.blocked.sheriff) blocked.push(t('roles.sheriff.name'));
   if (r.blocked.veteran) blocked.push(t('roles.veteran.name'));
   if (blocked.length > 0) {
-    html += `<div class="resolve-line resolve-note">${t('actions.resolveBlocked', { list: blocked.join(', ') })}</div>`;
+    lines.push(`<div class="resolve-line resolve-note">${t('actions.resolveBlocked', { list: blocked.join(', ') })}</div>`);
   }
 
-  html += `<div class="resolve-hint">${t('actions.resolveHint')}</div>`;
-  html += '</div>';
-  return html;
+  if (lines.length === 0) return '';
+
+  return `
+    <div class="step-card action-card resolve-card">
+      <div class="step-title">${t('actions.resolveTitle')}</div>
+      <div class="resolve-subtitle">${t('actions.resolveSubtitle')}</div>
+      ${lines.join('')}
+    </div>
+  `;
 }
 
 export function bindActionHandlers(step, render) {

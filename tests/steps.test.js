@@ -97,7 +97,7 @@ test('dawn resolveNight step is always last', () => {
   assert.equal(last.action?.type, 'resolveNight');
 });
 
-test('peaceful day has no last-word timer; first-day morning uses a special title', () => {
+test('peaceful day skips the last-word step and goes straight to discussion', () => {
   const s = stateWith({
     day: 1,
     night: {
@@ -106,11 +106,12 @@ test('peaceful day has no last-word timer; first-day morning uses a special titl
     },
   });
   const steps = getDaySteps(s);
-  assert.equal(steps[0].timerSeconds, null);
-  assert.ok(steps[0].summary.length > 0);
+  assert.equal(steps.length, 2, 'peaceful day has only discussion + nomination');
+  assert.ok(/обсу/i.test(steps[0].title) || /discuss/i.test(steps[0].title) || /обгов/i.test(steps[0].title),
+    'first step on a peaceful day is discussion');
 });
 
-test('day with a kill carries a last-word timer and a deaths summary', () => {
+test('day with a kill carries a last-word timer and names the deceased in `say`', () => {
   const s = stateWith({
     night: {
       ...stateWith().night,
@@ -119,7 +120,8 @@ test('day with a kill carries a last-word timer and a deaths summary', () => {
   });
   const steps = getDaySteps(s);
   assert.equal(steps[0].timerSeconds, 30);
-  assert.match(steps[0].summary, /E/);
+  assert.match(steps[0].say, /E/, '`say` references the deceased name');
+  assert.equal(steps[0].summary, undefined, 'no private `summary` is emitted — private info lives on the dawn resolve card');
 });
 
 test('vote step is a single pickKilled with revote + skip affordances', () => {

@@ -28,6 +28,43 @@ import { t } from '../i18n/index.js';
  */
 
 /**
+ * Build the public "host says" script for the dawn step. Combines the wake-up
+ * cue with the announceable result (who died / peaceful night), mirroring the
+ * day-victims script. Private details (sheriff/don verdicts, doctor save,
+ * veteran action, whore fate, blocks) stay in `renderResolveNight`.
+ *
+ * @param {import('../types.js').AppState} state
+ * @param {boolean} isFirstNight
+ * @returns {string} HTML-safe say text (uses <br> for line breaks)
+ */
+function buildDawnSay(state, isFirstNight) {
+  const wakeUp = t('steps.dawn.say');
+  const resolved = state.night.resolved;
+  if (!resolved) return wakeUp;
+
+  const killed = resolved.killed || [];
+  let announcement;
+  if (killed.length === 0) {
+    announcement = isFirstNight
+      ? t('steps.victimsPeacefulFirst')
+      : t('steps.victimsPeacefulLater', { day: state.day });
+  } else {
+    const names = killed.map(idx => state.players[idx].name).join(', ');
+    const plural = killed.length > 1;
+    if (isFirstNight) {
+      announcement = plural
+        ? t('steps.victimsDeathFirstMany', { names })
+        : t('steps.victimsDeathFirstOne', { names });
+    } else {
+      announcement = plural
+        ? t('steps.victimsDeathLaterMany', { names, day: state.day })
+        : t('steps.victimsDeathLaterOne', { names, day: state.day });
+    }
+  }
+  return `${wakeUp}<br><br>${announcement}`;
+}
+
+/**
  * @param {import('../types.js').AppState} state
  * @returns {Step[]}
  */
@@ -317,11 +354,13 @@ export function getNightSteps(state) {
     }
   }
 
-  // Merged: resolve summary + "city wakes up" announcement. The summary card is
-  // rendered by renderAction; applyNightResolution runs on Next click.
+  // Merged: resolve summary + "city wakes up" announcement. The top `say` card
+  // carries the publicly-announceable script (built from the latest resolved
+  // night). The private summary is rendered by renderAction below. Apply of the
+  // resolution happens on Next click.
   steps.push({
     title: t('steps.dawn.title'),
-    say: t('steps.dawn.say'),
+    say: buildDawnSay(state, isFirstNight),
     hint: t('steps.dawn.hint'),
     action: { type: 'resolveNight' }
   });
@@ -340,44 +379,23 @@ export function getDaySteps(state) {
   const killed = resolved ? resolved.killed : [];
   const peaceful = killed.length === 0;
 
-  let victimsSay;
-  let victimsText;
-  if (peaceful) {
-    victimsSay = isFirstDay
-      ? t('steps.victimsPeacefulFirst')
-      : t('steps.victimsPeacefulLater', { day: state.day });
-    victimsText = t('steps.victimsPeacefulText');
-  } else {
+  // "Last word" step: only relevant when someone died. The public announcement
+  // already happened on the dawn step, so this step focuses exclusively on the
+  // last-word beat — no announcement repeat, no private info (the Doctor save
+  // and blocks live in the dawn resolve card).
+  if (!peaceful) {
     const names = killed.map(idx => state.players[idx].name).join(', ');
     const plural = killed.length > 1;
-    if (isFirstDay) {
-      victimsSay = plural
-        ? t('steps.victimsDeathFirstMany', { names })
-        : t('steps.victimsDeathFirstOne', { names });
-    } else {
-      victimsSay = plural
-        ? t('steps.victimsDeathLaterMany', { names, day: state.day })
-        : t('steps.victimsDeathLaterOne', { names, day: state.day });
-    }
-    victimsText = t('steps.victimsDeathText', { names });
-    if (resolved && resolved.savedByDoctor != null) {
-      const savedName = state.players[resolved.savedByDoctor].name;
-      victimsText += t('steps.victimsSavedByDoctor', { name: savedName });
-    }
+    steps.push({
+      title: t('steps.victimsTitle'),
+      say: plural
+        ? t('steps.victimsLastWordMany', { names })
+        : t('steps.victimsLastWordOne', { names }),
+      hint: t('steps.victimsHint'),
+      timerSeconds: 30,
+      timerLabel: t('steps.victimsTimerLabel'),
+    });
   }
-
-  // First-day morning with no deaths doesn't need a last-word timer. Any other
-  // day (or first day with a maniac kill) does.
-  const showLastWordTimer = !peaceful;
-
-  steps.push({
-    title: isFirstDay && peaceful ? t('steps.victimsFirstPeacefulTitle') : t('steps.victimsTitle'),
-    say: victimsSay,
-    hint: peaceful ? t('steps.victimsHintPeaceful') : t('steps.victimsHint'),
-    timerSeconds: showLastWordTimer ? 30 : null,
-    timerLabel: t('steps.victimsTimerLabel'),
-    summary: victimsText
-  });
 
   steps.push({
     title: t('steps.discussionTitle'),

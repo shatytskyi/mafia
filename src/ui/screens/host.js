@@ -20,10 +20,22 @@ export function renderHost({ render, clearSavedGame }) {
     return;
   }
 
-  const steps = getCurrentSteps(state);
+  let steps = getCurrentSteps(state);
   if (state.stepIndex >= steps.length) state.stepIndex = steps.length - 1;
   if (state.stepIndex < 0) state.stepIndex = 0;
-  const step = steps[state.stepIndex];
+  let step = steps[state.stepIndex];
+
+  // Recompute night resolution on every dawn render until it's applied — this
+  // ensures the summary reflects the latest picks if the host navigated back
+  // and changed anything. After `applied`, the stored result is frozen.
+  // Rebuild steps afterwards so the dawn step's dynamic `say` picks up the
+  // freshly resolved outcome (who died / peaceful).
+  if (step.action && step.action.type === 'resolveNight' && !state.night.applied) {
+    state.night.resolved = resolveNight(state);
+    steps = getCurrentSteps(state);
+    step = steps[state.stepIndex];
+  }
+
   const isLast = state.stepIndex === steps.length - 1;
 
   const phaseLabel = t(`phases.${state.phase}`);
@@ -31,22 +43,6 @@ export function renderHost({ render, clearSavedGame }) {
   const aliveCount = state.players.filter(p => p.alive).length;
 
   let actionHtml = '';
-  let summaryHtml = '';
-
-  if (step.summary) {
-    summaryHtml = `
-      <div class="step-card" style="border-left-color: var(--blood);">
-        <div class="step-title">${t('host.resultTitle')}</div>
-        <div class="summary-text">${escapeHtml(step.summary).replace(/\n/g, '<br>')}</div>
-      </div>
-    `;
-  }
-  // Recompute night resolution on every dawn render until it's applied — this
-  // ensures the summary reflects the latest picks if the host navigated back
-  // and changed anything. After `applied`, the stored result is frozen.
-  if (step.action && step.action.type === 'resolveNight' && !state.night.applied) {
-    state.night.resolved = resolveNight(state);
-  }
   if (step.action) actionHtml = renderAction(step.action);
 
   // Back is disabled at any phase-start whose prior phase committed irreversible
@@ -82,7 +78,6 @@ export function renderHost({ render, clearSavedGame }) {
         </button>
       </div>
 
-      ${summaryHtml}
       ${actionHtml}
       ${step.timerSeconds ? renderTimer(step.timerSeconds, step.timerLabel) : ''}
 
