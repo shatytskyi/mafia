@@ -1,45 +1,5 @@
 import { shuffle } from './core/shuffle.js';
-
-// ============================================================
-// ROLE DEFINITIONS
-// ============================================================
-const ROLES = {
-  mafia: {
-    id: 'mafia', name: 'Мафия', side: 'Тёмная сторона', emblem: '🔪',
-    desc: 'Каждую ночь вы вместе с подельниками выбираете жертву. Днём притворяйтесь мирным жителем и сбивайте с толку.',
-    color: 'mafia'
-  },
-  civilian: {
-    id: 'civilian', name: 'Мирный', side: 'Светлая сторона', emblem: '☗',
-    desc: 'У вас нет особых способностей. Ваше оружие — логика, интуиция и красноречие. Найдите мафию, пока не поздно.',
-    color: 'civilian'
-  },
-  sheriff: {
-    id: 'sheriff', name: 'Шериф', side: 'Светлая сторона', emblem: '✦',
-    desc: 'Каждую ночь вы проверяете одного игрока — ведущий покажет, мафия он или нет. Но если мафия узнает вас — вы труп.',
-    color: 'sheriff'
-  },
-  doctor: {
-    id: 'doctor', name: 'Доктор', side: 'Светлая сторона', emblem: '✚',
-    desc: 'Каждую ночь вы лечите одного игрока. Если мафия выберет его — он выживет. Себя можно лечить только один раз за игру.',
-    color: 'doctor'
-  },
-  don: {
-    id: 'don', name: 'Дон Мафии', side: 'Тёмная сторона', emblem: '♛',
-    desc: 'Вы — глава мафии. Кроме участия в убийствах, каждую ночь можете проверить, является ли игрок Шерифом.',
-    color: 'don'
-  },
-  maniac: {
-    id: 'maniac', name: 'Маньяк', side: 'Одиночка', emblem: '☠',
-    desc: 'Вы играете сами за себя. Каждую ночь убиваете одного игрока. Побеждаете, если останетесь с одним мирным один на один.',
-    color: 'maniac'
-  },
-  whore: {
-    id: 'whore', name: 'Путана', side: 'Светлая сторона', emblem: '❀',
-    desc: 'Каждую ночь вы выбираете игрока — он «спит» у вас и не может применить свою ночную способность. Осторожно: если заблокируете мафию, можете сами погибнуть.',
-    color: 'whore'
-  }
-};
+import { ROLES, isMafiaRole, getRole, getMafiaNames } from './core/roles.js';
 
 // ============================================================
 // STATE
@@ -333,12 +293,6 @@ function dealRoles() {
     role: shuffled[i],
     alive: true
   }));
-}
-
-function getMafiaNames() {
-  return state.players
-    .filter(p => p.role === 'mafia' || p.role === 'don')
-    .map(p => p.name);
 }
 
 let _lastScreen = null;
@@ -738,11 +692,11 @@ function renderDeal() {
     // Shown phase - display the role
     const role = ROLES[player.role];
     const isMafiaTeam = player.role === 'mafia' || player.role === 'don';
-    const mafiaTeamHtml = isMafiaTeam && getMafiaNames().length > 1
+    const mafiaTeamHtml = isMafiaTeam && getMafiaNames(state.players).length > 1
       ? `
         <div class="team-list">
           <div class="t-label">Твои подельники</div>
-          <div class="team-names">${getMafiaNames().filter(n => n !== player.name).join(' · ')}</div>
+          <div class="team-names">${getMafiaNames(state.players).filter(n => n !== player.name).join(' · ')}</div>
         </div>
       ` : '';
 
@@ -789,18 +743,6 @@ function renderDeal() {
 // ============================================================
 // NIGHT RESOLVER
 // ============================================================
-
-// Возвращает роль игрока по индексу, или null если индекс невалиден.
-function getRole(idx) {
-  if (idx == null || idx < 0) return null;
-  const p = state.players[idx];
-  return p ? p.role : null;
-}
-
-// "Mafia team" — обычные мафиози и Дон.
-function isMafiaRole(role) {
-  return role === 'mafia' || role === 'don';
-}
 
 // Проверка: можно ли Доктору лечить этого игрока этой ночью?
 // Возвращает { ok: bool, reason: string }.
@@ -852,7 +794,7 @@ function getWhoreBlocks() {
   const res = { mafia: false, donCheck: false, maniac: false, doctor: false, sheriff: false };
   const target = state.night.whoreTarget;
   if (target == null || target < 0) return res;
-  const role = getRole(target);
+  const role = getRole(state.players, target);
 
   if (isMafiaRole(role)) {
     const whoreDies = !!(state.gameOptions && state.gameOptions.whoreDiesAtMafia);
@@ -912,7 +854,7 @@ function resolveNight() {
 
   // Особая ветка: смерть Путаны (жёсткая классика) и информационный флаг (мягкая)
   if (n.whoreTarget != null && n.whoreTarget >= 0) {
-    const blockedRole = getRole(n.whoreTarget);
+    const blockedRole = getRole(state.players, n.whoreTarget);
     if (isMafiaRole(blockedRole)) {
       const whoreDies = !!(state.gameOptions && state.gameOptions.whoreDiesAtMafia);
       if (whoreDies) {
@@ -926,7 +868,7 @@ function resolveNight() {
 
   // 2) Проверка Шерифа (информационное действие — не меняет живых)
   if (n.sheriffCheck != null && n.sheriffCheck >= 0 && !sheriffBlocked) {
-    const checkedRole = getRole(n.sheriffCheck);
+    const checkedRole = getRole(state.players, n.sheriffCheck);
     // Дон и обычные мафиози — всегда «мафия».
     // Маньяк — зависит от gameOptions.sheriffSeesManiac:
     //   'never'      — никогда (всегда «не мафия»)
@@ -948,7 +890,7 @@ function resolveNight() {
 
   // 3) Проверка Дона
   if (n.donCheck != null && n.donCheck >= 0 && !donBlocked) {
-    const checkedRole = getRole(n.donCheck);
+    const checkedRole = getRole(state.players, n.donCheck);
     result.donResult = checkedRole === 'sheriff' ? 'sheriff' : 'notSheriff';
   }
 
@@ -1149,7 +1091,7 @@ function getNightSteps() {
           allowSkip: true,
           skipLabel: 'Не проверять',
           showResult: (idx) => {
-            const role = getRole(idx);
+            const role = getRole(state.players, idx);
             return role === 'sheriff' ? '✓ Это Шериф' : '✗ Не Шериф';
           }
         }
@@ -1229,7 +1171,7 @@ function getNightSteps() {
           allowSkip: true,
           skipLabel: 'Не проверять',
           showResult: (idx) => {
-            const role = getRole(idx);
+            const role = getRole(state.players, idx);
             let looksLikeMafia = isMafiaRole(role);
             if (!looksLikeMafia && role === 'maniac') {
               const mode = (state.gameOptions && state.gameOptions.sheriffSeesManiac) || 'afterMafia';
