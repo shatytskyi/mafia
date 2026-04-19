@@ -1,6 +1,7 @@
 import { shuffle } from './core/shuffle.js';
 import { ROLES, isMafiaRole, getRole, getMafiaNames } from './core/roles.js';
 import { calcRoleDistribution, canEnableRole, isRoleEffective, dealRoles } from './core/distribution.js';
+import { resolveNight, applyNightResolution, canDoctorHeal, canWhoreGo, getWhoreBlocks } from './core/night.js';
 
 // ============================================================
 // STATE
@@ -660,246 +661,6 @@ function renderDeal() {
 }
 
 // ============================================================
-// NIGHT RESOLVER
-// ============================================================
-
-// Проверка: можно ли Доктору лечить этого игрока этой ночью?
-// Возвращает { ok: bool, reason: string }.
-function canDoctorHeal(targetIdx) {
-  if (targetIdx == null || targetIdx < 0) return { ok: true, reason: '' };
-  const target = state.players[targetIdx];
-  if (!target) return { ok: false, reason: 'Игрока нет' };
-
-  // Две ночи подряд одного игрока нельзя
-  const lastTarget = state.doctorHistory[state.doctorHistory.length - 1];
-  if (lastTarget === targetIdx) {
-    return { ok: false, reason: 'Этого игрока Доктор лечил прошлой ночью' };
-  }
-  // Себя — только один раз за игру
-  const doctorIdx = state.players.findIndex(p => p.role === 'doctor');
-  if (targetIdx === doctorIdx && state.doctorSelfUsed) {
-    return { ok: false, reason: 'Себя можно лечить только один раз за игру' };
-  }
-  return { ok: true, reason: '' };
-}
-
-// Можно ли Путане ходить к этому игроку этой ночью?
-function canWhoreGo(targetIdx) {
-  if (targetIdx == null || targetIdx < 0) return { ok: true, reason: '' };
-  const whoreIdx = state.players.findIndex(p => p.role === 'whore');
-  if (targetIdx === whoreIdx) {
-    return { ok: false, reason: 'К себе Путана не ходит' };
-  }
-  const lastTarget = state.whoreHistory[state.whoreHistory.length - 1];
-  if (lastTarget === targetIdx) {
-    return { ok: false, reason: 'К этому игроку Путана ходила прошлой ночью' };
-  }
-  return { ok: true, reason: '' };
-}
-
-// Возвращает объект { mafia, donCheck, maniac, doctor, sheriff } —
-// у каких ролей ЭТОЙ ночью ночная способность блокирована Путаной.
-//
-// Тонкости:
-// - Путана блокирует одного игрока, а не роль-команду.
-// - «Мафия как команда» блокирована ТОЛЬКО если Путана пошла к единственному
-//   живому мафиози; иначе оставшиеся мафиози всё равно убивают.
-// - В жёсткой версии (whoreDiesAtMafia=true) визит к любому мафиози
-//   блокирует всю мафию (потому что «Путана попалась» — мафия разбирается с ней).
-// - Дон: его личная проверка «найти Шерифа» блокируется, если Путана пошла
-//   именно к Дону. Командное решение мафии — см. выше отдельно.
-// - Маньяк/Доктор/Шериф — одиночные роли, блокировка одного = блокировка способности.
-function getWhoreBlocks() {
-  const res = { mafia: false, donCheck: false, maniac: false, doctor: false, sheriff: false };
-  const target = state.night.whoreTarget;
-  if (target == null || target < 0) return res;
-  const role = getRole(state.players, target);
-
-  if (isMafiaRole(role)) {
-    const whoreDies = !!(state.gameOptions && state.gameOptions.whoreDiesAtMafia);
-    if (whoreDies) {
-      // Жёсткая версия: блокируем всю мафию.
-      res.mafia = true;
-      if (role === 'don') res.donCheck = true;
-    } else {
-      // Мягкая версия: команда мафии блокирована только если это последний живой мафиози.
-      const mafiaAliveCount = state.players.filter(p => p.alive && isMafiaRole(p.role)).length;
-      if (mafiaAliveCount <= 1) res.mafia = true;
-      // Дон: если путана именно у Дона — его личная проверка не сработает.
-      if (role === 'don') res.donCheck = true;
-    }
-  } else if (role === 'maniac') {
-    res.maniac = true;
-  } else if (role === 'doctor') {
-    res.doctor = true;
-  } else if (role === 'sheriff') {
-    res.sheriff = true;
-  }
-  return res;
-}
-
-// Главный резолвер. Возвращает объект с:
-//   killed: [idx, ...]              — кто реально умер этой ночью
-//   savedByDoctor: idx | null       — кого спас Доктор (если он спас от мафии/маньяка)
-//   blocked: { role: string, ... }  — чьи действия были заблокированы Путаной
-//   sheriffResult: 'mafia'|'notMafia'|null  — результат проверки Шерифа
-//   donResult: 'sheriff'|'notSheriff'|null  — результат проверки Дона
-function resolveNight() {
-  const n = state.night;
-  const isFirstNight = state.day === 1;
-
-  const result = {
-    killed: [],
-    savedByDoctor: null,
-    blocked: {},
-    sheriffResult: null,
-    donResult: null,
-    whoreDied: false
-  };
-
-  // 1) Применяем блокировки Путаны (единый источник истины — getWhoreBlocks)
-  const wb = getWhoreBlocks();
-  const mafiaBlocked = wb.mafia;
-  const maniacBlocked = wb.maniac;
-  const doctorBlocked = wb.doctor;
-  const sheriffBlocked = wb.sheriff;
-  const donBlocked = wb.donCheck;
-
-  // Отмечаем блокировки в результате для UI
-  if (wb.mafia) result.blocked.mafia = true;
-  if (wb.maniac) result.blocked.maniac = true;
-  if (wb.doctor) result.blocked.doctor = true;
-  if (wb.sheriff) result.blocked.sheriff = true;
-
-  // Особая ветка: смерть Путаны (жёсткая классика) и информационный флаг (мягкая)
-  if (n.whoreTarget != null && n.whoreTarget >= 0) {
-    const blockedRole = getRole(state.players, n.whoreTarget);
-    if (isMafiaRole(blockedRole)) {
-      const whoreDies = !!(state.gameOptions && state.gameOptions.whoreDiesAtMafia);
-      if (whoreDies) {
-        result.whoreDied = true;
-      } else {
-        // Мягкая: просто метка «путана у мафии, её голос не в счёт»
-        result.whoreAtMafia = true;
-      }
-    }
-  }
-
-  // 2) Проверка Шерифа (информационное действие — не меняет живых)
-  if (n.sheriffCheck != null && n.sheriffCheck >= 0 && !sheriffBlocked) {
-    const checkedRole = getRole(state.players, n.sheriffCheck);
-    // Дон и обычные мафиози — всегда «мафия».
-    // Маньяк — зависит от gameOptions.sheriffSeesManiac:
-    //   'never'      — никогда (всегда «не мафия»)
-    //   'afterMafia' — только когда вся мафия мертва
-    //   'always'     — всегда «мафия»
-    let looksLikeMafia = isMafiaRole(checkedRole);
-    if (!looksLikeMafia && checkedRole === 'maniac') {
-      const mode = (state.gameOptions && state.gameOptions.sheriffSeesManiac) || 'afterMafia';
-      if (mode === 'always') {
-        looksLikeMafia = true;
-      } else if (mode === 'afterMafia') {
-        const mafiaAlive = state.players.some(p => p.alive && isMafiaRole(p.role));
-        if (!mafiaAlive) looksLikeMafia = true;
-      }
-      // 'never' — оставляем 'notMafia'
-    }
-    result.sheriffResult = looksLikeMafia ? 'mafia' : 'notMafia';
-  }
-
-  // 3) Проверка Дона
-  if (n.donCheck != null && n.donCheck >= 0 && !donBlocked) {
-    const checkedRole = getRole(state.players, n.donCheck);
-    result.donResult = checkedRole === 'sheriff' ? 'sheriff' : 'notSheriff';
-  }
-
-  // 4) Определяем цель мафии (с учётом блокировки)
-  // На первой ночи мафия не убивает — игнорируем даже если цель выбрана.
-  let mafiaVictim = null;
-  if (!isFirstNight && !mafiaBlocked && n.mafiaTarget != null && n.mafiaTarget >= 0) {
-    mafiaVictim = n.mafiaTarget;
-  }
-
-  // 5) Определяем цель маньяка
-  let maniacVictim = null;
-  if (!maniacBlocked && n.maniacTarget != null && n.maniacTarget >= 0) {
-    maniacVictim = n.maniacTarget;
-  }
-
-  // 6) Доктор — кого он лечит (с учётом блокировки)
-  let healed = null;
-  if (!doctorBlocked && n.doctorTarget != null && n.doctorTarget >= 0) {
-    healed = n.doctorTarget;
-  }
-
-  // 7) Применяем смерти
-  const killedSet = new Set();
-  if (mafiaVictim != null) {
-    if (healed === mafiaVictim) {
-      result.savedByDoctor = mafiaVictim;
-    } else {
-      killedSet.add(mafiaVictim);
-    }
-  }
-  if (maniacVictim != null) {
-    if (healed === maniacVictim) {
-      // Доктор лечит и от маньяка (классика)
-      if (result.savedByDoctor == null) result.savedByDoctor = maniacVictim;
-    } else {
-      killedSet.add(maniacVictim);
-    }
-  }
-  // Путана «попалась» у мафии и мафия её убивает (кроме первой ночи).
-  // Если Доктор лечит путану — она выживает, но мафия всё равно заблокирована.
-  if (result.whoreDied && !isFirstNight) {
-    const whoreIdx = state.players.findIndex(p => p.role === 'whore' && p.alive);
-    if (whoreIdx !== -1) {
-      if (healed === whoreIdx) {
-        // Доктор спас путану
-        if (result.savedByDoctor == null) result.savedByDoctor = whoreIdx;
-        // Флаг whoreDied оставляем true для отображения «Путана попалась, но Доктор спас»
-        result.whoreSavedByDoctor = true;
-      } else {
-        killedSet.add(whoreIdx);
-      }
-    }
-  } else {
-    // На первой ночи мафия не действует — значит путана просто «проспала с мафиози»
-    // без последствий смерти.
-    result.whoreDied = false;
-  }
-
-  result.killed = Array.from(killedSet);
-  return result;
-}
-
-// Применяет результаты ночи: убивает игроков, обновляет историю доктора/путаны.
-// Идемпотентна: повторный вызов ничего не испортит.
-function applyNightResolution() {
-  const r = state.night.resolved;
-  if (!r) return;
-  if (state.night.applied) return; // уже применили
-  state.night.applied = true;
-  for (const idx of r.killed) {
-    state.players[idx].alive = false;
-  }
-  // Обновляем историю Доктора
-  if (state.night.doctorTarget != null && state.night.doctorTarget >= 0) {
-    state.doctorHistory.push(state.night.doctorTarget);
-    const doctorIdx = state.players.findIndex(p => p.role === 'doctor');
-    if (state.night.doctorTarget === doctorIdx) state.doctorSelfUsed = true;
-  } else {
-    state.doctorHistory.push(null);
-  }
-  // Обновляем историю Путаны
-  if (state.night.whoreTarget != null && state.night.whoreTarget >= 0) {
-    state.whoreHistory.push(state.night.whoreTarget);
-  } else {
-    state.whoreHistory.push(null);
-  }
-}
-
-// ============================================================
 // HOST SCREEN
 // ============================================================
 function getNightSteps() {
@@ -938,7 +699,7 @@ function getNightSteps() {
         role: 'whore',
         label: 'К кому идёт Путана',
         allowSkip: false,
-        validate: (idx) => canWhoreGo(idx)
+        validate: (idx) => canWhoreGo(state.players, idx, state.whoreHistory)
       }
     });
     steps.push({ title: 'Путана засыпает', say: 'Путана, закрой глаза.', hint: '' });
@@ -946,7 +707,7 @@ function getNightSteps() {
 
   // Мафия убивает (не на первой ночи)
   if (!isFirstNight && hasMafia) {
-    const blocks = getWhoreBlocks();
+    const blocks = getWhoreBlocks(state.players, state.night, state.gameOptions);
     if (blocks.mafia) {
       // Всю мафию блокирует Путана — делаем шаг-пустышку, но не пропускаем,
       // чтобы Путана не вычислила по тишине, что она блокировала именно мафию.
@@ -982,7 +743,7 @@ function getNightSteps() {
 
   // Дон ищет Шерифа (каждую ночь, включая первую)
   if (state.optionalRoles.don && hasAlive('don')) {
-    const blocks = getWhoreBlocks();
+    const blocks = getWhoreBlocks(state.players, state.night, state.gameOptions);
     if (blocks.donCheck) {
       steps.push({
         title: 'Дон ищет Шерифа',
@@ -1026,7 +787,7 @@ function getNightSteps() {
 
   // Доктор
   if (state.optionalRoles.doctor && hasAlive('doctor')) {
-    const blocks = getWhoreBlocks();
+    const blocks = getWhoreBlocks(state.players, state.night, state.gameOptions);
     if (blocks.doctor) {
       steps.push({
         title: 'Доктор просыпается',
@@ -1053,7 +814,7 @@ function getNightSteps() {
           label: 'Кого лечит Доктор',
           allowSkip: true,
           skipLabel: 'Не лечить никого',
-          validate: (idx) => canDoctorHeal(idx)
+          validate: (idx) => canDoctorHeal(state.players, idx, state.doctorHistory, state.doctorSelfUsed)
         }
       });
     }
@@ -1062,7 +823,7 @@ function getNightSteps() {
 
   // Шериф
   if (hasAlive('sheriff')) {
-    const blocks = getWhoreBlocks();
+    const blocks = getWhoreBlocks(state.players, state.night, state.gameOptions);
     if (blocks.sheriff) {
       steps.push({
         title: 'Шериф просыпается',
@@ -1111,7 +872,7 @@ function getNightSteps() {
 
   // Маньяк
   if (state.optionalRoles.maniac && hasAlive('maniac')) {
-    const blocks = getWhoreBlocks();
+    const blocks = getWhoreBlocks(state.players, state.night, state.gameOptions);
     if (blocks.maniac) {
       steps.push({
         title: 'Маньяк просыпается',
@@ -1444,9 +1205,9 @@ function renderHost() {
     if (step.action && step.action.type === 'resolveNight') {
       // На всякий случай пересчитываем, если resolved не проставлен
       if (!state.night.resolved) {
-        state.night.resolved = resolveNight();
+        state.night.resolved = resolveNight(state);
       }
-      applyNightResolution();
+      applyNightResolution(state);
       const w = checkWinCondition();
       if (w) {
         state.winner = w;
@@ -1624,7 +1385,7 @@ function renderResolveNight() {
   // Если ночь уже применена (например, пользователь вернулся назад) —
   // используем сохранённый результат, а не пересчитываем на мёртвых игроках.
   if (!state.night.applied || !state.night.resolved) {
-    state.night.resolved = resolveNight();
+    state.night.resolved = resolveNight(state);
   }
   const r = state.night.resolved;
 
