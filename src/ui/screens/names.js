@@ -50,10 +50,23 @@ export function renderNames({ render }) {
     </div>
   `;
 
-  document.querySelectorAll('input[data-idx]').forEach(inp => {
+  const inputs = document.querySelectorAll('input[data-idx]');
+  inputs.forEach(inp => {
     inp.oninput = (e) => {
       const idx = parseInt(e.target.dataset.idx);
       state.players[idx].name = e.target.value;
+    };
+    inp.onkeydown = (e) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      const idx = parseInt(e.target.dataset.idx);
+      const next = inputs[idx + 1];
+      if (next) {
+        next.focus();
+      } else {
+        e.target.blur();
+        document.getElementById('confirmNames').click();
+      }
     };
   });
 
