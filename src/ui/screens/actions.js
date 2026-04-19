@@ -240,6 +240,18 @@ function renderResolveNight() {
     lines.push(`<div class="resolve-line resolve-note">${t('actions.resolveWhoreAtMafia')}</div>`);
   }
 
+  // Syndicate "Alibi" rule (informational only — host enforces verbally).
+  // Whoever the Whore visited is considered to have spent the night with her,
+  // so they cannot be voted out that day. Shown whenever the visited target
+  // survives the night. Deaths are still in `r.killed` at this point (apply
+  // runs on next step), so check both `alive` and the kill list.
+  const wt = state.night.whoreTarget;
+  const justKilled = Array.isArray(r.killed) && r.killed.includes(wt);
+  if (wt != null && wt >= 0 && state.players[wt]?.alive && !justKilled) {
+    const name = escapeHtml(state.players[wt].name);
+    lines.push(`<div class="resolve-line resolve-note">${t('actions.resolveWhoreAlibi', { name })}</div>`);
+  }
+
   if (r.sheriffResult) {
     const name = escapeHtml(state.players[state.night.sheriffCheck].name);
     const verdict = r.sheriffResult === 'mafia' ? t('actions.sheriffSawMafia') : t('actions.sheriffSawNotMafia');

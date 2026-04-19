@@ -146,7 +146,8 @@ Whore's target drives blocks. Edge cases baked in:
 
 ### Whore death
 - Whore visiting any mafioso + `whoreDiesAtMafia = true` ⇒ `result.whoreDied = true`.
-- Whore visiting any mafioso + soft rule ⇒ `result.whoreAtMafia = true` (informational; she stays alive, but her daytime vote "не в счёт" — currently only surfaced in the resolve summary, not enforced mechanically).
+- Whore visiting any mafioso + soft rule ⇒ `result.whoreAtMafia = true` (informational; she stays alive — surfaced in the resolve summary, not enforced mechanically).
+- Alibi (Syndicate house rule, informational): whenever the Whore visits any still-alive player, the resolve summary shows `resolveWhoreAlibi` — the host announces that the visited player cannot be voted out that day. Not enforced by the vote step; the host applies it verbally.
 - On the first night, mafia does not act, so `whoreDied` is forced back to `false` even if hard rule would trigger.
 - If Doctor heals the visited whore, she lives and `whoreSavedByDoctor = true` (but `whoreDied` stays `true` for UI phrasing).
 
@@ -285,6 +286,7 @@ These are the ones I noted while reading — not bugs in the strict sense, but t
 - **"Завершить игру"** from host resets `screen` to `home` without clearing `players`, `day`, `phase` — so the saved game on disk is cleared by entering `home` but in-memory state could still be poked by unusual flows. The main re-entry point (`names` screen) rewrites `state.players` when `playerCount` doesn't match, so this is mostly harmless.
 - **Maniac on night 1**: unlike mafia, maniac's first-night kill is live. This is an intentional asymmetry but worth noting.
 - **"Whore soft block" informational flag (`whoreAtMafia`)** is shown in the resolve summary but *not* enforced anywhere — the mafia still kills normally unless whore visited the *sole* living mafioso. Re-read the soft-rule text before touching this.
+- **Whore alibi line** (`resolveWhoreAlibi`) is informational too — shown for every survived visit. The vote step does not block her visited target from being selected; the host is expected to announce the alibi verbally and respect it.
 - **`confirm()` / `alert()`** are used for "Завершить игру?" and "Удалить сохранённую партию?". Modal would be nicer but this is out of scope for a behavioural rewrite.
 - **Wake Lock API not used** — the host's phone can sleep mid-game.
 - **Full `app.innerHTML` re-render on every state change** — cheap because the DOM is small, but inputs lose focus mid-typing (names screen relies on `oninput` writing through). Timer has a bespoke `updateTimerDisplay` to avoid this.
