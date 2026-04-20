@@ -63,8 +63,6 @@ export function renderDeal({ render }) {
     <div class="deal-screen screen${alreadyFlipped ? ' revealed' : ''}">
       <div class="deal-header">
         <div class="player-num">${t('deal.playerKicker', { num, total })}</div>
-        <div class="player-name-big">${escapeHtml(player.name)}</div>
-        <div class="passing-hint">${t('deal.passHint')}</div>
       </div>
 
       <div class="role-card-stage">
@@ -83,7 +81,7 @@ export function renderDeal({ render }) {
           <div class="role-card-back" aria-hidden="true">
             <div class="card-back-pattern"></div>
             <div class="card-back-medallion">
-              <div class="card-back-kicker">${t('deal.backKicker')}</div>
+              <div class="card-back-name">${escapeHtml(player.name)}</div>
               <div class="card-back-divider"></div>
               <div class="card-back-mark">?</div>
               <div class="card-back-hint">${t('deal.backHint')}</div>
@@ -126,14 +124,53 @@ export function renderDeal({ render }) {
     });
   }
 
-  document.getElementById('doneBtn').onclick = () => {
-    if (state.dealIndex < state.playerCount - 1) {
-      state.dealIndex++;
-      state.dealPhase = 'await';
+  const doneBtn = document.getElementById('doneBtn');
+  doneBtn.onclick = () => {
+    const isLast = state.dealIndex >= state.playerCount - 1;
+
+    const proceed = () => {
+      if (isLast) {
+        state.dealPhase = 'handoff';
+      } else {
+        state.dealIndex++;
+        state.dealPhase = 'await';
+      }
       render();
-    } else {
-      state.dealPhase = 'handoff';
-      render();
-    }
+    };
+
+    // Last player jumps straight to the host handoff screen — no reverse flip.
+    if (isLast) { proceed(); return; }
+
+    // Reduced motion or defensive fallback: skip the animation entirely.
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced || !flipper.classList.contains('flipped')) { proceed(); return; }
+
+    // Guard against repeat taps while the reverse flip is playing.
+    doneBtn.onclick = null;
+
+    // Swap the back-of-card name to the next player. While the flipper is
+    // still .flipped, the back face is hidden by backface-visibility, so the
+    // text change is invisible. As the card rotates back past the halfway
+    // point, the back comes into view already showing the next player's
+    // name — the closing card "becomes" the next hand-off, no jump at
+    // render() time. The small progress kicker outside updates on render.
+    const nextIdx = state.dealIndex + 1;
+    const nextPlayer = state.players[nextIdx];
+    const backNameEl = screen.querySelector('.card-back-name');
+    if (backNameEl) backNameEl.textContent = nextPlayer.name;
+
+    // Mirror the reveal: re-trigger the lift, drop .revealed so the header /
+    // name / passing hint / action slot reverse via their transitions, and
+    // drop .flipped so the flipper rotates back to face-down.
+    screen.classList.add('is-flipping');
+    screen.classList.remove('revealed');
+    flipper.classList.remove('flipped');
+
+    const onEnd = (e) => {
+      if (e.target !== flipper || e.propertyName !== 'transform') return;
+      flipper.removeEventListener('transitionend', onEnd);
+      proceed();
+    };
+    flipper.addEventListener('transitionend', onEnd);
   };
 }

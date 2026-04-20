@@ -734,26 +734,11 @@ input, textarea {
   min-height: calc(100dvh - var(--bar-h));
 }
 
-/* CH-03 · header-smoother — the pre-reveal header (number + big name +
-   hint) collapses as one block on flip instead of the name resizing in
-   place. The player's name is already printed on the card front, so we
-   fade the big top name out entirely rather than shrinking it. */
+/* Header is just a small progress kicker ("ИГРОК · 04 / 08") — player name
+   lives on the card face itself (front + back), so the header stays static
+   through the flip and the card never shifts vertically. */
 .deal-header {
-  overflow: hidden;
-  transition:
-    max-height 520ms cubic-bezier(.4, 0, .2, 1),
-    opacity 420ms ease,
-    transform 520ms cubic-bezier(.4, 0, .2, 1),
-    margin-bottom 520ms cubic-bezier(.4, 0, .2, 1);
-  max-height: 220px;
-  transform-origin: center top;
-}
-
-.deal-screen.revealed .deal-header {
-  max-height: 28px;
-  opacity: 1;
-  transform: translateY(-2px);
-  margin-bottom: 0;
+  margin-top: 4px;
 }
 
 .player-num {
@@ -774,18 +759,7 @@ input, textarea {
   letter-spacing: -0.02em;
   margin-top: 8px;
   color: var(--ink);
-  transition:
-    opacity 340ms ease,
-    transform 420ms cubic-bezier(.4, 0, .2, 1),
-    filter 340ms ease;
   transform-origin: center top;
-}
-
-.deal-screen.revealed .player-name-big {
-  opacity: 0;
-  transform: scale(.72) translateY(-6px);
-  filter: blur(2px);
-  pointer-events: none;
 }
 
 .passing-hint {
@@ -800,51 +774,16 @@ input, textarea {
   padding: 12px 0 calc(8px + env(safe-area-inset-bottom));
   background: var(--bg);
   border-top: 1px solid var(--line-soft);
-  transition: opacity 300ms ease, transform 340ms ease;
-}
-
-.deal-screen.revealed .passing-hint {
-  opacity: 0;
-  transform: translateY(6px);
-  pointer-events: none;
 }
 
 .role-card-stage {
   flex: 1;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  padding: 22px 0 0;
+  align-items: center;
+  padding: 0;
   perspective: 1400px;
   position: relative;
-}
-
-/* Floor shadow — blurred ellipse beneath the card that blooms mid-flip
-   to sell the "lift" motion. Sits behind the flipper in stacking. */
-.role-card-stage::before {
-  content: '';
-  position: absolute;
-  left: 18%;
-  right: 18%;
-  bottom: 10%;
-  height: 22px;
-  background: radial-gradient(ellipse at center,
-    rgba(0, 0, 0, 0.32) 0%,
-    rgba(0, 0, 0, 0.10) 48%,
-    transparent 72%);
-  filter: blur(10px);
-  opacity: 0.28;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.deal-screen.is-flipping .role-card-stage::before {
-  animation: deal-shadow-bloom 900ms cubic-bezier(.4, 0, .2, 1);
-}
-
-@keyframes deal-shadow-bloom {
-  0%, 100% { opacity: 0.28; transform: scale(1); }
-  50%      { opacity: 0.60; transform: scale(1.10); }
 }
 
 /* Rotation and lift are split across two layers to avoid the multi-
@@ -1046,28 +985,30 @@ input, textarea {
     0 0 0 5px rgba(255, 255, 255, 0.10);
 }
 
-.card-back-kicker {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.38em;
-  color: var(--red);
-  font-weight: 500;
-  text-transform: uppercase;
+.card-back-name {
+  font-family: var(--font-display);
+  font-size: 40px;
+  line-height: 1;
+  letter-spacing: -0.015em;
+  color: var(--bg);
+  text-align: center;
+  word-break: break-word;
+  max-width: 100%;
 }
 
 .card-back-divider {
   width: 48px;
   height: 2px;
   background: var(--red);
-  margin: 18px 0 10px;
+  margin: 14px 0 10px;
 }
 
 .card-back-mark {
   font-family: var(--font-display);
-  font-size: 120px;
+  font-size: 72px;
   line-height: 1;
   color: var(--red);
-  margin: 2px 0 10px;
+  margin: 2px 0 8px;
 }
 
 .card-back-hint {
@@ -1080,28 +1021,37 @@ input, textarea {
   letter-spacing: 0.01em;
 }
 
+/* Action slot is pinned to the viewport floor (like the top bar) so it
+   never shifts the card layout when it fades in / out. The deal-screen
+   reserves bottom padding for it — see the :not(.handoff-screen) rule
+   below — so the card stays at the same center regardless of state. */
 .deal-action-slot {
-  margin-top: 20px;
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  width: 100%;
+  max-width: 520px;
+  padding: 14px 20px calc(12px + env(safe-area-inset-bottom));
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+  text-align: center;
   opacity: 0;
-  max-height: 0;
-  overflow: hidden;
-  transform: translateY(8px);
+  pointer-events: none;
+  transform: translateX(-50%) translateY(8px);
   transition:
-    opacity 380ms ease 260ms,
-    max-height 520ms cubic-bezier(.4, 0, .2, 1) 120ms,
-    transform 420ms cubic-bezier(.4, 0, .2, 1) 260ms;
+    opacity 380ms ease,
+    transform 420ms cubic-bezier(.4, 0, .2, 1);
+  z-index: 5;
 }
 
 .deal-screen.revealed .deal-action-slot {
   opacity: 1;
-  max-height: 400px;
-  transform: translateY(0);
-  margin-top: auto;
-  position: sticky;
-  bottom: 0;
-  padding: 14px 0 calc(12px + env(safe-area-inset-bottom));
-  background: var(--bg);
-  border-top: 1px solid var(--line);
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+
+.deal-screen:not(.handoff-screen) {
+  padding-bottom: 112px;
 }
 
 .deal-action-slot .instruction {
@@ -1113,18 +1063,23 @@ input, textarea {
   line-height: 1.4;
 }
 
-/* handoff screen — top head (kicker + title) arrives at the top of the
-   scroll area; the rule + hint + CTA are pinned to the screen floor
-   together, mirroring the .deal-action-slot sticky-bottom contract
-   used on the revealed card screen. */
+/* handoff screen — kicker + title vertically centered in the available
+   space; the rule + hint + CTA stay pinned to the screen floor, mirroring
+   the .deal-action-slot sticky-bottom contract used on the revealed card
+   screen. */
 .handoff-screen {
   justify-content: flex-start;
   align-items: stretch;
 }
 
 .handoff-head {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
-  padding-top: 36px;
+  padding: 0;
 }
 
 .handoff-screen .player-name-big {
@@ -2171,9 +2126,8 @@ input, textarea {
   .screen-enter .a-stagger > *,
   .role-card-flipper, .timer-display.warning,
   .deal-header, .player-name-big, .passing-hint,
-  .deal-action-slot, .role-card-stage::before,
-  .deal-screen.is-flipping .role-card-flipper,
-  .deal-screen.is-flipping .role-card-stage::before {
+  .deal-action-slot,
+  .deal-screen.is-flipping .role-card-flipper {
     animation: none !important;
     transition: none !important;
   }
