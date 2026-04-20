@@ -59,9 +59,11 @@ export function renderDeal({ render }) {
 
   app.innerHTML = `
     <div class="deal-screen screen${alreadyFlipped ? ' revealed' : ''}">
-      <div class="player-num">${t('deal.playerKicker', { num, total })}</div>
-      <div class="player-name-big">${escapeHtml(player.name)}</div>
-      <div class="passing-hint">${t('deal.passHint')}</div>
+      <div class="deal-header">
+        <div class="player-num">${t('deal.playerKicker', { num, total })}</div>
+        <div class="player-name-big">${escapeHtml(player.name)}</div>
+        <div class="passing-hint">${t('deal.passHint')}</div>
+      </div>
 
       <div class="role-card-stage">
         <div class="role-card-flipper${alreadyFlipped ? ' flipped' : ''}" id="cardFlipper"
@@ -76,10 +78,13 @@ export function renderDeal({ render }) {
             ${mafiaTeamHtml}
           </div>
           <div class="role-card-back" aria-hidden="true">
-            <div class="card-back-kicker">${t('deal.backKicker')}</div>
-            <div class="card-back-divider"></div>
-            <div class="card-back-mark">?</div>
-            <div class="card-back-hint">${t('deal.backHint')}</div>
+            <div class="card-back-pattern"></div>
+            <div class="card-back-medallion">
+              <div class="card-back-kicker">${t('deal.backKicker')}</div>
+              <div class="card-back-divider"></div>
+              <div class="card-back-mark">?</div>
+              <div class="card-back-hint">${t('deal.backHint')}</div>
+            </div>
           </div>
         </div>
       </div>
@@ -100,8 +105,16 @@ export function renderDeal({ render }) {
     const flip = () => {
       if (flipper.classList.contains('flipped')) return;
       state.dealPhase = 'shown';
-      flipper.classList.add('flipped');
-      screen.classList.add('revealed');
+      screen.classList.add('is-flipping', 'revealed');
+      requestAnimationFrame(() => {
+        flipper.classList.add('flipped');
+      });
+      const clearFlipping = (e) => {
+        if (e.target !== flipper || e.propertyName !== 'transform') return;
+        screen.classList.remove('is-flipping');
+        flipper.removeEventListener('transitionend', clearFlipping);
+      };
+      flipper.addEventListener('transitionend', clearFlipping);
     };
     flipper.addEventListener('click', flip);
     flipper.addEventListener('keydown', (e) => {
