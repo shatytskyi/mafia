@@ -72,6 +72,7 @@ body {
   padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
   user-select: none;
   -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 input, textarea { user-select: text; -webkit-user-select: text; }
@@ -79,7 +80,6 @@ input, textarea { user-select: text; -webkit-user-select: text; }
 button {
   font-family: inherit;
   color: inherit;
-  -webkit-tap-highlight-color: transparent;
 }
 
 input, textarea {
