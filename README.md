@@ -76,7 +76,7 @@ src/
     persistence.js       Auto-save / resume via localStorage.
   ui/
     render.js            Screen dispatcher.
-    theme.js, locale.js, fullscreen.js, pwa.js, version.js
+    theme.js, locale.js, pwa.js, version.js
     html.js              Safe HTML templating (escapes untrusted strings).
     screens/             One file per screen.
   i18n/                  ru / uk / en dictionaries.

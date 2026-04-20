@@ -177,8 +177,7 @@ input, textarea {
   background: var(--red);
 }
 
-.theme-toggle,
-.fullscreen-toggle {
+.theme-toggle {
   width: 34px;
   height: 34px;
   display: inline-flex;
@@ -189,14 +188,10 @@ input, textarea {
   border: 1px solid var(--line);
   cursor: pointer;
   font-family: var(--font-sans);
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1;
   padding: 0;
 }
-
-.theme-toggle { font-size: 18px; }
-
-.fullscreen-toggle svg { display: block; color: var(--ink); }
 
 /* ─── App container ─────────────────────────────────────────── */
 .app {

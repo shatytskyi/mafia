@@ -91,7 +91,7 @@ Always use `font-variant-numeric: tabular-nums` for timers and counters so digit
 
 ## Layout
 
-- **App bar:** fixed top, 54 px, `--bg` with `1px` bottom border. Wordmark on the left, language chips + theme + fullscreen on the right.
+- **App bar:** fixed top, 54 px, `--bg` with `1px` bottom border. Wordmark on the left, language chips + theme on the right.
 - **Screen container:** `max-width: 520px`, centered, padded `20px`. The phone is the primary target.
 - **Host step header:** phase-badge + phase-title inside `.host-header`, separated from step-card by hairline.
 - **Sticky nav:** `.nav-row-sticky` pins under the app bar (`top: var(--bar-h)`). Left half = Back (ghost), right 2/3 = Next (red, Abril).

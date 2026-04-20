@@ -5,7 +5,6 @@ import {
 import { createRender, registerScreen } from './ui/render.js';
 import { applyTheme, bindThemeToggle, onThemeChange } from './ui/theme.js';
 import { bindLocaleToggle, onLocaleToggle } from './ui/locale.js';
-import { bindFullscreenToggle } from './ui/fullscreen.js';
 import { initPwa } from './ui/pwa.js';
 import { setLocale, detectLocale } from './i18n/index.js';
 import { initVersionFooter } from './ui/version.js';
@@ -70,7 +69,6 @@ onThemeChange(render);
 onLocaleToggle(render);
 bindThemeToggle({ saveTheme });
 bindLocaleToggle({ saveLocale });
-bindFullscreenToggle();
 initVersionFooter();
 initPwa();
 render();
