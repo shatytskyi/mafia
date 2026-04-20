@@ -10,28 +10,28 @@ function resetState() {
 
 test('pickKilled: Next is disabled when no vote result picked yet', () => {
   resetState();
-  const step = { action: { type: 'pickKilled', allowSkip: true, allowRevote: true } };
+  const step = { action: { type: 'pickKilled', allowSkip: true } };
   assert.equal(isNextDisabled(step), true);
 });
 
 test('pickKilled: Next is enabled after picking a victim', () => {
   resetState();
   state.dayVoteKilled = 3;
-  const step = { action: { type: 'pickKilled', allowSkip: true, allowRevote: true } };
+  const step = { action: { type: 'pickKilled', allowSkip: true } };
   assert.equal(isNextDisabled(step), false);
 });
 
 test('pickKilled: Next is enabled after explicit "no one killed" (skip = -1)', () => {
   resetState();
   state.dayVoteKilled = -1;
-  const step = { action: { type: 'pickKilled', allowSkip: true, allowRevote: true } };
+  const step = { action: { type: 'pickKilled', allowSkip: true } };
   assert.equal(isNextDisabled(step), false);
 });
 
 test('pickKilled: revote (dayVoteKilled back to null) re-disables Next', () => {
   resetState();
   state.dayVoteKilled = 2;
-  const step = { action: { type: 'pickKilled', allowSkip: true, allowRevote: true } };
+  const step = { action: { type: 'pickKilled', allowSkip: true } };
   assert.equal(isNextDisabled(step), false);
   state.dayVoteKilled = null;
   assert.equal(isNextDisabled(step), true);

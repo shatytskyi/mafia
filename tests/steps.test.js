@@ -124,13 +124,11 @@ test('day with a kill carries a last-word timer and names the deceased in `say`'
   assert.equal(steps[0].summary, undefined, 'no private `summary` is emitted — private info lives on the dawn resolve card');
 });
 
-test('vote step is a single pickKilled with revote + skip affordances', () => {
+test('vote step is a single pickKilled with skip affordance', () => {
   const steps = getVoteSteps();
   assert.equal(steps.length, 1);
   assert.equal(steps[0].action.type, 'pickKilled');
   assert.equal(steps[0].action.allowSkip, true);
-  assert.equal(steps[0].action.allowRevote, true);
-  assert.ok(steps[0].action.revoteLabel);
 });
 
 test('getCurrentSteps dispatches by phase', () => {

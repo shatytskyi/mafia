@@ -1,7 +1,6 @@
 import { state } from '../../state/state.js';
 import { escapeHtml } from '../html.js';
 import { t } from '../../i18n/index.js';
-import { stopTimer } from './timer.js';
 
 export function isNextDisabled(step) {
   if (!step.action) return false;
@@ -64,13 +63,63 @@ function renderBlockedAction(action) {
   `;
 }
 
+/**
+ * CH-04 · target-chip mark glyph map. Every pick-target surface shows a
+ * role-specific glyph + label inside the selected chip instead of the old
+ * hardcoded "✕ ЦЕЛЬ". Kind drives colour — deadly actions paint red,
+ * neutral (checks / saves / blocks) paint ink.
+ *
+ * @param {string} role  one of mafia | sheriff | don | doctor | whore | maniac | veteran
+ * @param {{ veteranMode?: 'save'|'kill' }} [opts]
+ * @returns {{ glyph: string, labelKey: string, kind: 'deadly'|'neutral' }}
+ */
+function getTargetMark(role, opts = {}) {
+  switch (role) {
+    case 'mafia':   return { glyph: '⚜', labelKey: 'actions.mark.mafia',   kind: 'deadly'  };
+    case 'maniac':  return { glyph: '☠', labelKey: 'actions.mark.maniac',  kind: 'deadly'  };
+    case 'sheriff': return { glyph: '✦', labelKey: 'actions.mark.sheriff', kind: 'neutral' };
+    case 'don':     return { glyph: '♛', labelKey: 'actions.mark.don',     kind: 'neutral' };
+    case 'doctor':  return { glyph: '✚', labelKey: 'actions.mark.doctor',  kind: 'neutral' };
+    case 'whore':   return { glyph: '❀', labelKey: 'actions.mark.whore',   kind: 'neutral' };
+    case 'veteran':
+      return opts.veteranMode === 'kill'
+        ? { glyph: '⛨', labelKey: 'actions.mark.veteranKill', kind: 'deadly'  }
+        : { glyph: '⛨', labelKey: 'actions.mark.veteranSave', kind: 'neutral' };
+    default:        return { glyph: '✕', labelKey: 'actions.mark.vote',    kind: 'deadly'  };
+  }
+}
+
+function markHtml(mark) {
+  return `
+    <span class="chip-mark" aria-hidden="true">
+      <span class="chip-mark-glyph">${mark.glyph}</span>
+      <span class="chip-mark-label">${t(mark.labelKey)}</span>
+    </span>
+  `;
+}
+
 function renderPickTarget(action) {
   const selected = state.night[action.field];
   const validation = action.validate ? action.validate(selected) : { ok: true };
 
-  let resultHtml = '';
+  // CH-05 · sheriff / don verdicts now render as a banner ABOVE the target
+  // grid so the host sees the verdict on the same screen that made the
+  // check — no accordion, no scrolling down past the roster. Kind drives
+  // the left border: red when the verdict is dangerous news, ink otherwise.
+  let checkResultHtml = '';
   if (action.showResult && selected != null && selected >= 0) {
-    resultHtml = `<div class="action-result">${action.showResult(selected)}</div>`;
+    const name = escapeHtml(state.players[selected].name);
+    const mark = getTargetMark(action.role);
+    const kind = action.showResultKind ? action.showResultKind(selected) : 'neutral';
+    checkResultHtml = `
+      <section class="check-result check-result-${kind}" data-role="check-result">
+        <span class="check-glyph" aria-hidden="true">${mark.glyph}</span>
+        <div class="check-body">
+          <div class="check-kicker">${t('actions.checkResultLabel')}</div>
+          <div class="check-verdict"><strong>${name}</strong> — ${action.showResult(selected)}</div>
+        </div>
+      </section>
+    `;
   }
 
   let warnHtml = '';
@@ -82,9 +131,13 @@ function renderPickTarget(action) {
     ? state.players.findIndex(p => p.role === action.role)
     : -1;
 
+  const mark = getTargetMark(action.role);
+  const mHtml = markHtml(mark);
+
   return `
-    <div class="step-card action-card">
+    <div class="step-card action-card" data-mark-kind="${mark.kind}">
       <div class="step-title">${action.label}</div>
+      ${checkResultHtml}
       <div class="target-grid a-stagger" role="group" aria-label="${escapeHtml(action.label)}">
         ${state.players.map((p, i) => {
           if (!p.alive) return '';
@@ -96,6 +149,7 @@ function renderPickTarget(action) {
                     aria-pressed="${isSelected ? 'true' : 'false'}">
               <span class="chip-num">${String(i + 1).padStart(2, '0')}</span>
               <span class="chip-name">${escapeHtml(p.name)}</span>
+              ${mHtml}
             </button>
           `;
         }).join('')}
@@ -107,7 +161,6 @@ function renderPickTarget(action) {
           ${action.skipLabel || t('actions.skipDefault')}
         </button>
       ` : ''}
-      ${resultHtml}
       ${warnHtml}
     </div>
   `;
@@ -159,9 +212,12 @@ function renderPickVeteran(action) {
               aria-pressed="${selected === -1 && mode == null ? 'true' : 'false'}">
         ${t('steps.veteran.modeSkip')}
       </button>
-      ${showGrid ? `
+      ${showGrid ? (() => {
+        const vMark = getTargetMark('veteran', { veteranMode: mode });
+        const vMarkHtml = markHtml(vMark);
+        return `
         <div class="veteran-grid-label">${gridLabel}</div>
-        <div class="target-grid a-stagger" role="group" aria-label="${escapeHtml(gridLabel)}">
+        <div class="target-grid a-stagger" role="group" aria-label="${escapeHtml(gridLabel)}" data-mark-kind="${vMark.kind}">
           ${state.players.map((p, i) => {
             if (!p.alive) return '';
             // Save may target self; kill may not.
@@ -173,11 +229,12 @@ function renderPickVeteran(action) {
                       aria-pressed="${isSelected ? 'true' : 'false'}">
                 <span class="chip-num">${String(i + 1).padStart(2, '0')}</span>
                 <span class="chip-name">${escapeHtml(p.name)}</span>
+                ${vMarkHtml}
               </button>
             `;
           }).join('')}
         </div>
-      ` : ''}
+      `;})() : ''}
       ${warnHtml}
     </div>
   `;
@@ -185,11 +242,10 @@ function renderPickVeteran(action) {
 
 function renderPickKilled(action) {
   const selected = state.dayVoteKilled;
-  const revoteBtn = action.allowRevote
-    ? `<button class="target-revote" data-revote type="button">${action.revoteLabel || t('steps.voteRevoteLabel')}</button>`
-    : '';
+  const mark = getTargetMark('vote');
+  const mHtml = markHtml(mark);
   return `
-    <div class="step-card action-card">
+    <div class="step-card action-card" data-mark-kind="${mark.kind}">
       <div class="step-title">${action.label}</div>
       <div class="target-grid a-stagger" role="group" aria-label="${escapeHtml(action.label)}">
         ${state.players.map((p, i) => {
@@ -201,6 +257,7 @@ function renderPickKilled(action) {
                     aria-pressed="${isSelected ? 'true' : 'false'}">
               <span class="chip-num">${String(i + 1).padStart(2, '0')}</span>
               <span class="chip-name">${escapeHtml(p.name)}</span>
+              ${mHtml}
             </button>
           `;
         }).join('')}
@@ -209,7 +266,6 @@ function renderPickKilled(action) {
               data-killed-skip aria-pressed="${selected === -1 ? 'true' : 'false'}">
         ${action.skipLabel || t('steps.voteSkipLabel')}
       </button>
-      ${revoteBtn}
     </div>
   `;
 }
@@ -327,16 +383,6 @@ export function bindActionHandlers(step, render) {
   if (skipKilled) {
     skipKilled.onclick = () => {
       state.dayVoteKilled = -1;
-      render();
-    };
-  }
-
-  const revoteBtn = document.querySelector('[data-revote]');
-  if (revoteBtn) {
-    revoteBtn.onclick = () => {
-      stopTimer();
-      state.dayVoteKilled = null;
-      if (state.timer.preset) state.timer.seconds = state.timer.preset;
       render();
     };
   }

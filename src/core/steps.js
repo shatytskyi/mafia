@@ -191,7 +191,12 @@ export function getNightSteps(state) {
           showResult: (idx) => {
             const role = getRole(state.players, idx);
             return role === 'sheriff' ? t('steps.don.resultSheriff') : t('steps.don.resultNotSheriff');
-          }
+          },
+          showResultKind: (idx) => (
+            // CH-05 · red banner when Don strikes gold (found the Sheriff), ink
+            // otherwise so the host's eye reads the severity immediately.
+            getRole(state.players, idx) === 'sheriff' ? 'alert' : 'neutral'
+          ),
         }
       });
     }
@@ -271,7 +276,24 @@ export function getNightSteps(state) {
               }
             }
             return looksLikeMafia ? t('steps.sheriff.resultMafia') : t('steps.sheriff.resultNotMafia');
-          }
+          },
+          showResultKind: (idx) => {
+            // CH-05 · mirror the same "looks like mafia" rule (incl. the
+            // sheriffSeesManiac setting) so the banner stays red only when
+            // the sheriff would announce mafia.
+            const role = getRole(state.players, idx);
+            let looksLikeMafia = isMafiaRole(role);
+            if (!looksLikeMafia && role === 'maniac') {
+              const mode = state.gameOptions.sheriffSeesManiac || 'afterMafia';
+              if (mode === 'always') {
+                looksLikeMafia = true;
+              } else if (mode === 'afterMafia') {
+                const mafiaAlive = state.players.some(p => p.alive && isMafiaRole(p.role));
+                if (!mafiaAlive) looksLikeMafia = true;
+              }
+            }
+            return looksLikeMafia ? 'alert' : 'neutral';
+          },
         }
       });
     }
@@ -416,25 +438,44 @@ export function getDaySteps(state) {
   return steps;
 }
 
-/** @returns {Step[]} */
-export function getVoteSteps() {
-  return [
+/**
+ * Vote phase: always starts with the pickKilled step; when someone is
+ * actually selected for execution, a second "last word" step follows
+ * (30 s timer, no action). If the town votes "no one leaves" the second
+ * step is omitted and the phase is a single step. External sources
+ * (mafiapiter, lifehacker) agree the executed player is entitled to a
+ * last word.
+ * @param {import('../types.js').AppState} state
+ * @returns {Step[]}
+ */
+export function getVoteSteps(state) {
+  const steps = [
     {
       title: t('steps.voteTitle'),
       say: t('steps.voteSay'),
       hint: t('steps.voteHint'),
-      timerSeconds: 30,
-      timerLabel: t('steps.voteTimerLabel'),
       action: {
         type: 'pickKilled',
         label: t('steps.voteLabel'),
         allowSkip: true,
         skipLabel: t('steps.voteSkipLabel'),
-        allowRevote: true,
-        revoteLabel: t('steps.voteRevoteLabel'),
       }
     }
   ];
+
+  const killedIdx = state?.dayVoteKilled;
+  if (killedIdx != null && killedIdx >= 0 && state.players[killedIdx]?.alive) {
+    const name = state.players[killedIdx].name;
+    steps.push({
+      title: t('steps.voteLastWordTitle'),
+      say: t('steps.voteLastWordSay', { name }),
+      hint: t('steps.voteLastWordHint'),
+      timerSeconds: 30,
+      timerLabel: t('steps.voteLastWordTimerLabel'),
+    });
+  }
+
+  return steps;
 }
 
 /**

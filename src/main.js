@@ -12,7 +12,7 @@ import { initVersionFooter } from './ui/version.js';
 import { renderHome } from './ui/screens/home.js';
 import { renderNames } from './ui/screens/names.js';
 import { renderDeal } from './ui/screens/deal.js';
-import { renderHost } from './ui/screens/host.js';
+import { createHostScreen } from './ui/screens/host.js';
 import { renderGameOver } from './ui/screens/gameover.js';
 import { renderRules } from './ui/screens/rules.js';
 
@@ -58,7 +58,7 @@ const render = createRender({
 registerScreen('home',     () => renderHome({ render, loadGame, clearSavedGame, restoreGame }));
 registerScreen('names',    () => renderNames({ render, loadRoster, saveRoster, clearRoster }));
 registerScreen('deal',     () => renderDeal({ render }));
-registerScreen('host',     () => renderHost({ render, clearSavedGame }));
+registerScreen('host',     createHostScreen({ render, clearSavedGame }));
 registerScreen('gameover', () => renderGameOver({ render, clearSavedGame }));
 registerScreen('rules',    () => renderRules({ render }));
 
