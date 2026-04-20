@@ -12,7 +12,7 @@ function getAudioCtx() {
   return audioCtx;
 }
 
-function playTick(isFinal) {
+function playTick(kind) {
   const ctx = getAudioCtx();
   if (!ctx) return;
   if (ctx.state === 'suspended') ctx.resume();
@@ -21,24 +21,34 @@ function playTick(isFinal) {
   const gain = ctx.createGain();
   osc.connect(gain);
   gain.connect(ctx.destination);
+  osc.type = 'sine';
 
-  if (isFinal) {
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(880, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.6);
-    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.8);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.8);
+  const now = ctx.currentTime;
+
+  if (kind === 'final') {
+    // Peak: highest pitch, sustained
+    osc.frequency.setValueAtTime(1800, now);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.35, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.7);
+    osc.start(now);
+    osc.stop(now + 0.7);
+  } else if (kind === 'late') {
+    // Seconds 5..1: louder, higher
+    osc.frequency.setValueAtTime(1200, now);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.18, now + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+    osc.start(now);
+    osc.stop(now + 0.12);
   } else {
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(1200, ctx.currentTime);
-    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.15, ctx.currentTime + 0.01);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.12);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.12);
+    // Seconds 10..6: quieter, lower
+    osc.frequency.setValueAtTime(700, now);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.07, now + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.1);
+    osc.start(now);
+    osc.stop(now + 0.1);
   }
 }
 
@@ -68,10 +78,11 @@ export function startTimer() {
     if (state.timer.seconds > 0) {
       state.timer.seconds--;
       updateTimerDisplay();
-      if (state.timer.seconds > 0 && state.timer.seconds <= 5) playTick(false);
+      if (state.timer.seconds >= 6 && state.timer.seconds <= 10) playTick('early');
+      else if (state.timer.seconds >= 1 && state.timer.seconds <= 5) playTick('late');
       if (state.timer.seconds === 0) {
         stopTimer();
-        playTick(true);
+        playTick('final');
         if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
         updateTimerDisplay();
         updateTimerToggleBtn();
