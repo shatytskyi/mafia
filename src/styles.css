@@ -1118,10 +1118,18 @@ input, textarea {
   line-height: 1.4;
 }
 
-/* handoff screen */
+/* handoff screen — top head (kicker + title) arrives at the top of the
+   scroll area; the rule + hint + CTA are pinned to the screen floor
+   together, mirroring the .deal-action-slot sticky-bottom contract
+   used on the revealed card screen. */
 .handoff-screen {
-  justify-content: center;
+  justify-content: flex-start;
   align-items: stretch;
+}
+
+.handoff-head {
+  text-align: center;
+  padding-top: 36px;
 }
 
 .handoff-screen .player-name-big {
@@ -1129,15 +1137,35 @@ input, textarea {
   line-height: 0.95;
 }
 
+.handoff-foot {
+  margin-top: auto;
+  position: sticky;
+  bottom: 0;
+  padding: 16px 0 calc(12px + env(safe-area-inset-bottom));
+  background: var(--bg);
+  text-align: center;
+}
+
 .handoff-rule {
   height: 2px;
   width: 56px;
   background: var(--ink);
-  margin: 20px auto;
+  margin: 0 auto 16px;
+}
+
+.handoff-foot .passing-hint {
+  position: static;
+  margin: 0 0 18px;
+  padding: 0;
+  background: transparent;
+  border-top: none;
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
 }
 
 .handoff-cta {
-  margin-top: 28px;
+  margin-top: 0;
 }
 
 /* ─── Host screen ───────────────────────────────────────────── */

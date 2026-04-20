@@ -12,17 +12,19 @@ export function renderDeal({ render }) {
   if (state.dealPhase === 'handoff') {
     app.innerHTML = `
       <div class="deal-screen screen handoff-screen">
-        <div class="a-fade-up">
+        <div class="a-fade-up handoff-head">
           <div class="player-num">${t('deal.handoffKicker')}</div>
           <div class="player-name-big">${t('deal.handoffTitle')}</div>
-          <div class="handoff-rule"></div>
-          <div class="passing-hint">${t('deal.handoffHint')}</div>
         </div>
 
-        <div class="handoff-cta">
-          <button class="btn-primary" id="hostReadyBtn">
-            ${t('deal.handoffBtn')}
-          </button>
+        <div class="handoff-foot">
+          <div class="handoff-rule"></div>
+          <div class="passing-hint">${t('deal.handoffHint')}</div>
+          <div class="handoff-cta">
+            <button class="btn-primary" id="hostReadyBtn">
+              ${t('deal.handoffBtn')}
+            </button>
+          </div>
         </div>
       </div>
     `;
