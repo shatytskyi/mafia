@@ -355,6 +355,168 @@ function renderResolveNight() {
   `;
 }
 
+/**
+ * In-place patch for an action card when the user taps a chip / skip / mode
+ * button but stays on the same step. Avoids replacing the card's DOM so the
+ * target-grid `.a-stagger` and step hint don't replay their entry animations
+ * on every selection — a follow-up to the roster partial-update work.
+ *
+ * Returns true on a successful patch, or false when the structure changed
+ * (e.g. veteran mode switch toggles grid visibility / mark-kind) and the
+ * caller should fall back to a full action-card rebuild.
+ *
+ * @param {import('../../core/steps.js').Step} step
+ * @returns {boolean}
+ */
+export function patchActionInPlace(step) {
+  if (!step.action) return true;
+  const a = step.action;
+
+  if (a.type === 'pickTarget')    { patchPickTarget(a);    return true; }
+  if (a.type === 'pickKilled')    { patchPickKilled();     return true; }
+  if (a.type === 'blockedAction') { patchBlockedAction(a); return true; }
+  if (a.type === 'pickVeteran')   { return patchPickVeteran(a); }
+  // resolveNight is effectively static within its step.
+  if (a.type === 'resolveNight')  return true;
+  return false;
+}
+
+function patchPickTarget(action) {
+  const card = document.querySelector('.action-card');
+  if (!card) return;
+  const selected = state.night[action.field];
+
+  card.querySelectorAll(`[data-target-idx][data-field="${action.field}"]`).forEach(el => {
+    const isSelected = parseInt(el.dataset.targetIdx) === selected;
+    el.classList.toggle('selected', isSelected);
+    el.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+  });
+
+  const skipBtn = card.querySelector(`[data-skip][data-field="${action.field}"]`);
+  if (skipBtn) {
+    const s = selected === -1;
+    skipBtn.classList.toggle('selected', s);
+    skipBtn.setAttribute('aria-pressed', s ? 'true' : 'false');
+  }
+
+  patchCheckResult(card, action, selected);
+  patchActionWarn(card, action, selected);
+}
+
+function patchCheckResult(card, action, selected) {
+  const existing = card.querySelector('[data-role="check-result"]');
+  const show = action.showResult && selected != null && selected >= 0;
+  if (!show) { if (existing) existing.remove(); return; }
+
+  const name = escapeHtml(state.players[selected].name);
+  const mark = getTargetMark(action.role);
+  const kind = action.showResultKind ? action.showResultKind(selected) : 'neutral';
+  const html = `
+    <section class="check-result check-result-${kind}" data-role="check-result">
+      <span class="check-glyph" aria-hidden="true">${mark.glyph}</span>
+      <div class="check-body">
+        <div class="check-kicker">${t('actions.checkResultLabel')}</div>
+        <div class="check-verdict"><strong>${name}</strong> — ${action.showResult(selected)}</div>
+      </div>
+    </section>
+  `;
+  if (existing) {
+    existing.outerHTML = html;
+  } else {
+    const title = card.querySelector('.step-title');
+    if (title) title.insertAdjacentHTML('afterend', html);
+  }
+}
+
+function patchActionWarn(card, action, selected) {
+  const existing = card.querySelector('.action-warn');
+  const validation = action.validate ? action.validate(selected) : { ok: true };
+  const show = !validation.ok && selected != null && selected >= 0;
+  if (!show) { if (existing) existing.remove(); return; }
+
+  const html = `<div class="action-warn">⚠ ${escapeHtml(validation.reason)}</div>`;
+  if (existing) existing.outerHTML = html;
+  else card.insertAdjacentHTML('beforeend', html);
+}
+
+function patchPickKilled() {
+  const selected = state.dayVoteKilled;
+  document.querySelectorAll('[data-killed-idx]').forEach(el => {
+    const isSelected = parseInt(el.dataset.killedIdx) === selected;
+    el.classList.toggle('selected', isSelected);
+    el.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+  });
+  const skipBtn = document.querySelector('[data-killed-skip]');
+  if (skipBtn) {
+    const s = selected === -1;
+    skipBtn.classList.toggle('selected', s);
+    skipBtn.setAttribute('aria-pressed', s ? 'true' : 'false');
+  }
+}
+
+function patchBlockedAction(action) {
+  const btn = document.querySelector(`[data-blocked-confirm][data-field="${action.field}"]`);
+  if (!btn) return;
+  const confirmed = state.night[action.field] === -1;
+  btn.classList.toggle('selected', confirmed);
+  btn.setAttribute('aria-pressed', confirmed ? 'true' : 'false');
+  btn.textContent = confirmed
+    ? t('actions.blockedConfirmed')
+    : (action.confirmLabel || t('actions.blockedConfirm'));
+}
+
+function patchPickVeteran(action) {
+  const card = document.querySelector('.veteran-action-card');
+  if (!card) return false;
+
+  const mode = state.night.veteranAction;        // 'save' | 'kill' | null
+  const target = state.night.veteranTarget;      // index | -1 | null
+  const showGrid = mode === 'save' || mode === 'kill';
+
+  const existingGrid = card.querySelector('.target-grid');
+  const gridVisibilityChanged =
+    (showGrid && !existingGrid) || (!showGrid && existingGrid);
+  const newKind = mode === 'kill' ? 'deadly' : 'neutral';
+  const kindChanged = showGrid && existingGrid && existingGrid.dataset.markKind !== newKind;
+
+  // Structural change (mode toggle or switch) — let caller rebuild the card.
+  if (gridVisibilityChanged || kindChanged) return false;
+
+  card.querySelectorAll('[data-veteran-mode]').forEach(el => {
+    const active = el.dataset.veteranMode === mode;
+    el.classList.toggle('active', active);
+    el.setAttribute('aria-pressed', active ? 'true' : 'false');
+  });
+
+  const vSkip = card.querySelector('[data-veteran-skip]');
+  if (vSkip) {
+    const s = (target === -1 && mode == null);
+    vSkip.classList.toggle('selected', s);
+    vSkip.setAttribute('aria-pressed', s ? 'true' : 'false');
+  }
+
+  if (showGrid) {
+    card.querySelectorAll('[data-veteran-target]').forEach(el => {
+      const isSelected = parseInt(el.dataset.veteranTarget) === target;
+      el.classList.toggle('selected', isSelected);
+      el.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+    });
+
+    const existingWarn = card.querySelector('.action-warn');
+    const v = (action.validate && target != null && target >= 0)
+      ? action.validate(target)
+      : { ok: true };
+    if (!v.ok) {
+      const html = `<div class="action-warn">⚠ ${escapeHtml(v.reason)}</div>`;
+      if (existingWarn) existingWarn.outerHTML = html;
+      else card.insertAdjacentHTML('beforeend', html);
+    } else if (existingWarn) {
+      existingWarn.remove();
+    }
+  }
+  return true;
+}
+
 export function bindActionHandlers(step, render) {
   if (!step.action) return;
 

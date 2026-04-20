@@ -3,7 +3,7 @@ import { ROLES, getRoleName } from '../../core/roles.js';
 import { checkWinCondition } from '../../core/win.js';
 import { getCurrentSteps, getDaySteps } from '../../core/steps.js';
 import { resolveNight, applyNightResolution } from '../../core/night.js';
-import { renderAction, bindActionHandlers, isNextDisabled } from './actions.js';
+import { renderAction, bindActionHandlers, isNextDisabled, patchActionInPlace } from './actions.js';
 import { renderTimer, bindTimerHandlers, stopTimer } from './timer.js';
 import { escapeHtml } from '../html.js';
 import { t } from '../../i18n/index.js';
@@ -32,9 +32,20 @@ const IDS = {
 // игроков не анимировать каждый раз, только менять при смерти").
 let _lastAliveFingerprint = '';
 
+// Track previous step identity. Within the same step (selection changes on
+// the active action card) we skip rebuilding the hint / header / alibi /
+// timer panels and patch the action card in place, so target chips and the
+// hint don't replay their entry animations on every tap.
+let _lastStepKey = '';
+
 /** Compute a cheap fingerprint of "who is alive" for roster diffing. */
 function aliveFingerprint() {
   return state.players.map(p => p.alive ? '1' : '0').join('');
+}
+
+/** Identifies the currently-visible step for partial-update diffing. */
+function stepKey() {
+  return `${state.phase}:${state.stepIndex}:${state.day}`;
 }
 
 /**
@@ -172,9 +183,9 @@ function endGameHtml() {
   `;
 }
 
-function bindStaticHandlers(step) {
-  bindActionHandlers(step, _render);
-  if (step.timerSeconds) bindTimerHandlers();
+function bindStaticHandlers(step, { rebindAction = true, rebindTimer = true } = {}) {
+  if (rebindAction) bindActionHandlers(step, _render);
+  if (rebindTimer && step.timerSeconds) bindTimerHandlers();
 
   document.getElementById('prevStep').onclick = () => {
     if (isBackDisabledFor()) return;
@@ -264,6 +275,7 @@ function mountHost(ctx) {
 
   const { steps, step } = resolveSteps();
   _lastAliveFingerprint = aliveFingerprint();
+  _lastStepKey = stepKey();
 
   app.innerHTML = `
     <div id="${IDS.root}" class="screen">
@@ -303,6 +315,9 @@ function updateHost(ctx) {
   }
 
   const { steps, step } = resolveSteps();
+  const key = stepKey();
+  const sameStep = key === _lastStepKey;
+  _lastStepKey = key;
 
   // Swap in-place. `outerHTML =` replaces the element itself, preserving
   // surrounding siblings — so roster + endGame stay put.
@@ -311,12 +326,30 @@ function updateHost(ctx) {
     if (el) el.outerHTML = html;
   };
 
-  setHtml(IDS.header, headerHtml(step));
-  setHtml(IDS.step, stepCardHtml(step, steps));
-  setHtml(IDS.alibi, alibiHtml());
+  // Static-within-a-step panels: only replace on step change. Leaving them
+  // alone when the user only toggled a chip is what keeps the hint and the
+  // target grid from replaying their entry animations on every tap.
+  if (!sameStep) {
+    setHtml(IDS.header, headerHtml(step));
+    setHtml(IDS.step, stepCardHtml(step, steps));
+    setHtml(IDS.alibi, alibiHtml());
+    setHtml(IDS.timer, timerHtml(step));
+  }
+
+  // Nav row reflects `isNextDisabled`, which can flip with a selection, so
+  // rebuild it every tick.
   setHtml(IDS.nav, navRowHtml(step, steps));
-  setHtml(IDS.action, actionHtml(step));
-  setHtml(IDS.timer, timerHtml(step));
+
+  // Action card: patch in place when we stayed on the same step; fall back
+  // to a full rebuild when the step changes or the patcher reports a
+  // structural change (e.g. veteran mode toggle).
+  let actionRebuilt = false;
+  if (sameStep && patchActionInPlace(step)) {
+    // In-place patch kept existing DOM — no rebind needed.
+  } else {
+    setHtml(IDS.action, actionHtml(step));
+    actionRebuilt = true;
+  }
 
   // Roster: rebuild only if the alive set changed. Otherwise leave the DOM
   // alone so the list doesn't re-run its entry animation.
@@ -335,7 +368,10 @@ function updateHost(ctx) {
     root.classList.add('screen-enter');
   }
 
-  bindStaticHandlers(step);
+  bindStaticHandlers(step, {
+    rebindAction: actionRebuilt,
+    rebindTimer: !sameStep,
+  });
 }
 
 /**
