@@ -38,23 +38,23 @@ export function renderNames({ render, loadRoster, saveRoster, clearRoster }) {
 
   app.innerHTML = `
     <div class="screen">
-      <div class="home-header">
+      <div class="home-header a-fade-up">
         <div class="ornament"><span>${t('names.ornament')}</span></div>
         <div class="hero-wrap">
-          <h1 class="hero" style="font-size: 48px;">${t('names.title')}<em>${t('names.titleEm')}</em></h1>
+          <h1 class="hero a-ink-sweep" style="font-size: clamp(48px, 14vw, 64px);">${t('names.title')}<em>${t('names.titleEm')}</em></h1>
         </div>
-        <p class="subtitle t-center mt-16">${t('names.subtitle')}</p>
+        <p class="subtitle a-fade-up d2">${t('names.subtitle')}</p>
       </div>
 
       ${clearLink}
 
-      <div class="name-inputs">
+      <div class="name-inputs a-stagger">
         ${inputsHtml}
       </div>
 
       <button class="btn-primary" id="confirmNames">${t('names.confirmBtn')}</button>
       <div style="height: 12px;"></div>
-      <button class="btn-ghost" id="backHome">${t('common.back')}</button>
+      <button class="btn-ghost" id="backHome" style="width: 100%;">${t('common.back')}</button>
     </div>
   `;
 

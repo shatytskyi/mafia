@@ -15,21 +15,24 @@ export function renderGameOver({ render, clearSavedGame }) {
 
   app.innerHTML = `
     <div class="game-over screen">
-      <div class="label mb-16">${t('gameover.finalKicker')}</div>
-      <div class="verdict ${verdict.cls}">${verdict.text}</div>
-      <p class="verdict-sub">${verdict.sub}</p>
+      <div class="label mb-16 a-fade-up">${t('gameover.finalKicker')}</div>
+      <div class="verdict ${verdict.cls} a-ink-sweep">${verdict.text}</div>
+      <p class="verdict-sub a-fade-up d2">${verdict.sub}</p>
 
-      <div class="section">
+      <div class="section a-fade-up d3">
         <div class="section-head">
-          <span class="num">✦</span>
+          <span class="num">§</span>
           <span class="label">${t('gameover.allParticipants')}</span>
           <span class="line"></span>
         </div>
-        <div class="final-list">
+        <div class="final-list a-stagger">
           ${state.players.map(p => `
             <div class="final-item ${!p.alive ? 'dead' : ''}">
               <div class="name-col">${escapeHtml(p.name)}</div>
-              <div class="role-col">${ROLES[p.role].emblem} ${getRoleName(p.role)}</div>
+              <div class="role-col">
+                <span class="role-icon ${p.role}" aria-hidden="true">${ROLES[p.role].emblem}</span>
+                <span>${getRoleName(p.role)}</span>
+              </div>
             </div>
           `).join('')}
         </div>
@@ -137,9 +140,9 @@ function renderHistorySection() {
   }).join('');
 
   return `
-    <div class="section">
+    <div class="section a-fade-up d4">
       <div class="section-head">
-        <span class="num">✦</span>
+        <span class="num">§</span>
         <span class="label">${t('gameover.history.title')}</span>
         <span class="line"></span>
       </div>

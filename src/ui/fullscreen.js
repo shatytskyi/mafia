@@ -2,8 +2,8 @@
 // Works on Android/desktop browsers; iOS Safari does not support
 // Element.requestFullscreen on arbitrary elements, so we hide the button there.
 
-const ENTER_ICON = '⛶';
-const EXIT_ICON = '✕';
+const ENTER_SVG = '<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M1 4V1h3M13 4V1h-3M1 10v3h3M13 10v3h-3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="square"/></svg>';
+const EXIT_SVG = '<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 1v3H1M9 1v3h4M5 13v-3H1M9 13v-3h4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="square"/></svg>';
 
 function isFullscreen() {
   return Boolean(document.fullscreenElement || document.webkitFullscreenElement);
@@ -23,8 +23,9 @@ function exitFs() {
 }
 
 function updateIcon(btn) {
-  const icon = btn.querySelector('#fullscreenIcon');
-  if (icon) icon.textContent = isFullscreen() ? EXIT_ICON : ENTER_ICON;
+  btn.innerHTML = isFullscreen() ? EXIT_SVG : ENTER_SVG;
+  const svg = btn.querySelector('svg');
+  if (svg) svg.id = 'fullscreenIcon';
 }
 
 export function bindFullscreenToggle() {

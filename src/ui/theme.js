@@ -12,7 +12,7 @@ export function onThemeChange(cb) { onChange = cb; }
 // (#f2ead5) because the page sits under a grain + vignette overlay that
 // visibly tints the rendered top edge; matching --bg exactly would make
 // the status bar look lighter than the actual page background.
-const THEME_COLORS = { light: '#ebe2c9', dark: '#0a0807' };
+const THEME_COLORS = { light: '#f4efe7', dark: '#0e0b0a' };
 
 function syncThemeColorMeta() {
   const meta = document.getElementById('themeColorMeta');
@@ -40,5 +40,8 @@ export function bindThemeToggle(persistence) {
 
 export function updateThemeIcon() {
   const icon = document.getElementById('themeIcon');
-  if (icon) icon.textContent = state.theme === 'light' ? '☾' : '☀';
+  // ◐/◑ are half-moons used as neutral theme toggle — show the *opposite*
+  // of the current theme to communicate what tapping will do. Keeping them
+  // off the ☾/☀ phase-badge set avoids ambiguity with host night/day screens.
+  if (icon) icon.textContent = state.theme === 'light' ? '◐' : '◑';
 }

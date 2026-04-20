@@ -27,22 +27,22 @@ export function renderHome({ render, loadGame, clearSavedGame, restoreGame }) {
 
   app.innerHTML = `
     <div class="screen">
-      <div class="home-header">
+      <div class="home-header a-fade-up">
         <div class="ornament"><span>${t('home.ornament')}</span></div>
         <div class="hero-wrap">
           <div class="year">${t('home.year')}</div>
-          <h1 class="hero">${t('home.title')}<em>${t('home.titleEm')}</em></h1>
+          <h1 class="hero a-ink-sweep">${t('home.title')}<em>${t('home.titleEm')}</em></h1>
         </div>
-        <div class="tag">
+        <div class="tag a-fade-up d2">
           <p class="subtitle">${t('home.subtitle')}</p>
         </div>
       </div>
 
       ${resumeBlock}
 
-      <div class="section">
+      <div class="section a-fade-up d3">
         <div class="section-head">
-          <span class="num">01 /</span>
+          <span class="num">§ 01</span>
           <span class="label">${t('home.sectionPlayers')}</span>
           <span class="line"></span>
         </div>
@@ -56,9 +56,9 @@ export function renderHome({ render, loadGame, clearSavedGame, restoreGame }) {
         </div>
       </div>
 
-      <div class="section">
+      <div class="section a-fade-up d4">
         <div class="section-head">
-          <span class="num">02 /</span>
+          <span class="num">§ 02</span>
           <span class="label">${t('home.sectionRoles')}</span>
           <span class="line"></span>
         </div>
@@ -74,9 +74,9 @@ export function renderHome({ render, loadGame, clearSavedGame, restoreGame }) {
         </div>
       </div>
 
-      <div class="section">
+      <div class="section a-fade-up d5">
         <div class="section-head">
-          <span class="num">03 /</span>
+          <span class="num">§ 03</span>
           <span class="label">${t('home.sectionExtra')}</span>
           <span class="line"></span>
         </div>

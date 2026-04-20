@@ -56,19 +56,19 @@ export function renderHost({ render, clearSavedGame }) {
 
   app.innerHTML = `
     <div class="screen">
-      <div class="host-header">
+      <div class="host-header a-fade-up">
         <div class="phase-badge ${phaseCls}">
-          <span aria-hidden="true">${state.phase === 'night' ? '🌙' : state.phase === 'day' ? '☀' : '⚖'}</span>
+          <span class="glyph" aria-hidden="true">${state.phase === 'night' ? '☾' : state.phase === 'day' ? '☀' : '⚖'}</span>
           ${t('host.phaseDay', { day: state.day, phase: phaseLabel })}
         </div>
         <div class="phase-title">${step.title}</div>
       </div>
 
-      <div class="step-card ${step.cls || ''}">
+      <div class="step-card ${step.cls || ''} a-fade-up d1">
         <div class="step-num">${t('host.stepNum', { current: state.stepIndex + 1, total: steps.length })}</div>
         <div class="step-title">${t('host.hostSays')}</div>
         <div class="step-say">${step.say}</div>
-        ${step.hint ? `<div class="step-hint">💡 ${step.hint}</div>` : ''}
+        ${step.hint ? `<div class="step-hint">${step.hint}</div>` : ''}
       </div>
 
       <div class="nav-row nav-row-sticky">
@@ -83,11 +83,11 @@ export function renderHost({ render, clearSavedGame }) {
 
       <div class="section mt-24">
         <div class="section-head">
-          <span class="num">✦</span>
+          <span class="num">§</span>
           <span class="label">${t('host.playersHeader', { alive: aliveCount, total: state.playerCount })}</span>
           <span class="line"></span>
         </div>
-        <div class="roster">
+        <div class="roster a-stagger">
           ${state.players.map((p, i) => {
             const role = ROLES[p.role];
             return `

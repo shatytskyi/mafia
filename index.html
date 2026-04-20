@@ -6,8 +6,8 @@
 <title>Мафия — Игровой Мастер</title>
 <link rel="icon" type="image/svg+xml" href="./favicon.svg">
 <link rel="manifest" href="./manifest.webmanifest">
-<meta name="theme-color" content="#ebe2c9" id="themeColorMeta">
-<script>(function(){try{var t=localStorage.getItem('mafia.theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');var m=document.getElementById('themeColorMeta');if(m)m.setAttribute('content','#0a0807');}}catch(e){}})();</script>
+<meta name="theme-color" content="#f4efe7" id="themeColorMeta">
+<script>(function(){try{var t=localStorage.getItem('mafia.theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');var m=document.getElementById('themeColorMeta');if(m)m.setAttribute('content','#0e0b0a');}}catch(e){}})();</script>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -15,22 +15,33 @@
 <link rel="apple-touch-icon" href="./favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Lora:ital,wght@1,400;1,500&family=Oswald:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Archivo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+Symbols+2&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./src/styles.css">
 </head>
 <body>
 <div class="top-bar">
-  <div class="locale-toggle" id="localeToggle" role="group" aria-label="Language">
-    <button class="locale-btn" data-locale="uk" title="Українська" aria-label="Українська">UA</button>
-    <button class="locale-btn" data-locale="en" title="English" aria-label="English">EN</button>
-    <button class="locale-btn" data-locale="ru" title="Русский" aria-label="Русский">RU</button>
+  <div class="top-bar-brand" aria-hidden="true">
+    <svg class="brand-mark" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+      <g fill="currentColor">
+        <path d="M12 1.6c-.9 1.6-1.5 3-1.5 4.5 0 1.1.3 2 .8 2.8-.9-.1-1.7-.6-2.3-1.4-.5.8-.7 1.7-.7 2.5 0 1.5.9 2.7 2.2 3.1-.8.5-1.4 1.2-1.6 2.1l-.6 2.1c-.1.4.3.8.7.7l2.1-.6c.3-.1.6-.2.9-.4v4.9l-1.8-.9c-.3-.2-.7.1-.6.5l.6 2c.1.3.4.5.7.5h1c.3 0 .6-.2.7-.5l.6-2c.1-.4-.3-.7-.6-.5l-1.8.9v-4.9c.3.2.6.3.9.4l2.1.6c.4.1.8-.3.7-.7l-.6-2.1c-.2-.9-.8-1.6-1.6-2.1 1.3-.4 2.2-1.6 2.2-3.1 0-.8-.2-1.7-.7-2.5-.6.8-1.4 1.3-2.3 1.4.5-.8.8-1.7.8-2.8 0-1.5-.6-2.9-1.5-4.5z"/>
+        <rect x="5.8" y="10.8" width="12.4" height="1.4" rx="0.2"/>
+      </g>
+    </svg>
+    <span class="brand-word">Маф<span class="brand-accent">и</span>я</span>
   </div>
   <div class="top-bar-actions">
-    <button class="fullscreen-toggle" id="fullscreenToggle" aria-label="Fullscreen" title="Fullscreen">
-      <span id="fullscreenIcon">⛶</span>
-    </button>
+    <div class="locale-toggle" id="localeToggle" role="group" aria-label="Language">
+      <button class="locale-btn" data-locale="uk" title="Українська" aria-label="Українська">UA</button>
+      <button class="locale-btn" data-locale="en" title="English" aria-label="English">EN</button>
+      <button class="locale-btn" data-locale="ru" title="Русский" aria-label="Русский">RU</button>
+    </div>
     <button class="theme-toggle" id="themeToggle" aria-label="Theme" title="Theme">
-      <span id="themeIcon">☾</span>
+      <span id="themeIcon">◐</span>
+    </button>
+    <button class="fullscreen-toggle" id="fullscreenToggle" aria-label="Fullscreen" title="Fullscreen">
+      <svg id="fullscreenIcon" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+        <path d="M1 4V1h3M13 4V1h-3M1 10v3h3M13 10v3h-3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="square"/>
+      </svg>
     </button>
   </div>
 </div>

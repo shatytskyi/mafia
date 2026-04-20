@@ -11,14 +11,19 @@ export function renderDeal({ render }) {
 
   if (state.dealPhase === 'handoff') {
     app.innerHTML = `
-      <div class="deal-screen screen">
-        <div class="player-num">${t('deal.handoffKicker')}</div>
-        <div class="player-name-big">${t('deal.handoffTitle')}</div>
-        <div class="passing-hint">${t('deal.handoffHint')}</div>
+      <div class="deal-screen screen handoff-screen">
+        <div class="a-fade-up">
+          <div class="player-num">${t('deal.handoffKicker')}</div>
+          <div class="player-name-big">${t('deal.handoffTitle')}</div>
+          <div class="handoff-rule"></div>
+          <div class="passing-hint">${t('deal.handoffHint')}</div>
+        </div>
 
-        <button class="btn-primary" id="hostReadyBtn" style="max-width: 380px;">
-          ${t('deal.handoffBtn')}
-        </button>
+        <div class="handoff-cta">
+          <button class="btn-primary" id="hostReadyBtn">
+            ${t('deal.handoffBtn')}
+          </button>
+        </div>
       </div>
     `;
     document.getElementById('hostReadyBtn').onclick = () => {
@@ -73,6 +78,7 @@ export function renderDeal({ render }) {
           <div class="role-card-back" aria-hidden="true">
             <div class="card-back-kicker">${t('deal.backKicker')}</div>
             <div class="card-back-divider"></div>
+            <div class="card-back-mark">?</div>
             <div class="card-back-hint">${t('deal.backHint')}</div>
           </div>
         </div>

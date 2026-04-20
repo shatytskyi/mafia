@@ -85,7 +85,7 @@ function renderPickTarget(action) {
   return `
     <div class="step-card action-card">
       <div class="step-title">${action.label}</div>
-      <div class="target-grid" role="group" aria-label="${escapeHtml(action.label)}">
+      <div class="target-grid a-stagger" role="group" aria-label="${escapeHtml(action.label)}">
         ${state.players.map((p, i) => {
           if (!p.alive) return '';
           if (i === selfIdx) return '';
@@ -94,7 +94,8 @@ function renderPickTarget(action) {
             <button type="button" class="target-chip ${isSelected ? 'selected' : ''}"
                     data-target-idx="${i}" data-field="${action.field}"
                     aria-pressed="${isSelected ? 'true' : 'false'}">
-              ${escapeHtml(p.name)}
+              <span class="chip-num">${String(i + 1).padStart(2, '0')}</span>
+              <span class="chip-name">${escapeHtml(p.name)}</span>
             </button>
           `;
         }).join('')}
@@ -160,7 +161,7 @@ function renderPickVeteran(action) {
       </button>
       ${showGrid ? `
         <div class="veteran-grid-label">${gridLabel}</div>
-        <div class="target-grid" role="group" aria-label="${escapeHtml(gridLabel)}">
+        <div class="target-grid a-stagger" role="group" aria-label="${escapeHtml(gridLabel)}">
           ${state.players.map((p, i) => {
             if (!p.alive) return '';
             // Save may target self; kill may not.
@@ -170,7 +171,8 @@ function renderPickVeteran(action) {
               <button type="button" class="target-chip ${isSelected ? 'selected' : ''}"
                       data-veteran-target="${i}"
                       aria-pressed="${isSelected ? 'true' : 'false'}">
-                ${escapeHtml(p.name)}
+                <span class="chip-num">${String(i + 1).padStart(2, '0')}</span>
+                <span class="chip-name">${escapeHtml(p.name)}</span>
               </button>
             `;
           }).join('')}
@@ -189,7 +191,7 @@ function renderPickKilled(action) {
   return `
     <div class="step-card action-card">
       <div class="step-title">${action.label}</div>
-      <div class="target-grid" role="group" aria-label="${escapeHtml(action.label)}">
+      <div class="target-grid a-stagger" role="group" aria-label="${escapeHtml(action.label)}">
         ${state.players.map((p, i) => {
           if (!p.alive) return '';
           const isSelected = selected === i;
@@ -197,7 +199,8 @@ function renderPickKilled(action) {
             <button type="button" class="target-chip ${isSelected ? 'selected' : ''}"
                     data-killed-idx="${i}"
                     aria-pressed="${isSelected ? 'true' : 'false'}">
-              ${escapeHtml(p.name)}
+              <span class="chip-num">${String(i + 1).padStart(2, '0')}</span>
+              <span class="chip-name">${escapeHtml(p.name)}</span>
             </button>
           `;
         }).join('')}
