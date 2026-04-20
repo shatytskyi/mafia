@@ -134,13 +134,6 @@ export function renderHome({ render, loadGame, clearSavedGame, restoreGame }) {
     }
   });
 
-  document.querySelectorAll('[data-opt-sheriff]').forEach(btn => {
-    btn.onclick = (e) => {
-      e.stopPropagation();
-      state.gameOptions.sheriffSeesManiac = btn.dataset.optSheriff;
-      render();
-    };
-  });
   document.querySelectorAll('[data-opt-whore]').forEach(btn => {
     btn.onclick = (e) => {
       e.stopPropagation();
@@ -171,31 +164,17 @@ function renderRoleToggle(id, name, desc) {
   const label = `<span class="role-icon ${id}" aria-hidden="true">${role.emblem}</span> ${name}`;
 
   let subOptions = '';
-  if (active && allowed) {
-    if (id === 'maniac') {
-      const mode = state.gameOptions.sheriffSeesManiac || 'afterMafia';
-      subOptions = `
-        <div class="role-suboptions" data-role-opt="maniac">
-          <div class="suboption-label">${t('home.suboption.sheriffSeesManiac')}</div>
-          <div class="suboption-segmented">
-            <button class="seg-btn ${mode === 'never' ? 'active' : ''}" data-opt-sheriff="never">${t('home.suboption.never')}</button>
-            <button class="seg-btn ${mode === 'afterMafia' ? 'active' : ''}" data-opt-sheriff="afterMafia">${t('home.suboption.afterMafia')}</button>
-            <button class="seg-btn ${mode === 'always' ? 'active' : ''}" data-opt-sheriff="always">${t('home.suboption.always')}</button>
-          </div>
+  if (active && allowed && id === 'whore') {
+    const dies = !!state.gameOptions.whoreDiesAtMafia;
+    subOptions = `
+      <div class="role-suboptions" data-role-opt="whore">
+        <div class="suboption-label">${t('home.suboption.whoreAtMafia')}</div>
+        <div class="suboption-segmented">
+          <button class="seg-btn ${!dies ? 'active' : ''}" data-opt-whore="alive">${t('home.suboption.whoreStaysAlive')}</button>
+          <button class="seg-btn ${dies ? 'active' : ''}" data-opt-whore="dies">${t('home.suboption.whoreDies')}</button>
         </div>
-      `;
-    } else if (id === 'whore') {
-      const dies = !!state.gameOptions.whoreDiesAtMafia;
-      subOptions = `
-        <div class="role-suboptions" data-role-opt="whore">
-          <div class="suboption-label">${t('home.suboption.whoreAtMafia')}</div>
-          <div class="suboption-segmented">
-            <button class="seg-btn ${!dies ? 'active' : ''}" data-opt-whore="alive">${t('home.suboption.whoreStaysAlive')}</button>
-            <button class="seg-btn ${dies ? 'active' : ''}" data-opt-whore="dies">${t('home.suboption.whoreDies')}</button>
-          </div>
-        </div>
-      `;
-    }
+      </div>
+    `;
   }
 
   const minPlayers = (id === 'don' || id === 'veteran') ? 6 : 8;

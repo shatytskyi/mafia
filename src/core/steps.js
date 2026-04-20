@@ -1,4 +1,3 @@
-import { isMafiaRole, getRole } from './roles.js';
 import { getWhoreBlocks, canDoctorHeal, canWhoreGo, canVeteranAct } from './night.js';
 import { t } from '../i18n/index.js';
 
@@ -154,8 +153,10 @@ export function getNightSteps(state) {
     }
   }
 
-  // Don check. Closing varies: first night puts Don back to sleep alone; later
-  // nights close the entire mafia (including Don).
+  // Don check. The host sees every role in the roster panel below and signals
+  // the verdict verbally — the app just scripts the beats. Closing varies:
+  // first night puts Don back to sleep alone; later nights close the entire
+  // mafia (including Don).
   if (hasDonActive) {
     const opening = isFirstNight ? t('steps.don.opening') : '';
     const closing = isFirstNight
@@ -167,12 +168,6 @@ export function getNightSteps(state) {
         cls: 'mafia-action',
         say: t('steps.don.sayBlocked', { opening }),
         hint: t('steps.don.hintBlocked', { closing }),
-        action: {
-          type: 'blockedAction',
-          field: 'donCheck',
-          label: t('steps.don.blockedLabel'),
-          confirmLabel: t('steps.don.blockedConfirm'),
-        }
       });
     } else {
       steps.push({
@@ -180,24 +175,6 @@ export function getNightSteps(state) {
         cls: 'mafia-action',
         say: t('steps.don.say', { opening }),
         hint: t('steps.don.hint', { closing }),
-        action: {
-          type: 'pickTarget',
-          field: 'donCheck',
-          role: 'don',
-          excludeSelf: true,
-          label: t('steps.don.label'),
-          allowSkip: true,
-          skipLabel: t('steps.don.skipLabel'),
-          showResult: (idx) => {
-            const role = getRole(state.players, idx);
-            return role === 'sheriff' ? t('steps.don.resultSheriff') : t('steps.don.resultNotSheriff');
-          },
-          showResultKind: (idx) => (
-            // CH-05 · red banner when Don strikes gold (found the Sheriff), ink
-            // otherwise so the host's eye reads the severity immediately.
-            getRole(state.players, idx) === 'sheriff' ? 'alert' : 'neutral'
-          ),
-        }
       });
     }
   }
@@ -235,6 +212,8 @@ export function getNightSteps(state) {
     }
   }
 
+  // Sheriff check. Host reads the verdict off the roster panel and signals
+  // the Sheriff by hand — no picker, no result banner.
   if (hasAlive('sheriff')) {
     if (blocks.sheriff) {
       steps.push({
@@ -242,12 +221,6 @@ export function getNightSteps(state) {
         cls: 'sheriff-action',
         say: t('steps.sheriff.sayBlocked'),
         hint: t('steps.sheriff.hintBlocked'),
-        action: {
-          type: 'blockedAction',
-          field: 'sheriffCheck',
-          label: t('steps.sheriff.blockedLabel'),
-          confirmLabel: t('steps.sheriff.blockedConfirm'),
-        }
       });
     } else {
       steps.push({
@@ -255,46 +228,6 @@ export function getNightSteps(state) {
         cls: 'sheriff-action',
         say: t('steps.sheriff.say'),
         hint: t('steps.sheriff.hint'),
-        action: {
-          type: 'pickTarget',
-          field: 'sheriffCheck',
-          role: 'sheriff',
-          excludeSelf: true,
-          label: t('steps.sheriff.label'),
-          allowSkip: true,
-          skipLabel: t('steps.sheriff.skipLabel'),
-          showResult: (idx) => {
-            const role = getRole(state.players, idx);
-            let looksLikeMafia = isMafiaRole(role);
-            if (!looksLikeMafia && role === 'maniac') {
-              const mode = state.gameOptions.sheriffSeesManiac || 'afterMafia';
-              if (mode === 'always') {
-                looksLikeMafia = true;
-              } else if (mode === 'afterMafia') {
-                const mafiaAlive = state.players.some(p => p.alive && isMafiaRole(p.role));
-                if (!mafiaAlive) looksLikeMafia = true;
-              }
-            }
-            return looksLikeMafia ? t('steps.sheriff.resultMafia') : t('steps.sheriff.resultNotMafia');
-          },
-          showResultKind: (idx) => {
-            // CH-05 · mirror the same "looks like mafia" rule (incl. the
-            // sheriffSeesManiac setting) so the banner stays red only when
-            // the sheriff would announce mafia.
-            const role = getRole(state.players, idx);
-            let looksLikeMafia = isMafiaRole(role);
-            if (!looksLikeMafia && role === 'maniac') {
-              const mode = state.gameOptions.sheriffSeesManiac || 'afterMafia';
-              if (mode === 'always') {
-                looksLikeMafia = true;
-              } else if (mode === 'afterMafia') {
-                const mafiaAlive = state.players.some(p => p.alive && isMafiaRole(p.role));
-                if (!mafiaAlive) looksLikeMafia = true;
-              }
-            }
-            return looksLikeMafia ? 'alert' : 'neutral';
-          },
-        }
       });
     }
   }

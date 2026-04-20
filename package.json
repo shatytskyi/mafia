@@ -1,6 +1,6 @@
 {
   "name": "mafia-game-master",
-  "version": "1.17.0",
+  "version": "1.21.1",
   "description": "Mafia party-game helper for the host",
   "type": "module",
   "private": true,

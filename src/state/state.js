@@ -5,10 +5,8 @@
 export function emptyNight() {
   return {
     mafiaTarget: null,
-    donCheck: null,
     whoreTarget: null,
     doctorTarget: null,
-    sheriffCheck: null,
     maniacTarget: null,
     veteranTarget: null,
     veteranAction: null,
@@ -23,7 +21,6 @@ export const state = {
   playerCount: 8,
   optionalRoles: { don: true, doctor: true, maniac: false, whore: false, veteran: false },
   gameOptions: {
-    sheriffSeesManiac: 'afterMafia',
     whoreDiesAtMafia: false
   },
   players: [],

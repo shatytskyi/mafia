@@ -75,13 +75,14 @@ Order within a night:
 4. **Not first night** and mafia alive: "Мафия просыпается" — pickTarget or
    blockedAction if whore blocks mafia. Mafia closes eyes here *only if* Don
    is not active; otherwise the Don step carries the closing.
-5. Don alive: "Дон ищет Шерифа" — pickTarget with live result
-   (`✓ Шериф` / `✗ Не Шериф`) or blockedAction. Closes all mafia on non-first
-   nights; closes Don alone on first night.
+5. Don alive: "Дон ищет Шерифа" — informational step (no action). Host reads
+   the verdict off the roster panel and signals the Don by hand. Closes all
+   mafia on non-first nights; closes Don alone on first night. A whore-block
+   swaps `say`/`hint` to the blocked variant, no extra confirmation.
 6. Doctor alive: pickTarget or blockedAction.
-7. Sheriff alive: pickTarget or blockedAction. Sheriff result uses the
-   `sheriffSeesManiac` option (see §4). The Veteran is always seen as
-   `notMafia`.
+7. Sheriff alive: informational step (no action). Host reads the verdict off
+   the roster panel and signals the Sheriff by hand. A whore-block swaps
+   `say`/`hint` to the blocked variant.
 8. Veteran alive and at least one latch unused: `veteranAction` step
    (`save` / `kill` / `skip`), followed by a pickTarget or blockedAction.
    Positioned between Sheriff and Maniac so a `kill` on the Maniac
@@ -129,10 +130,17 @@ Order within a night:
 
 Pure function — takes `state.night`, `state.players`, `state.gameOptions` and returns
 ```
-{ killed: [idx], savedByDoctor: idx|null, blocked: {mafia?, maniac?, doctor?, sheriff?},
-  sheriffResult: 'mafia'|'notMafia'|null, donResult: 'sheriff'|'notSheriff'|null,
-  whoreDied: bool, whoreSavedByDoctor?: bool, whoreAtMafia?: bool }
+{ killed: [idx], savedByDoctor: idx|null,
+  blocked: {mafia?, don?, maniac?, doctor?, sheriff?, veteran?},
+  whoreDied: bool, whoreSavedByDoctor?: bool, whoreAtMafia?: bool,
+  veteranSaved: idx|null, veteranKill: idx|null }
 ```
+
+Sheriff and Don checks have no app-tracked target or result — the host handles
+them verbally off the roster panel. `getWhoreBlocks` still flags them
+(`blocks.sheriff`, `blocks.donCheck`) so the step swaps into its blocked
+variant and `result.blocked.sheriff` / `result.blocked.don` surface in the
+resolve card.
 
 ### Whore blocks (`getWhoreBlocks`)
 Whore's target drives blocks. Edge cases baked in:
@@ -151,17 +159,17 @@ Whore's target drives blocks. Edge cases baked in:
 - On the first night, mafia does not act, so `whoreDied` is forced back to `false` even if hard rule would trigger.
 - If Doctor heals the visited whore, she lives and `whoreSavedByDoctor = true` (but `whoreDied` stays `true` for UI phrasing).
 
-### Sheriff check
-- Mafia/Don visible as `'mafia'`.
-- Maniac visibility governed by `state.gameOptions.sheriffSeesManiac`:
-  - `'never'` — always `notMafia`.
-  - `'afterMafia'` (default) — `mafia` only when the entire mafia team is dead.
-  - `'always'` — always `mafia`.
-- Veteran always reads as `'notMafia'` (light-side role).
-- If whore blocked sheriff, no result.
+### Sheriff check (host-verbal)
+Not tracked by the app. The host looks up the picked player's role in the
+roster panel and signals the Sheriff by hand:
+- Mafia/Don read as mafia.
+- Maniac and Veteran read as NOT mafia.
+- When whore blocks the sheriff, the step shows its blocked variant and the
+  host stalls the usual way (pause + any gesture).
 
-### Don check
-- Target is `'sheriff'` or `'notSheriff'`. Blocked by whore (when whore visits Don).
+### Don check (host-verbal)
+Not tracked by the app. Same pattern as the Sheriff — host reads the roster
+and signals the Don. Blocked variant fires whenever the Whore visits the Don.
 
 ### Mafia kill
 - `mafiaTarget` used only if `!isFirstNight && !mafiaBlocked`.

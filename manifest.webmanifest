@@ -1,7 +1,9 @@
 {
   "name": "Мафия — Игровой Мастер",
   "short_name": "Мафия",
-  "description": "Host helper for the party game Mafia",
+  "description": "Помощник ведущего для вечеринки «Мафия» — раздача ролей, ночные действия, таймер и правила под рукой.",
+  "lang": "ru",
+  "dir": "ltr",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

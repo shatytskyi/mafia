@@ -19,22 +19,15 @@
  */
 
 /**
- * @typedef {'never'|'afterMafia'|'always'} SheriffSeesManiac
- */
-
-/**
  * @typedef {object} GameOptions
- * @property {SheriffSeesManiac} sheriffSeesManiac
  * @property {boolean} whoreDiesAtMafia
  */
 
 /**
  * @typedef {object} NightSelections
  * @property {number|null} mafiaTarget
- * @property {number|null} donCheck
  * @property {number|null} whoreTarget
  * @property {number|null} doctorTarget
- * @property {number|null} sheriffCheck
  * @property {number|null} maniacTarget
  * @property {number|null} veteranTarget
  * @property {'save'|'kill'|null} veteranAction
@@ -46,9 +39,7 @@
  * @typedef {object} NightResult
  * @property {number[]} killed
  * @property {number|null} savedByDoctor
- * @property {{mafia?: boolean, maniac?: boolean, doctor?: boolean, sheriff?: boolean, veteran?: boolean}} blocked
- * @property {'mafia'|'notMafia'|null} sheriffResult
- * @property {'sheriff'|'notSheriff'|null} donResult
+ * @property {{mafia?: boolean, don?: boolean, maniac?: boolean, doctor?: boolean, sheriff?: boolean, veteran?: boolean}} blocked
  * @property {boolean} whoreDied
  * @property {boolean} [whoreAtMafia]
  * @property {boolean} [whoreSavedByDoctor]

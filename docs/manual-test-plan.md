@@ -303,13 +303,13 @@ Already covered in §A3.
      playerCount: 6, optionalRoles: {don:true, doctor:true, maniac:false, whore:false},
      players: [/* fill with 6 players with roles */],
      day: 1, phase: 'night', stepIndex: 0,
-     night: {mafiaTarget:null, donCheck:null, whoreTarget:null, doctorTarget:null, sheriffCheck:null, maniacTarget:null, resolved:null, applied:false},
+     night: {mafiaTarget:null, whoreTarget:null, doctorTarget:null, maniacTarget:null, resolved:null, applied:false},
      doctorHistory: [], doctorSelfUsed: false, whoreHistory: [],
      dayVoteKilled: null, winner: null
    }));
    location.reload();
    ```
-2. Resume. Assert: no crash; sheriff check action uses `afterMafia` default.
+2. Resume. Assert: no crash; `gameOptions` repopulates with defaults.
 
 ### F6. Theme persists across reload
 1. Home. Current theme = light (icon `☾`).

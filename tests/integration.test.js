@@ -17,7 +17,7 @@ function makeState(playerCount, optionalRoles, gameOptions = {}) {
   return {
     playerCount,
     optionalRoles,
-    gameOptions: { sheriffSeesManiac: 'afterMafia', whoreDiesAtMafia: false, ...gameOptions },
+    gameOptions: { whoreDiesAtMafia: false, ...gameOptions },
     players,
     day: 1,
     phase: 'night',
@@ -107,24 +107,19 @@ test('applyNightResolution is idempotent even across multiple calls', () => {
   assert.equal(state.doctorHistory.length, 1);
 });
 
-test('nightLog records sheriff/don checks and mafia picks', () => {
+test('nightLog records mafia picks', () => {
   const state = makeState(8, { don: true, doctor: true, maniac: false, whore: false });
   state.day = 2;
   state.night = emptyNight();
 
   const sheriffTarget = indexOfRole(state, 'civilian');
-  const donTarget = indexOfRole(state, 'sheriff');
   const mafiaTarget = state.players.findIndex((p, i) => p.alive && p.role === 'civilian' && i !== sheriffTarget);
-  state.night.sheriffCheck = sheriffTarget;
-  state.night.donCheck = donTarget;
   state.night.mafiaTarget = mafiaTarget;
   state.night.resolved = resolveNight(state);
   applyNightResolution(state);
 
   const entry = state.nightLog[0];
   assert.equal(entry.day, 2);
-  assert.deepEqual(entry.sheriff, { target: sheriffTarget, result: 'notMafia' });
-  assert.deepEqual(entry.don, { target: donTarget, result: 'sheriff' });
   assert.deepEqual(entry.mafia, { target: mafiaTarget });
   assert.deepEqual(entry.killed, [mafiaTarget]);
 });

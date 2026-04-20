@@ -103,20 +103,14 @@ export const en = {
       sayBlocked: '{opening}Tonight you check no one.',
       say: '{opening}Point to whom you are checking.',
       hintBlocked: 'The Whore blocked the Don — the check will not work. Hold the pause and make any gesture so the Whore does not catch on. {closing}',
-      hint: 'The app will show whether it is the Sheriff. Signal the Don with a gesture: nod — yes, shake — no. {closing}',
-      blockedLabel: 'Don does not check tonight',
-      blockedConfirm: 'Don checks no one',
-      label: "Don's check",
-      skipLabel: 'Skip',
-      resultSheriff: '✓ This is the Sheriff',
-      resultNotSheriff: '✗ Not the Sheriff',
+      hint: 'Look the role up in the roster below — is it the Sheriff? Signal the Don with a gesture: nod — yes, shake — no. {closing}',
     },
     doctor: {
       title: 'Doctor',
       sayBlocked: 'Doctor, wake up. Tonight you heal no one.',
       say: 'Doctor, wake up. Whom are you healing tonight?',
       hintBlocked: 'The Whore blocked the Doctor. Hold the pause, make any gesture. Then — "Doctor, close your eyes."',
-      hint: 'You cannot heal the same player two nights in a row. Yourself — once per game. The Doctor heals against both the mafia and the maniac. After the pick — "Doctor, close your eyes."',
+      hint: 'You cannot heal the same player two nights in a row. Yourself — once per game. The Doctor heals against the mafia, the Maniac, and the Veteran\u2019s strike. After the pick — "Doctor, close your eyes."',
       blockedLabel: 'Doctor does not heal tonight',
       blockedConfirm: 'Doctor heals no one',
       label: 'Whom the Doctor heals',
@@ -127,13 +121,7 @@ export const en = {
       sayBlocked: 'Sheriff, wake up. Tonight you check no one.',
       say: 'Sheriff, wake up. Whom are you checking?',
       hintBlocked: 'The Whore blocked the Sheriff. Hold the pause, make any gesture. Then — "Sheriff, close your eyes."',
-      hint: 'The app will show the result. Signal the Sheriff with a gesture: thumb up — NOT mafia, thumb down — mafia. Then — "Sheriff, close your eyes."',
-      blockedLabel: 'Sheriff does not check tonight',
-      blockedConfirm: 'Sheriff checks no one',
-      label: "Sheriff's check",
-      skipLabel: 'Skip',
-      resultMafia: '✕ MAFIA',
-      resultNotMafia: '✓ NOT MAFIA',
+      hint: 'Look the role up in the roster below — mafia or not. Signal the Sheriff with a gesture: thumb up — NOT mafia, thumb down — mafia. Then — "Sheriff, close your eyes."',
     },
     maniac: {
       title: 'Maniac',
@@ -167,7 +155,7 @@ export const en = {
     dawn: {
       title: 'Dawn',
       say: 'The town wakes up. Open your eyes.',
-      hint: 'Read the text above aloud to the town. The private summary below is for your eyes only — do not announce it. Tap "Next" to apply the result and move to day.',
+      hint: 'Read the text above aloud to the town. The private summary below is for your eyes only: "Night outcome", "Night actions", "Effects on today". Tap "Next" to apply the result and move to day.',
     },
     victimsTitle: 'Last words',
     victimsPeacefulFirst: 'Good morning, town. Day one — everyone is alive. Time to get acquainted.',
@@ -226,10 +214,6 @@ export const en = {
     warnMinPlayers: 'Requires at least {n} players',
     warnSqueezed: '⚠ Will not fit — no slot in the current spread',
     suboption: {
-      sheriffSeesManiac: 'Sheriff sees the Maniac as mafia',
-      never: 'Never',
-      afterMafia: 'After the mafia dies',
-      always: 'Always',
       whoreAtMafia: 'Whore visiting the mafia',
       whoreStaysAlive: 'Stays alive',
       whoreDies: 'Dies',
@@ -242,6 +226,7 @@ export const en = {
     iosHint: 'Tap the Share icon, then "Add to Home Screen" to install the app.',
     accept: 'Install',
     dismissAria: 'Dismiss',
+    footerLink: 'Install',
   },
 
   names: {
@@ -290,8 +275,6 @@ export const en = {
     skipDefault: 'Skip',
     mark: {
       mafia: 'victim',
-      sheriff: 'check',
-      don: 'check',
       doctor: 'save',
       whore: 'visit',
       veteranSave: 'shield',
@@ -304,21 +287,65 @@ export const en = {
     alibiBody: '<strong>{name}</strong> spent the night with the Whore — cannot be voted out today.',
     resolveTitle: 'Private summary',
     resolveSubtitle: 'Host only — do not read aloud.',
-    resolveSaved: '✚ Doctor saved: <strong>{name}</strong>',
-    resolveWhoreSaved: '❀ The Whore visited the mafia — but the Doctor saved her',
-    resolveWhoreDied: '❀ The Whore visited the mafia and died',
-    resolveWhoreAtMafia: '❀ The Whore is with the mafia',
-    resolveWhoreAlibi: '❀ Alibi: {name} — cannot be voted out today',
-    resolveSheriff: '✦ Sheriff checked {name}: {verdict}',
-    resolveDon: '♛ Don checked {name}: {verdict}',
-    resolveVeteranSave: '⛨ Veteran shielded: <strong>{name}</strong>',
-    resolveVeteranKill: '⛨ Veteran struck down: <strong>{name}</strong>',
-    resolveVeteranPreempt: '⛨ Veteran cut off the Maniac',
-    resolveBlocked: '❀ The Whore blocked: {list}',
-    sheriffSawMafia: '✕ mafia',
-    sheriffSawNotMafia: '✓ not mafia',
-    donSawSheriff: '✓ Sheriff',
-    donSawNotSheriff: '✗ not Sheriff',
+
+    // Section headers
+    resolveSectionOutcome: 'Night outcome',
+    resolveSectionActions: 'Night actions',
+    resolveSectionEffects: 'Effects on today',
+
+    // Block 1: outcome
+    resolvePeaceful: '☾ No one died tonight',
+    resolveKilledLine: '☠ <strong>{name}</strong> <em>({role})</em> — {cause}',
+    resolveCauseMafia: 'killed by the mafia',
+    resolveCauseManiac: 'killed by the Maniac',
+    resolveCauseVeteran: 'killed by the Veteran',
+    resolveCauseMafiaManiac: 'killed by the mafia and the Maniac',
+    resolveCauseMafiaVeteran: 'killed by the mafia and the Veteran',
+    resolveCauseManiacVeteran: 'killed by the Maniac and the Veteran',
+    resolveCauseAll: 'killed by the mafia, Maniac, and Veteran',
+    resolveCauseWhoreAtMafia: 'died at the mafia',
+
+    // Block 2: actions per role
+    resolveMafiaKill: '⚜ Mafia → <strong>{name}</strong> <em>({role})</em> — killed',
+    resolveMafiaSavedDoctor: '⚜ Mafia → <strong>{name}</strong> <em>({role})</em> — Doctor saved',
+    resolveMafiaSavedVeteran: '⚜ Mafia → <strong>{name}</strong> <em>({role})</em> — Veteran shielded',
+    resolveMafiaBlocked: '⚜ Mafia — Whore blocked, no kill',
+    resolveMafiaSkipped: '⚜ Mafia failed to agree — no kill',
+
+    resolveManiacKill: '☠ Maniac → <strong>{name}</strong> <em>({role})</em> — killed',
+    resolveManiacSavedDoctor: '☠ Maniac → <strong>{name}</strong> <em>({role})</em> — Doctor saved',
+    resolveManiacSavedVeteran: '☠ Maniac → <strong>{name}</strong> <em>({role})</em> — Veteran shielded',
+    resolveManiacBlocked: '☠ Maniac — Whore blocked, no kill',
+    resolveManiacSkipped: '☠ Maniac picked no one',
+    resolveManiacPreempted: '⛨ Veteran cut off the Maniac — his kill is cancelled',
+
+    resolveDoctorSaved: '✚ Doctor → <strong>{name}</strong> <em>({role})</em> — saved {from}',
+    resolveDoctorNoAttack: '✚ Doctor → <strong>{name}</strong> <em>({role})</em> — no attack came',
+    resolveDoctorBlocked: '✚ Doctor — Whore blocked, no heal',
+
+    resolveFromMafia: 'from the mafia',
+    resolveFromManiac: 'from the Maniac',
+    resolveFromVeteran: 'from the Veteran',
+    resolveFromMafiaManiac: 'from the mafia and the Maniac',
+    resolveFromMafiaVeteran: 'from the mafia and the Veteran',
+    resolveFromManiacVeteran: 'from the Maniac and the Veteran',
+    resolveFromAll: 'from the mafia, Maniac, and Veteran',
+
+    resolveWhoreToMafiaDied: '❀ Whore at the mafia — died',
+    resolveWhoreToMafiaSaved: '❀ Whore at the mafia — would have died, but the Doctor saved her',
+    resolveWhoreToMafiaAliveBlocked: '❀ Whore at the mafia — alive; the mafia does not kill tonight',
+    resolveWhoreToMafiaAliveNotBlocked: '❀ Whore at the mafia — alive; the mafia kills freely',
+
+    resolveVeteranSaveHelped: '⛨ Veteran shielded <strong>{name}</strong> <em>({role})</em> — saved {from}',
+    resolveVeteranSaveWasted: '⛨ Veteran shielded <strong>{name}</strong> <em>({role})</em> — no attack came, the save is burned',
+    resolveVeteranKill: '⛨ Veteran struck down <strong>{name}</strong> <em>({role})</em>',
+    resolveVeteranBlocked: '⛨ Veteran — Whore blocked, the attempt is burned',
+
+    resolveSheriffBlocked: '✦ Sheriff — Whore blocked the check',
+    resolveDonBlocked: '♛ Don — Whore blocked the check',
+
+    // Block 3: day effects
+    resolveAlibi: '❀ Alibi: <strong>{name}</strong> <em>({role})</em> — cannot be voted out today (Whore\u2019s visit)',
   },
 
   timer: {
@@ -341,8 +368,6 @@ export const en = {
       killedOne: '✖ Dead: {names}',
       killedMany: '✖ Dead: {names}',
       savedByDoctor: '✚ Doctor saved: {name}',
-      sheriffCheck: '✦ Sheriff → {name}: {verdict}',
-      donCheck: '♛ Don → {name}: {verdict}',
       mafiaPick: '⚜ Mafia picked: {name}',
       maniacPick: '☠ Maniac picked: {name}',
       whoreVisit: '❀ Whore → {name}',
@@ -353,10 +378,6 @@ export const en = {
       veteranPreempt: '⛨ Veteran cut off the Maniac',
       veteranBlocked: '⛨ The Whore blocked the Veteran',
       blocked: '❀ Whore blocked: {list}',
-      sheriffSawMafia: 'mafia',
-      sheriffSawNotMafia: 'not mafia',
-      donSawSheriff: 'Sheriff',
-      donSawNotSheriff: 'not Sheriff',
     },
     verdict: {
       cityText: 'Town<br>wins',
@@ -381,7 +402,7 @@ export const en = {
       },
       roles: {
         h: 'Roles in play',
-        body: '<p>Every role belongs to a side — dark, light, or lone wolf. Some are always in the game; others are toggled on from the home screen.</p><ul><li><strong>⚜ Mafia</strong> <em>(dark side)</em> — knows the other mafiosi by sight. From the second night, the family silently picks a victim and kills. By day, the mafia blends in with the civilians, votes with them, and steers suspicion elsewhere.</li><li><strong>♛ Mafia Don</strong> <em>(dark side, 6+ players, requires at least 2 mafia slots)</em> — head of the family. Joins the nightly kills and, in addition, each night checks one player to see whether they are the Sheriff. To the Sheriff, the Don looks like any other mafioso.</li><li><strong>♟ Civilian</strong> <em>(light side)</em> — no special powers. Logic, observation, and persuasion are the whole kit. The job is to vote out every member of the mafia alongside the rest of the town.</li><li><strong>✦ Sheriff</strong> <em>(light side, always in play)</em> — each night points at one player; the app shows the host the result, and the host signals the Sheriff with a gesture: thumb up — not mafia, thumb down — mafia. The Don and ordinary mafiosi read as mafia, the Veteran as civilian, the Maniac depends on the setting (see edge cases).</li><li><strong>✚ Doctor</strong> <em>(light side, optional)</em> — each night heals one player; if that player is attacked by the mafia, the Maniac, or the Veteran, they survive. Cannot heal the same player two nights in a row. Self-heal is allowed only once per game.</li><li><strong>❀ Whore</strong> <em>(light side, 8+ players)</em> — each night visits one player, and that player loses their night ability (mafia cannot kill, Sheriff cannot check, Maniac cannot strike, etc.). The visited player gets an alibi for that day — they cannot be voted out. She cannot visit herself, and cannot visit the same player two nights in a row. What happens when she visits the mafia is set by the "Whore at the mafia" option (see edge cases).</li><li><strong>☠ Maniac</strong> <em>(lone wolf, 8+ players)</em> — plays for himself. Every night, including the first, kills one player. He is not part of the mafia and does not know them. Wins if the mafia is gone and at most one civilian remains.</li><li><strong>⛨ Veteran</strong> <em>(light side, 6+ players)</em> — a retired agent who cannot sit still. Across the whole game, once at night he can shield any player from death (himself included) and once he can kill anyone (except himself). The two attempts must fall on different nights — there is no third. The Doctor heals against the Veteran\u2019s strike as well. If the Veteran kills the Maniac before the Maniac\u2019s turn, the Maniac does not act that night. The Sheriff reads the Veteran as a civilian.</li></ul>',
+        body: '<p>Every role belongs to a side — dark, light, or lone wolf. Some are always in the game; others are toggled on from the home screen.</p><ul><li><strong>⚜ Mafia</strong> <em>(dark side)</em> — knows the other mafiosi by sight. From the second night, the family silently picks a victim and kills. By day, the mafia blends in with the civilians, votes with them, and steers suspicion elsewhere.</li><li><strong>♛ Mafia Don</strong> <em>(dark side, 6+ players, requires at least 2 mafia slots)</em> — head of the family. Joins the nightly kills and, in addition, each night checks one player to see whether they are the Sheriff. To the Sheriff, the Don looks like any other mafioso.</li><li><strong>♟ Civilian</strong> <em>(light side)</em> — no special powers. Logic, observation, and persuasion are the whole kit. The job is to vote out every member of the mafia alongside the rest of the town.</li><li><strong>✦ Sheriff</strong> <em>(light side, always in play)</em> — each night points at one player; the host checks the role in the roster and signals the Sheriff by hand: thumb up — not mafia, thumb down — mafia. The Don and ordinary mafiosi read as mafia; the Veteran and the Maniac read as NOT mafia.</li><li><strong>✚ Doctor</strong> <em>(light side, optional)</em> — each night heals one player; if that player is attacked by the mafia, the Maniac, or the Veteran, they survive. Cannot heal the same player two nights in a row. Self-heal is allowed only once per game.</li><li><strong>❀ Whore</strong> <em>(light side, 8+ players)</em> — each night visits one player, and that player loses their night ability (mafia cannot kill, Sheriff cannot check, Maniac cannot strike, etc.). The visited player gets an alibi for that day — they cannot be voted out. She cannot visit herself, and cannot visit the same player two nights in a row. What happens when she visits the mafia is set by the "Whore at the mafia" option (see edge cases).</li><li><strong>☠ Maniac</strong> <em>(lone wolf, 8+ players)</em> — plays for himself. Every night, including the first, kills one player. He is not part of the mafia and does not know them. Wins if the mafia is gone and at most one civilian remains.</li><li><strong>⛨ Veteran</strong> <em>(light side, 6+ players)</em> — a retired agent who cannot sit still. Across the whole game, once at night he can shield any player from death (himself included) and once he can kill anyone (except himself). The two attempts must fall on different nights — there is no third. The Doctor heals against the Veteran\u2019s strike as well. If the Veteran kills the Maniac before the Maniac\u2019s turn, the Maniac does not act that night. The Sheriff reads the Veteran as a civilian.</li></ul>',
       },
       cycle: {
         h: 'Game cycle',
@@ -393,7 +414,7 @@ export const en = {
       },
       nightEdge: {
         h: 'Night edge cases',
-        body: '<ul><li><strong>Mafia fails to agree:</strong> no kill tonight — the family simply skips.</li><li><strong>Doctor heals the target:</strong> the Doctor saves from the mafia, the Maniac, and the Veteran\u2019s strike alike. If two attackers pick the same target, one heal still saves them.</li><li><strong>Whore\u2019s alibi:</strong> whoever the Whore visits that night cannot be voted out the next day — they have an alibi at the table.</li><li><strong>Whore at the mafia — "dies":</strong> the whole mafia kills no one that night, and the Whore dies (the Doctor can still save her). The Don\u2019s personal check is blocked too.</li><li><strong>Whore at the mafia — "stays alive":</strong> the Whore does not die. The whole mafia is blocked only if she visited their last living member; otherwise the rest kill as usual. The Don\u2019s check is blocked only when she visits the Don himself.</li><li><strong>Whore blocks the Doctor/Sheriff/Maniac/Veteran:</strong> their night action does not trigger. The Veteran\u2019s attempt (save or strike) still burns — it still counts as one of his two.</li><li><strong>Maniac and mafia on the same target:</strong> if the Doctor heals that player — they live; otherwise they die (counts as a single kill).</li><li><strong>Veteran strikes the Maniac:</strong> the Maniac does not act that night. If the Doctor heals the Maniac, the Maniac lives but his night strike is still cancelled.</li><li><strong>First night:</strong> the mafia meets and does not kill; a Whore visiting the mafia does not die. The Maniac, Sheriff, Doctor, and Veteran act as normal.</li><li><strong>Sheriff checks the Don:</strong> reads as mafia.</li><li><strong>Sheriff checks the Maniac:</strong> depends on the setting — "never" / "after the mafia dies" (default) / "always".</li><li><strong>Sheriff checks the Veteran:</strong> reads as NOT mafia.</li></ul>',
+        body: '<ul><li><strong>Mafia fails to agree:</strong> no kill tonight — the family simply skips.</li><li><strong>Doctor heals the target:</strong> the Doctor saves from the mafia, the Maniac, and the Veteran\u2019s strike alike. If two attackers pick the same target, one heal still saves them.</li><li><strong>Whore\u2019s alibi:</strong> whoever the Whore visits that night cannot be voted out the next day — they have an alibi at the table.</li><li><strong>Whore at the mafia — "dies":</strong> the whole mafia kills no one that night, and the Whore dies (the Doctor can still save her). The Don\u2019s personal check is blocked too.</li><li><strong>Whore at the mafia — "stays alive":</strong> the Whore does not die. The whole mafia is blocked only if she visited their last living member; otherwise the rest kill as usual. The Don\u2019s check is blocked only when she visits the Don himself.</li><li><strong>Whore blocks the Doctor/Sheriff/Maniac/Veteran:</strong> their night action does not trigger. The Veteran\u2019s attempt (save or strike) still burns — it still counts as one of his two.</li><li><strong>Maniac and mafia on the same target:</strong> if the Doctor heals that player — they live; otherwise they die (counts as a single kill).</li><li><strong>Veteran strikes the Maniac:</strong> the Maniac does not act that night. If the Doctor heals the Maniac, the Maniac lives but his night strike is still cancelled.</li><li><strong>First night:</strong> the mafia meets and does not kill; a Whore visiting the mafia does not die. The Maniac, Sheriff, Doctor, and Veteran act as normal.</li><li><strong>Sheriff checks the Don:</strong> reads as mafia.</li><li><strong>Sheriff checks the Maniac:</strong> reads as NOT mafia.</li><li><strong>Sheriff checks the Veteran:</strong> reads as NOT mafia.</li></ul>',
       },
       voteEdge: {
         h: 'Vote edge cases',
@@ -405,7 +426,7 @@ export const en = {
       },
       hostTips: {
         h: 'Host tips',
-        body: '<ul><li>Dramatise the narration — it builds atmosphere.</li><li>Watch the eyes: someone may be peeking.</li><li>Use the timer — discussions tend to drag.</li><li>If a player accidentally leaks their role — judge the situation (usually play continues).</li><li>Before the game, state two settings out loud: "Whore at the mafia" and "Sheriff sees the Maniac".</li></ul>',
+        body: '<ul><li>Dramatise the narration — it builds atmosphere.</li><li>Watch the eyes: someone may be peeking.</li><li>Use the timer — discussions tend to drag.</li><li>If a player accidentally leaks their role — judge the situation (usually play continues).</li><li>Before the game, state the "Whore at the mafia" setting out loud.</li></ul>',
       },
     },
   },

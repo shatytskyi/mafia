@@ -7,12 +7,12 @@ function stateWith({ players, day = 2, night = {}, gameOptions = {}, root = {} }
     players,
     day,
     night: {
-      mafiaTarget: null, donCheck: null, whoreTarget: null,
-      doctorTarget: null, sheriffCheck: null, maniacTarget: null,
+      mafiaTarget: null, whoreTarget: null,
+      doctorTarget: null, maniacTarget: null,
       veteranTarget: null, veteranAction: null,
       ...night
     },
-    gameOptions: { sheriffSeesManiac: 'afterMafia', whoreDiesAtMafia: false, ...gameOptions },
+    gameOptions: { whoreDiesAtMafia: false, ...gameOptions },
     doctorHistory: [],
     whoreHistory: [],
     doctorSelfUsed: false,
@@ -121,51 +121,16 @@ test('mafia + maniac on different targets: both die', () => {
   assert.deepEqual(r.killed.sort(), [6, 7]);
 });
 
-test('sheriff sees maniac as mafia only after all mafia dead (afterMafia mode)', () => {
-  const p = players();
-  const s1 = stateWith({ players: p, night: { sheriffCheck: 4 } });
-  assert.equal(resolveNight(s1).sheriffResult, 'notMafia');
-
-  const p2 = players();
-  p2[0].alive = false;
-  p2[1].alive = false;
-  const s2 = stateWith({ players: p2, night: { sheriffCheck: 4 } });
-  assert.equal(resolveNight(s2).sheriffResult, 'mafia');
-});
-
-test('sheriff never sees maniac (never mode)', () => {
-  const p = players();
-  p[0].alive = false;
-  p[1].alive = false;
-  const s = stateWith({
-    players: p, night: { sheriffCheck: 4 },
-    gameOptions: { sheriffSeesManiac: 'never' }
-  });
-  assert.equal(resolveNight(s).sheriffResult, 'notMafia');
-});
-
-test('sheriff always sees maniac (always mode)', () => {
-  const s = stateWith({
-    players: players(), night: { sheriffCheck: 4 },
-    gameOptions: { sheriffSeesManiac: 'always' }
-  });
-  assert.equal(resolveNight(s).sheriffResult, 'mafia');
-});
-
-test('don check: sheriff -> "sheriff"', () => {
-  const s = stateWith({ players: players(), night: { donCheck: 2 } });
-  assert.equal(resolveNight(s).donResult, 'sheriff');
-});
-
-test('don check: non-sheriff -> "notSheriff"', () => {
-  const s = stateWith({ players: players(), night: { donCheck: 6 } });
-  assert.equal(resolveNight(s).donResult, 'notSheriff');
-});
-
-test('whore visits don: don check blocked', () => {
-  const s = stateWith({ players: players(), night: { whoreTarget: 1, donCheck: 2 } });
+test('whore visits don: don block flagged in result', () => {
+  const s = stateWith({ players: players(), night: { whoreTarget: 1 } });
   const r = resolveNight(s);
-  assert.equal(r.donResult, null);
+  assert.equal(r.blocked.don, true);
+});
+
+test('whore visits sheriff: sheriff block flagged in result', () => {
+  const s = stateWith({ players: players(), night: { whoreTarget: 2 } });
+  const r = resolveNight(s);
+  assert.equal(r.blocked.sheriff, true);
 });
 
 test('canDoctorHeal: same target two nights in a row blocked', () => {

@@ -87,18 +87,6 @@ function renderHistorySection() {
     if (entry.maniac) {
       lines.push(t('gameover.history.maniacPick', { name: nameOf(entry.maniac.target) }));
     }
-    if (entry.sheriff) {
-      const verdict = entry.sheriff.result === 'mafia'
-        ? t('gameover.history.sheriffSawMafia')
-        : t('gameover.history.sheriffSawNotMafia');
-      lines.push(t('gameover.history.sheriffCheck', { name: nameOf(entry.sheriff.target), verdict }));
-    }
-    if (entry.don) {
-      const verdict = entry.don.result === 'sheriff'
-        ? t('gameover.history.donSawSheriff')
-        : t('gameover.history.donSawNotSheriff');
-      lines.push(t('gameover.history.donCheck', { name: nameOf(entry.don.target), verdict }));
-    }
     if (entry.whore) {
       lines.push(t('gameover.history.whoreVisit', { name: nameOf(entry.whore.target) }));
       if (entry.whore.savedByDoctor) {
@@ -121,6 +109,7 @@ function renderHistorySection() {
     }
     const blocked = [];
     if (entry.blocked?.mafia) blocked.push(t('roles.mafia.name'));
+    if (entry.blocked?.don) blocked.push(t('roles.don.nameShort'));
     if (entry.blocked?.maniac) blocked.push(t('roles.maniac.name'));
     if (entry.blocked?.doctor) blocked.push(t('roles.doctor.name'));
     if (entry.blocked?.sheriff) blocked.push(t('roles.sheriff.name'));

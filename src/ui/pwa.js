@@ -8,17 +8,25 @@
 // - If the app is already running standalone (from the home screen), we do
 //   nothing.
 
-import { t } from '../i18n/index.js';
+import { t, onLocaleChange } from '../i18n/index.js';
 
 const DISMISS_STORAGE_KEY = 'mafia.installDismissedAt';
 const DISMISS_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000; // 1 week
 
 let deferredPrompt = null;
+let currentBannerMode = null;
 
 export function initPwa() {
   registerServiceWorker();
   if (isStandalone()) return;
   setupInstallBanner();
+  ensureFooterLink();
+  onLocaleChange(() => {
+    if (currentBannerMode && document.getElementById('installBanner')) {
+      showBanner(currentBannerMode);
+    }
+    ensureFooterLink();
+  });
 }
 
 function registerServiceWorker() {
@@ -73,6 +81,7 @@ function setupInstallBanner() {
   window.addEventListener('beforeinstallprompt', (event) => {
     event.preventDefault();
     deferredPrompt = event;
+    ensureFooterLink();
     if (wasRecentlyDismissed()) return;
     showBanner('prompt');
   });
@@ -81,6 +90,7 @@ function setupInstallBanner() {
     deferredPrompt = null;
     markDismissed();
     hideBanner();
+    ensureFooterLink();
   });
 
   if (isIosSafari() && !wasRecentlyDismissed()) {
@@ -92,15 +102,16 @@ function setupInstallBanner() {
 }
 
 function showBanner(mode) {
+  currentBannerMode = mode;
   let el = document.getElementById('installBanner');
   if (!el) {
     el = document.createElement('div');
     el.id = 'installBanner';
     el.className = 'install-banner';
     el.setAttribute('role', 'region');
-    el.setAttribute('aria-label', t('install.title'));
     document.body.appendChild(el);
   }
+  el.setAttribute('aria-label', t('install.title'));
 
   const title = t('install.title');
   const body = mode === 'ios' ? t('install.iosHint') : t('install.promptBody');
@@ -148,9 +159,45 @@ function showBanner(mode) {
 }
 
 function hideBanner() {
+  currentBannerMode = null;
   const el = document.getElementById('installBanner');
   if (!el) return;
   el.classList.remove('visible');
   // Wait for the slide-out transition before removing.
   setTimeout(() => el.remove(), 250);
+  ensureFooterLink();
+}
+
+// Footer-level "Install" shortcut. Lives next to the version label so the user
+// can always bring the install banner back after dismissing it.
+function ensureFooterLink() {
+  const footer = document.querySelector('.version-footer');
+  if (!footer) return;
+  const canInstall = !isStandalone() && (deferredPrompt != null || isIosSafari());
+  let link = document.getElementById('installFooterLink');
+  let sep = document.getElementById('installFooterSep');
+  if (!canInstall) {
+    link?.remove();
+    sep?.remove();
+    return;
+  }
+  if (!sep) {
+    sep = document.createElement('span');
+    sep.id = 'installFooterSep';
+    sep.className = 'version-footer-sep';
+    sep.textContent = '·';
+    sep.setAttribute('aria-hidden', 'true');
+    footer.appendChild(sep);
+  }
+  if (!link) {
+    link = document.createElement('button');
+    link.id = 'installFooterLink';
+    link.type = 'button';
+    link.className = 'install-link';
+    link.onclick = () => {
+      showBanner(deferredPrompt ? 'prompt' : 'ios');
+    };
+    footer.appendChild(link);
+  }
+  link.textContent = t('install.footerLink');
 }

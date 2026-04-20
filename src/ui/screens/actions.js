@@ -1,6 +1,7 @@
 import { state } from '../../state/state.js';
 import { escapeHtml } from '../html.js';
 import { t } from '../../i18n/index.js';
+import { getRoleName } from '../../core/roles.js';
 
 export function isNextDisabled(step) {
   if (!step.action) return false;
@@ -67,9 +68,9 @@ function renderBlockedAction(action) {
  * CH-04 · target-chip mark glyph map. Every pick-target surface shows a
  * role-specific glyph + label inside the selected chip instead of the old
  * hardcoded "✕ ЦЕЛЬ". Kind drives colour — deadly actions paint red,
- * neutral (checks / saves / blocks) paint ink.
+ * neutral (saves / blocks) paint ink.
  *
- * @param {string} role  one of mafia | sheriff | don | doctor | whore | maniac | veteran
+ * @param {string} role  one of mafia | doctor | whore | maniac | veteran | vote
  * @param {{ veteranMode?: 'save'|'kill' }} [opts]
  * @returns {{ glyph: string, labelKey: string, kind: 'deadly'|'neutral' }}
  */
@@ -77,8 +78,6 @@ function getTargetMark(role, opts = {}) {
   switch (role) {
     case 'mafia':   return { glyph: '⚜', labelKey: 'actions.mark.mafia',   kind: 'deadly'  };
     case 'maniac':  return { glyph: '☠', labelKey: 'actions.mark.maniac',  kind: 'deadly'  };
-    case 'sheriff': return { glyph: '✦', labelKey: 'actions.mark.sheriff', kind: 'neutral' };
-    case 'don':     return { glyph: '♛', labelKey: 'actions.mark.don',     kind: 'neutral' };
     case 'doctor':  return { glyph: '✚', labelKey: 'actions.mark.doctor',  kind: 'neutral' };
     case 'whore':   return { glyph: '❀', labelKey: 'actions.mark.whore',   kind: 'neutral' };
     case 'veteran':
@@ -138,7 +137,7 @@ function renderPickTarget(action) {
     <div class="step-card action-card" data-mark-kind="${mark.kind}">
       <div class="step-title">${action.label}</div>
       ${checkResultHtml}
-      <div class="target-grid a-stagger" role="group" aria-label="${escapeHtml(action.label)}">
+      <div class="target-grid target-grid-2col a-stagger" role="group" aria-label="${escapeHtml(action.label)}">
         ${state.players.map((p, i) => {
           if (!p.alive) return '';
           if (i === selfIdx) return '';
@@ -217,7 +216,7 @@ function renderPickVeteran(action) {
         const vMarkHtml = markHtml(vMark);
         return `
         <div class="veteran-grid-label">${gridLabel}</div>
-        <div class="target-grid a-stagger" role="group" aria-label="${escapeHtml(gridLabel)}" data-mark-kind="${vMark.kind}">
+        <div class="target-grid target-grid-2col a-stagger" role="group" aria-label="${escapeHtml(gridLabel)}" data-mark-kind="${vMark.kind}">
           ${state.players.map((p, i) => {
             if (!p.alive) return '';
             // Save may target self; kill may not.
@@ -271,88 +270,225 @@ function renderPickKilled(action) {
 }
 
 /**
- * Private debrief card rendered below the dawn "host says" block. Only
- * host-eyes-only information lives here (doctor save target, sheriff/don
- * verdicts, veteran action details, whore fate annotations, whore blocks).
- * The publicly-announceable part (who died / peaceful) is baked into the
- * dawn step's `say` by `buildDawnSay`. If there is nothing private to show,
- * the card is omitted entirely.
+ * Private debrief card rendered below the dawn "host says" block. Host-only
+ * summary of the night, laid out in three sections:
+ *   1. Итог ночи — who died (with cause) or a peaceful-night line
+ *   2. Ночные действия — per-role outcomes, including blocked attempts so the
+ *      host has the full picture
+ *   3. На день — effects that carry into the day (Whore's alibi)
+ * Each section is conditional except the first, which always renders.
  */
 function renderResolveNight() {
   const r = state.night.resolved;
   if (!r) return '';
+  const isFirstNight = state.day === 1;
 
-  const lines = [];
+  const outcomeLines = buildOutcomeLines(r);
+  const actionLines = buildActionLines(r, isFirstNight);
+  const effectLines = buildEffectLines(r);
 
-  if (r.savedByDoctor != null) {
-    const name = escapeHtml(state.players[r.savedByDoctor].name);
-    lines.push(`<div class="resolve-line resolve-saved">${t('actions.resolveSaved', { name })}</div>`);
+  const sections = [];
+  sections.push(renderResolveSection(t('actions.resolveSectionOutcome'), outcomeLines));
+  if (actionLines.length > 0) {
+    sections.push(renderResolveSection(t('actions.resolveSectionActions'), actionLines));
   }
-
-  if (r.whoreDied) {
-    if (r.whoreSavedByDoctor) {
-      lines.push(`<div class="resolve-line resolve-saved">${t('actions.resolveWhoreSaved')}</div>`);
-    } else {
-      lines.push(`<div class="resolve-line resolve-note">${t('actions.resolveWhoreDied')}</div>`);
-    }
-  } else if (r.whoreAtMafia) {
-    lines.push(`<div class="resolve-line resolve-note">${t('actions.resolveWhoreAtMafia')}</div>`);
+  if (effectLines.length > 0) {
+    sections.push(renderResolveSection(t('actions.resolveSectionEffects'), effectLines));
   }
-
-  // Syndicate "Alibi" rule (informational only — host enforces verbally).
-  // Whoever the Whore visited is considered to have spent the night with her,
-  // so they cannot be voted out that day. Shown whenever the visited target
-  // survives the night. Deaths are still in `r.killed` at this point (apply
-  // runs on next step), so check both `alive` and the kill list.
-  const wt = state.night.whoreTarget;
-  const justKilled = Array.isArray(r.killed) && r.killed.includes(wt);
-  if (wt != null && wt >= 0 && state.players[wt]?.alive && !justKilled) {
-    const name = escapeHtml(state.players[wt].name);
-    lines.push(`<div class="resolve-line resolve-note">${t('actions.resolveWhoreAlibi', { name })}</div>`);
-  }
-
-  if (r.sheriffResult) {
-    const name = escapeHtml(state.players[state.night.sheriffCheck].name);
-    const verdict = r.sheriffResult === 'mafia' ? t('actions.sheriffSawMafia') : t('actions.sheriffSawNotMafia');
-    lines.push(`<div class="resolve-line resolve-info">${t('actions.resolveSheriff', { name, verdict })}</div>`);
-  }
-  if (r.donResult) {
-    const name = escapeHtml(state.players[state.night.donCheck].name);
-    const verdict = r.donResult === 'sheriff' ? t('actions.donSawSheriff') : t('actions.donSawNotSheriff');
-    lines.push(`<div class="resolve-line resolve-info">${t('actions.resolveDon', { name, verdict })}</div>`);
-  }
-
-  if (r.veteranSaved != null) {
-    const name = escapeHtml(state.players[r.veteranSaved].name);
-    lines.push(`<div class="resolve-line resolve-saved">${t('actions.resolveVeteranSave', { name })}</div>`);
-  }
-  if (r.veteranKill != null) {
-    const name = escapeHtml(state.players[r.veteranKill].name);
-    lines.push(`<div class="resolve-line resolve-death">${t('actions.resolveVeteranKill', { name })}</div>`);
-    if (state.players[r.veteranKill]?.role === 'maniac') {
-      lines.push(`<div class="resolve-line resolve-note">${t('actions.resolveVeteranPreempt')}</div>`);
-    }
-  }
-
-  const blocked = [];
-  if (r.blocked.mafia) blocked.push(t('roles.mafia.name'));
-  if (r.blocked.maniac) blocked.push(t('roles.maniac.name'));
-  if (r.blocked.doctor) blocked.push(t('roles.doctor.name'));
-  if (r.blocked.sheriff) blocked.push(t('roles.sheriff.name'));
-  if (r.blocked.veteran) blocked.push(t('roles.veteran.name'));
-  if (blocked.length > 0) {
-    lines.push(`<div class="resolve-line resolve-note">${t('actions.resolveBlocked', { list: blocked.join(', ') })}</div>`);
-  }
-
-  if (lines.length === 0) return '';
 
   return `
     <div class="step-card action-card resolve-card">
       <div class="step-title">${t('actions.resolveTitle')}</div>
       <div class="resolve-subtitle">${t('actions.resolveSubtitle')}</div>
+      ${sections.join('')}
+    </div>
+  `;
+}
+
+function renderResolveSection(title, lines) {
+  return `
+    <div class="resolve-section">
+      <div class="resolve-section-head">${title}</div>
       ${lines.join('')}
     </div>
   `;
+}
+
+function resolveLine(html, cls = 'resolve-info') {
+  return `<div class="resolve-line ${cls}">${html}</div>`;
+}
+
+function playerNameRole(idx) {
+  const p = state.players[idx];
+  return {
+    name: escapeHtml(p.name),
+    role: getRoleName(p.role),
+  };
+}
+
+// Who attacked `idx` this night (not blocked, first-night rule respected).
+function attackersOn(idx) {
+  const n = state.night;
+  const r = n.resolved;
+  const list = [];
+  if (state.day > 1 && n.mafiaTarget === idx && !r.blocked.mafia) list.push('mafia');
+  if (n.maniacTarget === idx && !r.blocked.maniac) list.push('maniac');
+  if (r.veteranKill === idx) list.push('veteran');
+  return list;
+}
+
+// Compose an {from: …} / {cause: …} fragment from an attacker set.
+function attackersPhrase(attackers, keyPrefix) {
+  const has = (a) => attackers.includes(a);
+  let suffix;
+  if (has('mafia') && has('maniac') && has('veteran')) suffix = 'All';
+  else if (has('mafia') && has('maniac')) suffix = 'MafiaManiac';
+  else if (has('mafia') && has('veteran')) suffix = 'MafiaVeteran';
+  else if (has('maniac') && has('veteran')) suffix = 'ManiacVeteran';
+  else if (has('mafia')) suffix = 'Mafia';
+  else if (has('maniac')) suffix = 'Maniac';
+  else if (has('veteran')) suffix = 'Veteran';
+  else return '';
+  return t(`actions.${keyPrefix}${suffix}`);
+}
+
+function buildOutcomeLines(r) {
+  const killed = Array.isArray(r.killed) ? r.killed : [];
+  if (killed.length === 0) {
+    return [resolveLine(t('actions.resolvePeaceful'), 'resolve-info')];
+  }
+  return killed.map(idx => {
+    const nr = playerNameRole(idx);
+    const cause = causeFor(idx, r);
+    return resolveLine(t('actions.resolveKilledLine', { ...nr, cause }), 'resolve-death');
+  });
+}
+
+function causeFor(idx, r) {
+  if (state.players[idx]?.role === 'whore' && r.whoreDied) {
+    return t('actions.resolveCauseWhoreAtMafia');
+  }
+  const phrase = attackersPhrase(attackersOn(idx), 'resolveCause');
+  return phrase || t('actions.resolveCauseMafia');
+}
+
+function buildActionLines(r, isFirstNight) {
+  const n = state.night;
+  const lines = [];
+
+  // MAFIA (skip on first night — no kill step runs)
+  const hasMafia = state.players.some(p => (p.role === 'mafia' || p.role === 'don') && p.alive);
+  if (hasMafia && !isFirstNight) {
+    if (r.blocked.mafia) {
+      lines.push(resolveLine(t('actions.resolveMafiaBlocked'), 'resolve-note'));
+    } else if (n.mafiaTarget == null || n.mafiaTarget < 0) {
+      lines.push(resolveLine(t('actions.resolveMafiaSkipped'), 'resolve-note'));
+    } else {
+      const nr = playerNameRole(n.mafiaTarget);
+      if (r.killed.includes(n.mafiaTarget)) {
+        lines.push(resolveLine(t('actions.resolveMafiaKill', nr), 'resolve-death'));
+      } else {
+        if (r.savedByDoctor === n.mafiaTarget) {
+          lines.push(resolveLine(t('actions.resolveMafiaSavedDoctor', nr), 'resolve-saved'));
+        }
+        if (r.veteranSaved === n.mafiaTarget) {
+          lines.push(resolveLine(t('actions.resolveMafiaSavedVeteran', nr), 'resolve-saved'));
+        }
+      }
+    }
+  }
+
+  // MANIAC (acts on every night including first)
+  const hasManiac = state.optionalRoles?.maniac && state.players.some(p => p.role === 'maniac' && p.alive);
+  if (hasManiac) {
+    if (r.blocked.maniac) {
+      lines.push(resolveLine(t('actions.resolveManiacBlocked'), 'resolve-note'));
+    } else if (n.maniacTarget == null || n.maniacTarget < 0) {
+      lines.push(resolveLine(t('actions.resolveManiacSkipped'), 'resolve-note'));
+    } else {
+      const nr = playerNameRole(n.maniacTarget);
+      if (r.killed.includes(n.maniacTarget)) {
+        lines.push(resolveLine(t('actions.resolveManiacKill', nr), 'resolve-death'));
+      } else {
+        if (r.savedByDoctor === n.maniacTarget) {
+          lines.push(resolveLine(t('actions.resolveManiacSavedDoctor', nr), 'resolve-saved'));
+        }
+        if (r.veteranSaved === n.maniacTarget) {
+          lines.push(resolveLine(t('actions.resolveManiacSavedVeteran', nr), 'resolve-saved'));
+        }
+      }
+    }
+  }
+
+  // VETERAN (blocked → single note; save/kill → detailed line)
+  const hasVeteran = state.optionalRoles?.veteran && state.players.some(p => p.role === 'veteran' && p.alive);
+  if (hasVeteran) {
+    if (r.blocked.veteran) {
+      lines.push(resolveLine(t('actions.resolveVeteranBlocked'), 'resolve-note'));
+    } else if (n.veteranAction === 'save' && n.veteranTarget != null && n.veteranTarget >= 0) {
+      const nr = playerNameRole(n.veteranTarget);
+      const from = attackersPhrase(attackersOn(n.veteranTarget), 'resolveFrom');
+      if (from) {
+        lines.push(resolveLine(t('actions.resolveVeteranSaveHelped', { ...nr, from }), 'resolve-saved'));
+      } else {
+        lines.push(resolveLine(t('actions.resolveVeteranSaveWasted', nr), 'resolve-note'));
+      }
+    } else if (n.veteranAction === 'kill' && n.veteranTarget != null && n.veteranTarget >= 0) {
+      const nr = playerNameRole(n.veteranTarget);
+      lines.push(resolveLine(t('actions.resolveVeteranKill', nr), 'resolve-death'));
+      if (state.players[n.veteranTarget]?.role === 'maniac') {
+        lines.push(resolveLine(t('actions.resolveManiacPreempted'), 'resolve-note'));
+      }
+    }
+  }
+
+  // DOCTOR
+  const hasDoctor = state.optionalRoles?.doctor && state.players.some(p => p.role === 'doctor' && p.alive);
+  if (hasDoctor) {
+    if (r.blocked.doctor) {
+      lines.push(resolveLine(t('actions.resolveDoctorBlocked'), 'resolve-note'));
+    } else if (n.doctorTarget != null && n.doctorTarget >= 0) {
+      const nr = playerNameRole(n.doctorTarget);
+      const from = attackersPhrase(attackersOn(n.doctorTarget), 'resolveFrom');
+      if (from && r.savedByDoctor === n.doctorTarget) {
+        lines.push(resolveLine(t('actions.resolveDoctorSaved', { ...nr, from }), 'resolve-saved'));
+      } else {
+        lines.push(resolveLine(t('actions.resolveDoctorNoAttack', nr), 'resolve-note'));
+      }
+    }
+  }
+
+  // WHORE — only her special mafia-visit fate. Regular visits surface via the
+  // block lines (per affected role) and the alibi line in block 3.
+  if (r.whoreDied && r.whoreSavedByDoctor) {
+    lines.push(resolveLine(t('actions.resolveWhoreToMafiaSaved'), 'resolve-saved'));
+  } else if (r.whoreDied) {
+    lines.push(resolveLine(t('actions.resolveWhoreToMafiaDied'), 'resolve-death'));
+  } else if (r.whoreAtMafia) {
+    const key = r.blocked.mafia ? 'resolveWhoreToMafiaAliveBlocked' : 'resolveWhoreToMafiaAliveNotBlocked';
+    lines.push(resolveLine(t(`actions.${key}`), 'resolve-note'));
+  }
+
+  // SHERIFF / DON — only surface when blocked (they act verbally, no target state)
+  if (r.blocked.sheriff) {
+    lines.push(resolveLine(t('actions.resolveSheriffBlocked'), 'resolve-note'));
+  }
+  if (r.blocked.don) {
+    lines.push(resolveLine(t('actions.resolveDonBlocked'), 'resolve-note'));
+  }
+
+  return lines;
+}
+
+function buildEffectLines(r) {
+  const lines = [];
+  const wt = state.night.whoreTarget;
+  const justKilled = Array.isArray(r.killed) && r.killed.includes(wt);
+  if (wt != null && wt >= 0 && state.players[wt]?.alive && !justKilled) {
+    const nr = playerNameRole(wt);
+    lines.push(resolveLine(t('actions.resolveAlibi', nr), 'resolve-info'));
+  }
+  return lines;
 }
 
 /**

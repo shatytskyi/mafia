@@ -52,7 +52,7 @@ test('theme round-trip', () => {
 
 test('applySnapshotToState merges missing gameOptions', () => {
   const state = {
-    playerCount: 0, optionalRoles: {}, gameOptions: { sheriffSeesManiac: 'afterMafia', whoreDiesAtMafia: false },
+    playerCount: 0, optionalRoles: {}, gameOptions: { whoreDiesAtMafia: false },
     players: [], day: 1, phase: 'night', stepIndex: 0, night: {},
     doctorHistory: [], doctorSelfUsed: false, whoreHistory: [], dayVoteKilled: null, winner: null, screen: 'home'
   };
@@ -63,14 +63,14 @@ test('applySnapshotToState merges missing gameOptions', () => {
   };
   applySnapshotToState(state, data);
   assert.equal(state.screen, 'host');
-  assert.deepEqual(state.gameOptions, { sheriffSeesManiac: 'afterMafia', whoreDiesAtMafia: false });
+  assert.deepEqual(state.gameOptions, { whoreDiesAtMafia: false });
   assert.equal(state.day, 2);
   assert.deepEqual(state.doctorHistory, []);
 });
 
 test('buildSnapshot copies required fields', () => {
   const state = {
-    playerCount: 6, optionalRoles: { don: true }, gameOptions: { sheriffSeesManiac: 'always', whoreDiesAtMafia: true },
+    playerCount: 6, optionalRoles: { don: true }, gameOptions: { whoreDiesAtMafia: true },
     players: [{ name: 'A', role: 'mafia', alive: true }],
     day: 3, phase: 'vote', stepIndex: 0,
     night: { mafiaTarget: 1 }, doctorHistory: [2], doctorSelfUsed: true, whoreHistory: [3],

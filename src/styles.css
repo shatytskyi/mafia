@@ -16,6 +16,7 @@
   --red:         #c8102e;   /* vermillion CTA / accent */
   --red-hot:     #ff2e49;   /* pulsing high */
   --red-ink:     #8c0c20;   /* red as small text */
+  --maniac:      #7a4a1b;   /* sepia-brown for the lone-wolf role */
   --line:        rgba(15, 13, 12, 0.22);
   --line-soft:   rgba(15, 13, 12, 0.10);
   --overlay:     rgba(15, 13, 12, 0.06);
@@ -37,13 +38,14 @@
   color-scheme: dark;
 
   --bg:        #0e0b0a;
-  --paper:     #181513;
+  --paper:     #1a140f;
   --ink:       #f4efe7;
   --ink-2:     #d9d2c4;
   --dim:       #9a9184;
   --red:       #ef4b60;
   --red-hot:   #ff7a8d;
   --red-ink:   #ff6b7e;
+  --maniac:    #c78a4e;
   --line:      rgba(244, 239, 231, 0.22);
   --line-soft: rgba(244, 239, 231, 0.10);
   --overlay:   rgba(244, 239, 231, 0.06);
@@ -350,27 +352,31 @@ input, textarea {
 
 /* ─── Home · role distribution ──────────────────────────────── */
 .role-dist {
-  border: 1px solid var(--line);
-  background: var(--paper);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 18px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
 }
 
 .role-dist .cell {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 13px 16px;
-  border-bottom: 1px solid var(--line-soft);
+  gap: 10px;
+  padding: 10px 0;
+  min-width: 0;
+  border-top: 1px solid var(--line-soft);
 }
 
-.role-dist .cell:last-child { border-bottom: none; }
+.role-dist .cell:nth-child(-n + 2) { border-top: none; }
 
 .role-dist .cell.muted { opacity: 0.45; }
 
 .role-dist .role-icon {
   font-family: var(--font-display);
-  font-size: 22px;
+  font-size: 20px;
   line-height: 1;
-  width: 28px;
+  width: 24px;
   text-align: center;
   color: var(--ink);
   flex-shrink: 0;
@@ -379,26 +385,35 @@ input, textarea {
 .role-dist .role-icon.mafia,
 .role-dist .role-icon.don { color: var(--red); }
 
+.role-dist .role-icon.maniac { color: var(--maniac); }
+
 .role-dist .txt { flex: 1; min-width: 0; }
 
 .role-dist .role-name {
   font-family: var(--font-sans);
   font-weight: 700;
-  font-size: 15px;
+  font-size: 14px;
   color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .role-dist .role-count {
   font-family: var(--font-display);
-  font-size: 22px;
+  font-size: 20px;
   color: var(--ink);
-  min-width: 38px;
+  min-width: 28px;
   text-align: right;
 }
 
 .role-dist .cell:has(.role-icon.mafia) .role-count,
 .role-dist .cell:has(.role-icon.don) .role-count {
   color: var(--red);
+}
+
+.role-dist .cell:has(.role-icon.maniac) .role-count {
+  color: var(--maniac);
 }
 
 /* ─── Home · role toggles ───────────────────────────────────── */
@@ -820,7 +835,7 @@ input, textarea {
 }
 
 .role-card-flipper.flipped {
-  transform: rotateY(180deg);
+  transform: rotateY(-180deg);
   cursor: default;
 }
 
@@ -838,7 +853,7 @@ input, textarea {
   background: var(--paper);
   border: 1px solid var(--line);
   padding: 22px 22px 24px;
-  transform: rotateY(180deg);
+  transform: rotateY(-180deg);
   display: flex;
   flex-direction: column;
   text-align: left;
@@ -1367,6 +1382,10 @@ input, textarea {
 .roster-row:has(.role-icon.mafia) .roster-role,
 .roster-row:has(.role-icon.don)   .roster-role { color: var(--red); }
 
+.roster-row .role-icon.maniac { color: var(--maniac); }
+
+.roster-row:has(.role-icon.maniac) .roster-role { color: var(--maniac); }
+
 /* ─── Actions · target rows ─────────────────────────────────── */
 .action-card {
   margin-top: 16px;
@@ -1382,6 +1401,19 @@ input, textarea {
   gap: 0;
   border-top: 1px solid var(--line-soft);
 }
+
+/* Two-column variant for night-action target selectors. Mirrors the roster
+   layout so the host can map target cells to player rows at a glance. */
+.target-grid.target-grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 14px;
+}
+
+.target-grid.target-grid-2col .target-chip { gap: 10px; padding: 12px 8px; }
+.target-grid.target-grid-2col .target-chip .chip-name { padding-right: 26px; }
+.target-grid.target-grid-2col .chip-mark { right: 6px; gap: 0; }
+.target-grid.target-grid-2col .chip-mark-label { display: none; }
 
 .target-chip {
   width: 100%;
@@ -1717,8 +1749,25 @@ input, textarea {
   font-family: var(--font-sans);
   font-size: 12px;
   color: var(--dim);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   letter-spacing: 0.02em;
+}
+
+.resolve-section {
+  margin-top: 12px;
+}
+.resolve-section:first-of-type { margin-top: 0; }
+
+.resolve-section-head {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--dim);
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 2px;
 }
 
 .resolve-line {
@@ -1726,17 +1775,26 @@ input, textarea {
   border-bottom: 1px solid var(--line-soft);
   font-family: var(--font-display);
   font-size: 17px;
-  line-height: 1.3;
+  line-height: 1.35;
   color: var(--ink);
 }
 
-.resolve-line:last-child { border-bottom: none; }
+.resolve-section .resolve-line:last-child { border-bottom: none; }
 
 .resolve-line strong { font-weight: 400; color: var(--red); }
+.resolve-line em {
+  font-family: var(--font-sans);
+  font-style: normal;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--dim);
+  text-transform: uppercase;
+}
 
 .resolve-line.resolve-saved { color: var(--ink); }
 .resolve-line.resolve-death { color: var(--red); }
 .resolve-line.resolve-note  { color: var(--ink-2); font-style: italic; }
+.resolve-line.resolve-note em { font-style: normal; }
 .resolve-line.resolve-info  { color: var(--ink); }
 
 /* ─── Timer ──────────────────────────────────────────────────── */
@@ -1958,6 +2016,32 @@ input, textarea {
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--dim);
+}
+
+.version-footer-sep {
+  margin: 0 0.5em;
+  opacity: 0.55;
+}
+
+.install-link {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.15s ease;
+}
+
+.install-link:hover,
+.install-link:focus-visible {
+  color: var(--ink);
+  outline: none;
 }
 
 /* ─── Install banner (PWA) ──────────────────────────────────── */

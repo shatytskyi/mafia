@@ -4,10 +4,8 @@ import { t } from '../i18n/index.js';
 /**
  * @typedef {object} NightSelections
  * @property {number|null} mafiaTarget
- * @property {number|null} donCheck
  * @property {number|null} whoreTarget
  * @property {number|null} doctorTarget
- * @property {number|null} sheriffCheck
  * @property {number|null} maniacTarget
  * @property {any} [resolved]
  * @property {boolean} [applied]
@@ -15,7 +13,6 @@ import { t } from '../i18n/index.js';
 
 /**
  * @typedef {object} GameOptions
- * @property {'never'|'afterMafia'|'always'} sheriffSeesManiac
  * @property {boolean} whoreDiesAtMafia
  */
 
@@ -23,9 +20,7 @@ import { t } from '../i18n/index.js';
  * @typedef {object} NightResult
  * @property {number[]} killed
  * @property {number|null} savedByDoctor
- * @property {{mafia?: boolean, maniac?: boolean, doctor?: boolean, sheriff?: boolean}} blocked
- * @property {'mafia'|'notMafia'|null} sheriffResult
- * @property {'sheriff'|'notSheriff'|null} donResult
+ * @property {{mafia?: boolean, maniac?: boolean, doctor?: boolean, sheriff?: boolean, don?: boolean, veteran?: boolean}} blocked
  * @property {boolean} whoreDied
  * @property {boolean} [whoreAtMafia]
  * @property {boolean} [whoreSavedByDoctor]
@@ -150,8 +145,6 @@ export function resolveNight(state) {
     killed: [],
     savedByDoctor: null,
     blocked: {},
-    sheriffResult: null,
-    donResult: null,
     whoreDied: false,
     veteranSaved: null,
     veteranKill: null
@@ -161,14 +154,13 @@ export function resolveNight(state) {
   const mafiaBlocked = wb.mafia;
   let maniacBlocked = wb.maniac;
   const doctorBlocked = wb.doctor;
-  const sheriffBlocked = wb.sheriff;
-  const donBlocked = wb.donCheck;
   const veteranBlocked = wb.veteran;
 
   if (wb.mafia) result.blocked.mafia = true;
   if (wb.maniac) result.blocked.maniac = true;
   if (wb.doctor) result.blocked.doctor = true;
   if (wb.sheriff) result.blocked.sheriff = true;
+  if (wb.donCheck) result.blocked.don = true;
   if (wb.veteran) result.blocked.veteran = true;
 
   if (n.whoreTarget != null && n.whoreTarget >= 0) {
@@ -180,26 +172,6 @@ export function resolveNight(state) {
         result.whoreAtMafia = true;
       }
     }
-  }
-
-  if (n.sheriffCheck != null && n.sheriffCheck >= 0 && !sheriffBlocked) {
-    const checkedRole = getRole(players, n.sheriffCheck);
-    let looksLikeMafia = isMafiaRole(checkedRole);
-    if (!looksLikeMafia && checkedRole === 'maniac') {
-      const mode = gameOptions.sheriffSeesManiac || 'afterMafia';
-      if (mode === 'always') {
-        looksLikeMafia = true;
-      } else if (mode === 'afterMafia') {
-        const mafiaAlive = players.some(p => p.alive && isMafiaRole(p.role));
-        if (!mafiaAlive) looksLikeMafia = true;
-      }
-    }
-    result.sheriffResult = looksLikeMafia ? 'mafia' : 'notMafia';
-  }
-
-  if (n.donCheck != null && n.donCheck >= 0 && !donBlocked) {
-    const checkedRole = getRole(players, n.donCheck);
-    result.donResult = checkedRole === 'sheriff' ? 'sheriff' : 'notSheriff';
   }
 
   let mafiaVictim = null;
@@ -347,12 +319,6 @@ function appendNightLog(state) {
   const r = n.resolved;
   if (!r) return;
 
-  const sheriff = r.sheriffResult && n.sheriffCheck != null && n.sheriffCheck >= 0
-    ? { target: n.sheriffCheck, result: r.sheriffResult }
-    : null;
-  const don = r.donResult && n.donCheck != null && n.donCheck >= 0
-    ? { target: n.donCheck, result: r.donResult }
-    : null;
   const mafia = (n.mafiaTarget != null && n.mafiaTarget >= 0 && !r.blocked.mafia && state.day > 1)
     ? { target: n.mafiaTarget }
     : null;
@@ -385,8 +351,6 @@ function appendNightLog(state) {
     day: state.day,
     killed: [...r.killed],
     savedByDoctor: r.savedByDoctor != null ? r.savedByDoctor : null,
-    sheriff,
-    don,
     mafia,
     maniac,
     whore,
