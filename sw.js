@@ -2,7 +2,7 @@
 // Bump CACHE_VERSION together with APP_VERSION so old caches are purged on activate.
 // Hosted as a plain static file (e.g. GitHub Pages) — no server code required.
 
-const CACHE_VERSION = 'v1.9.0';
+const CACHE_VERSION = 'v1.14.0';
 const CACHE_NAME = `mafia-${CACHE_VERSION}`;
 
 // Resolve URLs relative to the worker's own location so subpath hosting works
@@ -11,6 +11,7 @@ const SHELL_URLS = [
   './',
   './index.html',
   './favicon.svg',
+  './icon-maskable.svg',
   './manifest.webmanifest',
 ].map(p => new URL(p, self.location).toString());
 

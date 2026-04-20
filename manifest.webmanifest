@@ -1,20 +1,25 @@
 {
-  "name": "Mafia — Game Master",
-  "short_name": "Mafia",
+  "name": "Мафия — Игровой Мастер",
+  "short_name": "Мафия",
   "description": "Host helper for the party game Mafia",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#ebe2c9",
-  "theme_color": "#ebe2c9",
-  "lang": "en",
+  "background_color": "#faf6ed",
+  "theme_color": "#f4efe7",
   "icons": [
     {
       "src": "./favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
+    },
+    {
+      "src": "./icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
     }
   ]
 }
