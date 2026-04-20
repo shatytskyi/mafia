@@ -66,6 +66,7 @@ export function renderDeal({ render }) {
       </div>
 
       <div class="role-card-stage">
+        <div class="role-card-lift">
         <div class="role-card-flipper${alreadyFlipped ? ' flipped' : ''}" id="cardFlipper"
              role="button" tabindex="0" aria-label="${t('deal.backHint')}">
           <div class="role-card role-card-front">
@@ -86,6 +87,7 @@ export function renderDeal({ render }) {
               <div class="card-back-hint">${t('deal.backHint')}</div>
             </div>
           </div>
+        </div>
         </div>
       </div>
 
