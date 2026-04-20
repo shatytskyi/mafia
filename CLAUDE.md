@@ -78,5 +78,6 @@ Chore-only commits (docs, CI, gitignore) don't need a bump.
 
 ## Further reading
 
+- `docs/design-system.md` — "Theatrical Poster" design language (tokens, typography, components, motion). Read this before touching styles or adding UI.
 - `docs/game-rules.md` for edge cases and role interactions.
 - `docs/superpowers/specs/2026-04-19-architecture-refactor-design.md` for the refactor rationale.
