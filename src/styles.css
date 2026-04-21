@@ -1834,8 +1834,9 @@ input, textarea {
 }
 
 .timer-controls .nav-btn.primary {
-  background: var(--ink);
-  color: var(--bg);
+  background: var(--overlay);
+  color: var(--ink);
+  border: 1px solid var(--ink);
   font-family: var(--font-sans);
   font-weight: 700;
   font-size: 12px;

@@ -105,6 +105,10 @@ export function renderDeal({ render }) {
 
   if (!alreadyFlipped) {
     const flip = () => {
+      // Block taps while any flip animation is in progress — otherwise a click
+      // during the reverse flip (after "Next") would re-trigger the forward
+      // flip, since .flipped has already been removed at that point.
+      if (screen.classList.contains('is-flipping')) return;
       if (flipper.classList.contains('flipped')) return;
       state.dealPhase = 'shown';
       screen.classList.add('is-flipping', 'revealed');
