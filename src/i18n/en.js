@@ -79,7 +79,7 @@ export const en = {
       hint: 'After the pick — "Whore, close your eyes."',
       rules: 'She cannot visit herself; no same target two nights in a row.',
       tipsDies: 'Visits a mafioso — the Whore dies, and the mafia kills no one that night.',
-      tipsAlive: 'Her target’s night action will not fire. Visits a mafioso — she has an alibi; the mafia is blocked only if that was their last living member.',
+      tipsAlive: 'Her target’s night action will not fire. Visits a mafioso — the Whore survives; the mafia is blocked only if that was their last living member.',
       label: 'Whom the Whore visits',
     },
     mafiaKill: {
