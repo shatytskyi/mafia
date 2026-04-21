@@ -58,6 +58,25 @@ export function tRaw(key) {
   return resolve(DICTS[DEFAULT_LOCALE], key);
 }
 
+/**
+ * Pick a deterministic variant from an array-valued i18n key and interpolate.
+ * Same {day} yields the same string so navigating back shows stable copy.
+ * Falls back to the default locale's array if the active locale doesn't
+ * define one, and to the key itself if neither does.
+ *
+ * @param {string} key
+ * @param {Record<string, any>} [params]
+ * @param {number} [day] 1-based game day; defaults to 1 if missing/invalid.
+ * @returns {string}
+ */
+export function tList(key, params, day) {
+  let list = resolve(DICTS[currentLocale], key);
+  if (!Array.isArray(list)) list = resolve(DICTS[DEFAULT_LOCALE], key);
+  if (!Array.isArray(list) || list.length === 0) return key;
+  const d = Math.max(1, Number(day) || 1);
+  return interpolate(list[(d - 1) % list.length], params);
+}
+
 export function getLocale() { return currentLocale; }
 
 export function setLocale(locale) {

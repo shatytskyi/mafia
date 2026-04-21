@@ -100,6 +100,8 @@ function stepCardHtml(step, steps) {
       <div class="step-title">${t('host.hostSays')}</div>
       <div class="step-say">${step.say}</div>
       ${step.hint ? `<div class="step-hint">${step.hint}</div>` : ''}
+      ${step.rules ? `<div class="step-rules">${step.rules}</div>` : ''}
+      ${step.tips ? `<div class="step-tips">${step.tips}</div>` : ''}
     </div>
   `;
 }

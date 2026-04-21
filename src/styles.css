@@ -1216,8 +1216,10 @@ input, textarea {
   font-style: normal;
 }
 
-.step-hint {
-  margin-top: 12px;
+.step-hint,
+.step-rules,
+.step-tips {
+  margin-top: 10px;
   padding: 10px 12px 10px 14px;
   border-left: 3px solid var(--red);
   background: var(--paper);
@@ -1227,8 +1229,11 @@ input, textarea {
   color: var(--ink-2);
 }
 
-.step-hint::before {
-  content: 'СОВЕТ';
+.step-hint { margin-top: 12px; }
+
+.step-hint::before,
+.step-rules::before,
+.step-tips::before {
   display: inline-block;
   margin-right: 8px;
   font-family: var(--font-mono);
@@ -1239,6 +1244,13 @@ input, textarea {
   text-transform: uppercase;
   vertical-align: baseline;
 }
+
+.step-hint::before { content: 'СКРИПТ'; }
+
+.step-rules { border-left-color: var(--dim); }
+.step-rules::before { content: 'ПРАВИЛО'; color: var(--dim); }
+
+.step-tips::before { content: 'СОВЕТ'; }
 
 /* nav row */
 .nav-row {

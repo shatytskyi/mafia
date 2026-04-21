@@ -1,5 +1,5 @@
 import { getWhoreBlocks, canDoctorHeal, canWhoreGo, canVeteranAct } from './night.js';
-import { t } from '../i18n/index.js';
+import { t, tList } from '../i18n/index.js';
 
 /**
  * @typedef {object} StepAction
@@ -18,13 +18,28 @@ import { t } from '../i18n/index.js';
  * @typedef {object} Step
  * @property {string} title
  * @property {string} say
- * @property {string} [hint]
+ * @property {string} [hint]   Host-only cue: what to say off-record / gesture signals.
+ * @property {string} [rules]  Short role constraints (1–2 lines).
+ * @property {string} [tips]   Situational advice; omit when not useful.
  * @property {string} [cls]
  * @property {StepAction} [action]
  * @property {number|null} [timerSeconds]
  * @property {string} [timerLabel]
  * @property {string} [summary]
  */
+
+/**
+ * Deterministic variant pick — same {day} yields the same text, so navigating
+ * back to the dawn step shows the same copy.
+ * @param {string[]} variants
+ * @param {number} day
+ * @returns {string}
+ */
+export function pickDawnVariant(variants, day) {
+  if (!Array.isArray(variants) || variants.length === 0) return '';
+  const d = Math.max(1, Number(day) || 1);
+  return variants[(d - 1) % variants.length];
+}
 
 /**
  * Build the public "host says" script for the dawn step. Combines the wake-up
@@ -42,22 +57,23 @@ function buildDawnSay(state, isFirstNight) {
   if (!resolved) return wakeUp;
 
   const killed = resolved.killed || [];
+  const day = state.day;
   let announcement;
   if (killed.length === 0) {
     announcement = isFirstNight
-      ? t('steps.victimsPeacefulFirst')
-      : t('steps.victimsPeacefulLater', { day: state.day });
+      ? tList('steps.dawn.peacefulFirst', {}, day)
+      : tList('steps.dawn.peacefulLater', { day }, day);
   } else {
     const names = killed.map(idx => state.players[idx].name).join(', ');
     const plural = killed.length > 1;
     if (isFirstNight) {
       announcement = plural
-        ? t('steps.victimsDeathFirstMany', { names })
-        : t('steps.victimsDeathFirstOne', { names });
+        ? tList('steps.dawn.deathFirstMany', { names }, day)
+        : tList('steps.dawn.deathFirstOne', { names }, day);
     } else {
       announcement = plural
-        ? t('steps.victimsDeathLaterMany', { names, day: state.day })
-        : t('steps.victimsDeathLaterOne', { names, day: state.day });
+        ? tList('steps.dawn.deathLaterMany', { names, day }, day)
+        : tList('steps.dawn.deathLaterOne', { names, day }, day);
     }
   }
   return `${wakeUp}<br><br>${announcement}`;
@@ -95,13 +111,15 @@ export function getNightSteps(state) {
   // Whore goes first among active roles so blocks resolve before others act.
   if (state.optionalRoles.whore && hasAlive('whore')) {
     const atMafia = state.gameOptions.whoreDiesAtMafia
-      ? t('steps.whore.hintDies')
-      : t('steps.whore.hintAlive');
+      ? t('steps.whore.tipsDies')
+      : t('steps.whore.tipsAlive');
     steps.push({
       title: t('steps.whore.title'),
       cls: 'whore-action',
       say: t('steps.whore.say'),
-      hint: t('steps.whore.hint', { atMafia }),
+      hint: t('steps.whore.hint'),
+      rules: t('steps.whore.rules'),
+      tips: atMafia,
       action: {
         type: 'pickTarget',
         field: 'whoreTarget',
@@ -114,8 +132,9 @@ export function getNightSteps(state) {
     });
   }
 
-  // Mafia kill step (non-first-night only). Closing script lives here when Don
-  // is NOT active; otherwise Don's step will close all mafia.
+  // Mafia kill step (non-first-night only). Blocked variant uses the SAME
+  // `say` as the regular flow — the only difference is the host hint — so
+  // Mafia can't deduce the Whore visited them.
   if (!isFirstNight && hasMafia) {
     const closing = hasDonActive
       ? t('steps.mafiaKill.closingDon')
@@ -124,7 +143,7 @@ export function getNightSteps(state) {
       steps.push({
         title: t('steps.mafiaKill.title'),
         cls: 'mafia-action',
-        say: t('steps.mafiaKill.sayBlocked'),
+        say: t('steps.mafiaKill.say'),
         hint: t('steps.mafiaKill.hintBlocked', { closing }),
         action: {
           type: 'blockedAction',
@@ -154,26 +173,26 @@ export function getNightSteps(state) {
   }
 
   // Don check. The host sees every role in the roster panel below and signals
-  // the verdict verbally — the app just scripts the beats. Closing varies:
-  // first night puts Don back to sleep alone; later nights close the entire
-  // mafia (including Don).
+  // the verdict verbally. Blocked variant keeps the same `say`; only `hint`
+  // flips to the masking script.
   if (hasDonActive) {
     const opening = isFirstNight ? t('steps.don.opening') : '';
     const closing = isFirstNight
       ? t('steps.don.closingFirst')
       : t('steps.don.closingLater');
+    const say = t('steps.don.say', { opening });
     if (blocks.donCheck) {
       steps.push({
         title: t('steps.don.title'),
         cls: 'mafia-action',
-        say: t('steps.don.sayBlocked', { opening }),
+        say,
         hint: t('steps.don.hintBlocked', { closing }),
       });
     } else {
       steps.push({
         title: t('steps.don.title'),
         cls: 'mafia-action',
-        say: t('steps.don.say', { opening }),
+        say,
         hint: t('steps.don.hint', { closing }),
       });
     }
@@ -184,7 +203,7 @@ export function getNightSteps(state) {
       steps.push({
         title: t('steps.doctor.title'),
         cls: 'doctor-action',
-        say: t('steps.doctor.sayBlocked'),
+        say: t('steps.doctor.say'),
         hint: t('steps.doctor.hintBlocked'),
         action: {
           type: 'blockedAction',
@@ -199,6 +218,8 @@ export function getNightSteps(state) {
         cls: 'doctor-action',
         say: t('steps.doctor.say'),
         hint: t('steps.doctor.hint'),
+        rules: t('steps.doctor.rules'),
+        tips: t('steps.doctor.tips'),
         action: {
           type: 'pickTarget',
           field: 'doctorTarget',
@@ -213,13 +234,14 @@ export function getNightSteps(state) {
   }
 
   // Sheriff check. Host reads the verdict off the roster panel and signals
-  // the Sheriff by hand — no picker, no result banner.
+  // the Sheriff by hand — no picker, no result banner. Blocked variant
+  // reuses the same `say`.
   if (hasAlive('sheriff')) {
     if (blocks.sheriff) {
       steps.push({
         title: t('steps.sheriff.title'),
         cls: 'sheriff-action',
-        say: t('steps.sheriff.sayBlocked'),
+        say: t('steps.sheriff.say'),
         hint: t('steps.sheriff.hintBlocked'),
       });
     } else {
@@ -233,14 +255,14 @@ export function getNightSteps(state) {
   }
 
   // Veteran — sits between Sheriff and Maniac so his kill can pre-empt the
-  // Maniac's action this night. Whore-block is rendered as a blockedAction;
-  // the attempt burns the underlying latch regardless.
+  // Maniac's action this night. Whore-block reuses the same `say`; the
+  // attempt burns the underlying latch regardless.
   if (state.optionalRoles.veteran && hasAlive('veteran')) {
     if (blocks.veteran) {
       steps.push({
         title: t('steps.veteran.title'),
         cls: 'veteran-action',
-        say: t('steps.veteran.sayBlocked'),
+        say: t('steps.veteran.say'),
         hint: t('steps.veteran.hintBlocked'),
         action: {
           type: 'blockedAction',
@@ -255,6 +277,8 @@ export function getNightSteps(state) {
         cls: 'veteran-action',
         say: t('steps.veteran.say'),
         hint: t('steps.veteran.hint'),
+        rules: t('steps.veteran.rules'),
+        tips: t('steps.veteran.tips'),
         action: {
           type: 'pickVeteran',
           field: 'veteranTarget',
@@ -281,7 +305,7 @@ export function getNightSteps(state) {
       steps.push({
         title: t('steps.maniac.title'),
         cls: 'maniac-action',
-        say: t('steps.maniac.sayBlocked'),
+        say: t('steps.maniac.say'),
         hint: t('steps.maniac.hintBlocked'),
         action: {
           type: 'blockedAction',
@@ -291,11 +315,15 @@ export function getNightSteps(state) {
         }
       });
     } else {
+      const tips = isFirstNight
+        ? t('steps.maniac.tipsFirst')
+        : t('steps.maniac.tips');
       steps.push({
         title: t('steps.maniac.title'),
         cls: 'maniac-action',
         say: t('steps.maniac.say'),
-        hint: t(isFirstNight ? 'steps.maniac.hintFirst' : 'steps.maniac.hint'),
+        hint: t('steps.maniac.hint'),
+        tips,
         action: {
           type: 'pickTarget',
           field: 'maniacTarget',
@@ -344,8 +372,8 @@ export function getDaySteps(state) {
     steps.push({
       title: t('steps.victimsTitle'),
       say: plural
-        ? t('steps.victimsLastWordMany', { names })
-        : t('steps.victimsLastWordOne', { names }),
+        ? tList('steps.victimsLastWordMany', { names }, state.day)
+        : tList('steps.victimsLastWordOne', { names }, state.day),
       hint: t('steps.victimsHint'),
       timerSeconds: 30,
       timerLabel: t('steps.victimsTimerLabel'),
