@@ -16,38 +16,38 @@ export const en = {
   roles: {
     mafia: {
       name: 'Mafia',
-      desc: 'Each night you and your accomplices pick a victim. By day, blend in with the townsfolk and throw everyone off.',
+      desc: 'Each night, together with your accomplices, you pick a victim. By day, blend in with the civilians.',
     },
     civilian: {
       name: 'Civilian',
       nameLabel: 'Civilians',
-      desc: 'You have no special powers. Your weapons are logic, intuition and persuasion. Find the mafia before it is too late.',
+      desc: 'You have no night ability. Find the mafia by voting before they pick you off.',
     },
     sheriff: {
       name: 'Sheriff',
-      desc: 'Each night you check one player — the host shows whether they are mafia. Beware: once the mafia knows you, you become their top target.',
+      desc: 'Each night you check one player — the host shows whether they are mafia. Beware: once exposed, the Sheriff is the mafia’s first target.',
     },
     doctor: {
       name: 'Doctor',
-      desc: 'Each night you heal one player — they survive any night attack (mafia, the Maniac, or the Veteran’s strike). You cannot heal the same player two nights in a row. You can heal yourself only once per game.',
+      desc: 'Each night you heal one player — they survive any night attack. You cannot heal the same player two nights in a row. Yourself — only once per game.',
     },
     don: {
       name: 'Mafia Don',
       nameShort: 'Don',
-      desc: 'You lead the mafia. Alongside the kills, each night you can check whether a player is the Sheriff.',
+      desc: 'You lead the mafia. You take part in the night kill and each night you can check whether a player is the Sheriff.',
     },
     maniac: {
       name: 'Maniac',
-      desc: 'You play for yourself. Every night, including the first, you kill one player. You win when the mafia is gone and at most one civilian remains.',
+      desc: 'You play alone. Every night, including the first, you kill one player. You win when the mafia is gone and at most one civilian remains.',
     },
     whore: {
       name: 'Whore',
-      desc: 'Each night you pick a player — they "sleep over" and cannot use their night ability; they have an alibi for that day and cannot be voted out. No visits to yourself; no same target two nights in a row. At the mafia you do not die, but you block them only if that was their last living member.',
-      descDies: 'Each night you pick a player — they "sleep over" and cannot use their night ability; they have an alibi for that day and cannot be voted out. No visits to yourself; no same target two nights in a row. Careful: visit the mafia and you die — but the mafia kills no one that night.',
+      desc: 'Each night you pick a player — they "sleep over" and cannot use their night ability, and by day they have an alibi and cannot be voted out. No visits to yourself, and no same target two nights in a row. Visiting the mafia is safe — but you only block them if you caught their last living member.',
+      descDies: 'Each night you pick a player — they "sleep over" and cannot use their night ability, and by day they have an alibi and cannot be voted out. No visits to yourself, and no same target two nights in a row. Visit the mafia and you die — but the mafia kills no one that night.',
     },
     veteran: {
       name: 'Veteran',
-      desc: 'Once per game, at night, you save any player from death; once per game — you kill anyone (not yourself). Strike the Maniac before his turn — he does not kill that night. Reads as civilian to the Sheriff.',
+      desc: 'Once per game, at night, you save any player; once per game, you kill anyone (except yourself). Strike the Maniac before his turn — he does not kill that night. The Sheriff sees you as a civilian.',
     },
   },
 
